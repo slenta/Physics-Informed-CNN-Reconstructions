@@ -11,4 +11,5 @@ lat = ds['lat'][:]
 time = ds['time'][:]
 
 
-print(ds, lon[0:20], lat[0:20], time[0:20])
+
+print(lon[0:20], lat[0:20], time[0:20])
