@@ -2,7 +2,8 @@ import torch
 from torchvision.utils import make_grid
 from torchvision.utils import save_image
 
-from util.image import unnormalize
+from image import unnormalize
+
 
 
 def evaluate(model, dataset, device, filename):
