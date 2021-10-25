@@ -12,7 +12,7 @@ from evaluation import evaluate
 from loss import InpaintingLoss
 from net import PConvUNet
 from net import VGG16FeatureExtractor
-from places2 import Places2
+from dataloader import MaskDataset
 from util.io import load_ckpt
 from util.io import save_ckpt
 
@@ -43,10 +43,11 @@ class InfiniteSampler(data.sampler.Sampler):
 
 parser = argparse.ArgumentParser()
 # training options
-parser.add_argument('--root', type=str, default='/srv/datasets/Places2')
-parser.add_argument('--mask_root', type=str, default='./masks')
-parser.add_argument('--save_dir', type=str, default='./snapshots/default')
+parser.add_argument('--root', type=str, default='/Asi_maskiert/')
+parser.add_argument('--mask_root', type=str, default='./masked_images')
+parser.add_argument('--save_dir', type=str, default='./pdfs')
 parser.add_argument('--log_dir', type=str, default='./logs/default')
+parser.add_argument('--mask_year', type=str, default='2020')
 parser.add_argument('--lr', type=float, default=2e-4)
 parser.add_argument('--lr_finetune', type=float, default=5e-5)
 parser.add_argument('--max_iter', type=int, default=1000000)
@@ -78,15 +79,15 @@ img_tf = transforms.Compose(
 mask_tf = transforms.Compose(
     [transforms.ToTensor()])
 
-dataset_train = Places2(args.root, args.mask_root, img_tf, mask_tf, 'train')
-dataset_val = Places2(args.root, args.mask_root, img_tf, mask_tf, 'val')
+dataset_train = MaskDataset(args.mask_year)
+dataset_val = MaskDataset(args.mask_year)
 
 iterator_train = iter(data.DataLoader(
     dataset_train, batch_size=args.batch_size,
     sampler=InfiniteSampler(len(dataset_train)),
     num_workers=args.n_threads))
 print(len(dataset_train))
-model = PConvUNet().to(device)
+model = PConvUNet()
 
 if args.finetune:
     lr = args.lr_finetune
@@ -97,7 +98,7 @@ else:
 start_iter = 0
 optimizer = torch.optim.Adam(
     filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
-criterion = InpaintingLoss(VGG16FeatureExtractor()).to(device)
+criterion = InpaintingLoss(VGG16FeatureExtractor())
 
 if args.resume:
     start_iter = load_ckpt(
@@ -109,7 +110,7 @@ if args.resume:
 for i in tqdm(range(start_iter, args.max_iter)):
     model.train()
 
-    image, mask, gt = [x.to(device) for x in next(iterator_train)]
+    mask, image, gt = [x for x in next(iterator_train)]
     #print(image.shape)
     #print(mask.shape)
     #print(gt.shape)

@@ -5,7 +5,7 @@ import netCDF4 as nc
 import h5py
 import torch
 from torch.utils.data import Dataset
-
+import xarray as xr
 
 
 
@@ -13,22 +13,20 @@ from torch.utils.data import Dataset
 
 def preprocessing(path, name, type, plot):
     
-    ds = nc.Dataset(path + name + '.nc')
-        
+    #ds = nc.Dataset(path + name + '.nc')
+    ds = xr.load_dataset(path + name + '.nc', decode_times=False)
+
     #extract the variables from the file
-    lon = ds['lon'][:]
-    lat = ds['lat'][:]
-    time = ds['time'][:]
-
     if type == 'mask':
-        sst = ds['sao'][:]
-    elif type == 'image':
-        sst = ds['tos'][:]
+        sst = ds.sao.values[:, 0, :, :]
+        rest = np.ones((12, 36, 256)) * 9999
+        sst_new = np.concatenate((sst, rest), axis=1)
 
-
-    #complete sst data to create symmetric shape
-    rest = np.ones((754, 36, 256)) * 9999
-    sst_new = np.concatenate((sst, rest), axis=1)
+    if type == 'image':
+        sst = ds.tos.values
+       
+        rest = np.ones((754, 36, 256)) * 9999
+        sst_new = np.concatenate((sst, rest), axis=1)
 
     #plot ssts in 2d plot
     if plot == True:
@@ -51,22 +49,21 @@ class MaskDataset(Dataset):
         self.image_path = 'Asi_maskiert/original_image/'
         self.mask_path = 'Asi_maskiert/original_masks/'
         self.masked_images_path = 'Asi_maskiert/masked_images/'
+        self.image_name = 'Assimilation_1958_2020'
+        self.mask_name = 'Maske_'
+        self.masked_images_name = 'tos_r8_mask_en4_'
         self.year = year
 
     def __getitem__(self, index):
 
-        #create h5 datasets
-        preprocessing(self.image_path , 'Assimilation_1958_2020', 'image', True)
-        preprocessing(self.mask_path, 'Maske_' + self.year, 'mask', False)
-        preprocessing(self.masked_images_path, 'tos_r8_mask_en4_' + self.year, 'image', True)
-
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
-        f_image = h5py.File(self.image_path + '.hdf5')
-        f_mask = h5py.File(self.mask_path + self.year + '.hdf5')
-        f_masked_image = h5py.File(self.masked_images_path + self.year + '.hdf5')
+        f_image = h5py.File(self.image_path + self.image_name + '.hdf5', 'r')
+        f_mask = h5py.File(self.mask_path + self.mask_name + self.year + '.hdf5', 'r')
+        f_masked_image = h5py.File(self.masked_images_path + self.masked_images_name + self.year + '.hdf5', 'r')
 
         #extract sst data/mask data
         image_data = f_image.get('tos_sym')
+        print(image_data)
         mask_data = f_mask.get('tos_sym')
         masked_image_data = f_masked_image.get('tos_sym')
 
@@ -75,12 +72,12 @@ class MaskDataset(Dataset):
         mask = torch.from_numpy(mask_data[index, :, :])
         masked_image = torch.from_numpy(masked_image_data[index, :, :])
 
-        return masked_image, mask, image
+        return mask, image, masked_image
 
     def __len__(self):
         
         #print length of time dimension
-        f_image = h5py.File(self.image_path + self.year + '.hdf5')
+        f_image = h5py.File(self.image_path + self.image_name + '.hdf5', 'r')
         image_data = f_image.get('tos_sym')
         n_samples = len(image_data[:, 1, 1])
         return n_samples
@@ -89,8 +86,8 @@ class MaskDataset(Dataset):
 dataset = MaskDataset('2020')
 
 #get sample and unpack
-first_data = dataset[0]
-time, features, labels = first_data
+first_data = dataset
+mask, image, maske_image = first_data[0]
 #print(time, features, labels)
 
 
