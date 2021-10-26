@@ -63,7 +63,7 @@ class MaskDataset(Dataset):
 
         #extract sst data/mask data
         image_data = f_image.get('tos_sym')
-        print(image_data)
+        #print(image_data)
         mask_data = f_mask.get('tos_sym')
         masked_image_data = f_masked_image.get('tos_sym')
 
