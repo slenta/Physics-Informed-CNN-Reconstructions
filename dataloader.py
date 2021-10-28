@@ -70,8 +70,11 @@ class MaskDataset(Dataset):
         #convert to pytorch tensors
         image = torch.from_numpy(image_data[index, :, :])
         mask = torch.from_numpy(mask_data[index, :, :])
-        mask = mask.repeat(10, 1, 1)
         masked_image = torch.from_numpy(masked_image_data[index, :, :])
+
+        mask = mask.repeat(3, 1, 1)
+        image = image.repeat(3, 1, 1)
+        masked_image = masked_image.repeat(3, 1, 1)
 
         return masked_image, mask, image
 
@@ -89,6 +92,7 @@ dataset = MaskDataset('2020')
 #get sample and unpack
 first_data = dataset
 masked_image, mask, image = first_data[0]
+print(mask.shape)
 #print(time, features, labels)
 
 
