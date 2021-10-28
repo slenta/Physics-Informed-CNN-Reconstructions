@@ -70,7 +70,9 @@ class PartialConv(nn.Module):
         # http://masc.cs.gmu.edu/wiki/partialconv
         # C(X) = W^T * X + b, C(0) = b, D(M) = 1 * M + 0 = sum(M)
         # W^T* (M .* X) / sum(M) + b = [C(M .* X) – C(0)] / D(M) + C(0)
-
+        
+        print(input.shape, mask.shape)
+        
         output = self.input_conv(input * mask)
         if self.input_conv.bias is not None:
             output_bias = self.input_conv.bias.view(1, -1, 1, 1).expand_as(
@@ -131,15 +133,15 @@ class PCBActiv(nn.Module):
 #        self.enc_1 = PCBActiv(input_channels, 64, bn=False, sample='down-7')
 #        self.enc_2 = PCBActiv(64, 128, sample='down-5')
 #        self.enc_3 = PCBActiv(128, 256, sample='down-5')
-#        self.enc_4 = PCBActiv(256, 512, sample='down-3')
+#        self.enc_4 = PCBActiv(256, 256, sample='down-3')
 #        for i in range(4, self.layer_size):
 #            name = 'enc_{:d}'.format(i + 1)
-#            setattr(self, name, PCBActiv(512, 512, sample='down-3'))
+#            setattr(self, name, PCBActiv(256, 256, sample='down-3'))
 
 #        for i in range(4, self.layer_size):
 #            name = 'dec_{:d}'.format(i + 1)
-#            setattr(self, name, PCBActiv(512 + 512, 512, activ='leaky'))
-#        self.dec_4 = PCBActiv(512 + 256, 256, activ='leaky')
+#            setattr(self, name, PCBActiv(256 + 256, 256, activ='leaky'))
+#        self.dec_4 = PCBActiv(256 + 256, 256, activ='leaky')
 #        self.dec_3 = PCBActiv(256 + 128, 128, activ='leaky')
 #        self.dec_2 = PCBActiv(128 + 64, 64, activ='leaky')
 #        self.dec_1 = PCBActiv(64 + input_channels, input_channels,
@@ -151,21 +153,21 @@ class PConvUNet(nn.Module):
         self.freeze_enc_bn = False
         self.upsampling_mode = upsampling_mode
         self.layer_size = layer_size
-        self.enc_1 = PCBActiv(input_channels, 18, bn=False, sample='down-7')
-        self.enc_2 = PCBActiv(18, 36, sample='down-5')
-        self.enc_3 = PCBActiv(36, 72, sample='down-5')
-        self.enc_4 = PCBActiv(72, 72, sample='down-3')
+        self.enc_1 = PCBActiv(input_channels, 16, bn=False, sample='down-7')
+        self.enc_2 = PCBActiv(16, 32, sample='down-5')
+        self.enc_3 = PCBActiv(32, 64, sample='down-5')
+        self.enc_4 = PCBActiv(64, 64, sample='down-3')
         for i in range(4, self.layer_size):
             name = 'enc_{:d}'.format(i + 1)
-            setattr(self, name, PCBActiv(72, 72, sample='down-3'))
+            setattr(self, name, PCBActiv(64, 64, sample='down-3'))
 
         for i in range(4, self.layer_size):
             name = 'dec_{:d}'.format(i + 1)
-            setattr(self, name, PCBActiv(72 + 72, 72, activ='leaky'))
-        self.dec_4 = PCBActiv(72 + 72, 72, activ='leaky')
-        self.dec_3 = PCBActiv(72 + 36, 36, activ='leaky')
-        self.dec_2 = PCBActiv(36 + 18, 18, activ='leaky')
-        self.dec_1 = PCBActiv(18 + input_channels, input_channels,
+            setattr(self, name, PCBActiv(64 + 64, 64, activ='leaky'))
+        self.dec_4 = PCBActiv(64 + 64, 64, activ='leaky')
+        self.dec_3 = PCBActiv(64 + 32, 32, activ='leaky')
+        self.dec_2 = PCBActiv(32 + 16, 16, activ='leaky')
+        self.dec_1 = PCBActiv(16 + input_channels, input_channels,
                               bn=False, activ=None, conv_bias=True)
 
 
