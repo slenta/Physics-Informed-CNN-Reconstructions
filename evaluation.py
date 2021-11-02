@@ -19,8 +19,10 @@ def evaluate(model, dataset, device, filename):
         output, _ = model(image, mask)
     print(type(output), np.shape(np.array(mask)), np.shape(np.array(image)), np.shape(np.array(gt)))
     output_comp = torch.matmul(mask, image) + torch.matmul((1 - mask), output)
-
+    print(output_comp.shape)
     grid = make_grid(
         torch.cat((unnormalize(image), mask, unnormalize(output),
                    unnormalize(output_comp), unnormalize(gt)), dim=0))
+    
+    print(type(grid), grid.shape)
     save_image(grid, filename)

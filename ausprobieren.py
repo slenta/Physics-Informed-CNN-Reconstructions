@@ -42,21 +42,28 @@ sst = ds['sao']
 image =  xr.load_dataset('/home/simon/Master-Arbeit/Asi_maskiert/original_image/Assimilation_1958_2020.nc', decode_times=False)
 sst = image.tos.values
 #print(sst[0])
-print(sst.shape)
-print('')
-maske = xr.load_dataset('/home/simon/Master-Arbeit/Asi_maskiert/original_masks/Maske_2020.nc', decode_times=False)
-sao = maske.sao.values
+#print(sst.shape)
+#print('')
+#maske = xr.load_dataset('/home/simon/Master-Arbeit/Asi_maskiert/original_masks/Maske_2020.nc', decode_times=False)
+#sao = maske.sao.values
 
-f_mask = h5py.File( '/home/simon/Master-Arbeit/Asi_maskiert/original_masks/Maske_2020.hdf5', 'r')
-mask_data = f_mask.get('tos_sym')
+#f_mask = h5py.File( '/home/simon/Master-Arbeit/Asi_maskiert/original_masks/Maske_2020.hdf5', 'r')
+#mask_data = f_mask.get('tos_sym')
 
-mask = torch.from_numpy(sao)
-print(mask.shape)
-mask = mask.unsqueeze(0)
-print(mask.shape)
-b = mask[0, 0, :,:]
-mask = b.repeat(3, 1, 1)
-print(mask.shape)
+#mask = torch.from_numpy(sao)
+#print(mask.shape)
+#mask = mask.unsqueeze(0)
+#print(mask.shape)
+#b = mask[0, 0, :,:]
+#mask = b.repeat(3, 1, 1)
+#print(mask.shape)
 
-mask = torch.stack(mask)
-print(mask.shape)
+#mask = torch.stack(mask)
+#print(mask.shape)
+
+a = np.ones((1, 2, 3))
+print(a)
+print(np.shape(a))
+a = np.repeat(a, 3, axis=0)
+print(np.shape(a))
+print(a)

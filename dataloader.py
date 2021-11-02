@@ -1,9 +1,15 @@
 import math
+from matplotlib.pyplot import plot
 import pylab as plt
 import numpy as np
 import netCDF4 as nc
 import h5py
 import torch
+from torch._C import dtype
+#from torch._C import float32
+#from torch._C import float32
+#from torch._C import double
+from torch.utils import data
 from torch.utils.data import Dataset
 import xarray as xr
 
@@ -13,20 +19,40 @@ import xarray as xr
 
 def preprocessing(path, name, type, plot):
     
-    #ds = nc.Dataset(path + name + '.nc')
+    #ds = nc.Dataset(path + 'Asi_maskiert/masked_images/'name + '.nc')
     ds = xr.load_dataset(path + name + '.nc', decode_times=False)
 
     #extract the variables from the file
     if type == 'mask':
-        sst = ds.sao.values[:, 0, :, :]
+        sst = ds.tho.values[:, 0, :, :]
+        print(np.shape(sst))
         rest = np.ones((12, 36, 256)) * 9999
         sst_new = np.concatenate((sst, rest), axis=1)
+        sst_new = np.repeat(sst_new, 63, axis=0)
+        print(np.shape(sst_new))
+        #create new h5 file with symmetric ssts
+        f = h5py.File(path + name + '.hdf5', 'w')
+        dset1 = f.create_dataset('tos_sym', (756, 256, 256), dtype = 'float32', data = sst_new)
+        f.close()
 
     if type == 'image':
         sst = ds.tos.values
-       
         rest = np.ones((754, 36, 256)) * 9999
         sst_new = np.concatenate((sst, rest), axis=1)
+        #print(np.shape(sst_new))
+        #for i in range(754):
+        #    for j in range(256):
+        #        for n in range(256):
+        #            if sst_new[i, j, n] == 0:
+        #                print('true')
+        #            else:
+        #                print('false')
+        #                break
+        
+        #create new h5 file with symmetric ssts
+        f = h5py.File(path + name + '.hdf5', 'w')
+        dset1 = f.create_dataset('tos_sym', (754, 256, 256), dtype = 'float32',data = sst_new)
+        f.close()
 
     #plot ssts in 2d plot
     if plot == True:
@@ -35,10 +61,10 @@ def preprocessing(path, name, type, plot):
         plt.colorbar(pixel_plot)
         plt.savefig('Asi_maskiert/pdfs/' + name + '.pdf')
 
-    #create new h5 file with symmetric ssts
-    f = h5py.File(path + name + '.hdf5', 'w')
-    sst_new = f.create_dataset('tos_sym', (754, 256, 256))
-    f.close()
+
+preprocessing('Asi_maskiert/masked_images/', 'tos_r8_mask_en4_2020', type='image', plot=False)
+preprocessing('Asi_maskiert/original_masks/', 'Maske_2020', type='mask', plot = False)
+preprocessing('Asi_maskiert/original_image/', 'Assimilation_1958_2020', type='image', plot=False)
 
 
 class MaskDataset(Dataset):
@@ -72,9 +98,14 @@ class MaskDataset(Dataset):
         mask = torch.from_numpy(mask_data[index, :, :])
         masked_image = torch.from_numpy(masked_image_data[index, :, :])
 
+        #image = torch.unsqueeze(image, dim=1)
+        #mask = torch.unsqueeze(mask, dim=1)
+        #masked_image = torch.unsqueeze(masked_image, dim=1)
+
         mask = mask.repeat(3, 1, 1)
         image = image.repeat(3, 1, 1)
         masked_image = masked_image.repeat(3, 1, 1)
+        #print(mask.shape)
 
         return masked_image, mask, image
 
@@ -92,8 +123,23 @@ dataset = MaskDataset('2020')
 #get sample and unpack
 first_data = dataset
 masked_image, mask, image = first_data[0]
-print(mask.shape)
-#print(time, features, labels)
 
+print(image.dtype)
+#masked = mask * image
+#print(masked.shape)
+#print(masked_image.shape)
 
+#pixel_plot = plt.figure()
+#pixel_plot = plt.imshow(mask[0], vmin=-30, vmax=45)
+#plt.colorbar(pixel_plot)
+#plt.show()
 
+#print(np.shape(sst_new))
+#for i in range(3):
+#    for j in range(256):
+#        for n in range(256):
+#            if masked_image[i, j, n] == masked[i, j, n]:
+#                print('true')
+#            else:
+#                print('false')
+#                break
