@@ -53,9 +53,9 @@ parser.add_argument('--lr_finetune', type=float, default=5e-5)
 parser.add_argument('--max_iter', type=int, default=250)
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--n_threads', type=int, default=16) 
-parser.add_argument('--save_model_interval', type=int, default=1)
+parser.add_argument('--save_model_interval', type=int, default=50)
 parser.add_argument('--vis_interval', type=int, default=1)
-parser.add_argument('--log_interval', type=int, default=10)
+parser.add_argument('--log_interval', type=int, default=50)
 parser.add_argument('--image_size', type=int, default=256)
 parser.add_argument('--resume', type=str)
 parser.add_argument('--finetune', action='store_true')
@@ -109,7 +109,7 @@ if args.resume:
 for i in tqdm(range(start_iter, args.max_iter)):
     model.train()
     print(i)
-    image, mask, gt = [x for x in next(iterator_train)]
+    gt, mask, image = [x for x in next(iterator_train)]
     print(image.shape)
     print(mask.shape)
     print(gt.shape)
