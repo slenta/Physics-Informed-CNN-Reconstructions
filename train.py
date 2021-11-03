@@ -50,11 +50,11 @@ parser.add_argument('--log_dir', type=str, default='./logs/default')
 parser.add_argument('--mask_year', type=str, default='2020')
 parser.add_argument('--lr', type=float, default=2e-4)
 parser.add_argument('--lr_finetune', type=float, default=5e-5)
-parser.add_argument('--max_iter', type=int, default=250)
+parser.add_argument('--max_iter', type=int, default=1000)
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--n_threads', type=int, default=16) 
 parser.add_argument('--save_model_interval', type=int, default=50)
-parser.add_argument('--vis_interval', type=int, default=1)
+parser.add_argument('--vis_interval', type=int, default=100)
 parser.add_argument('--log_interval', type=int, default=50)
 parser.add_argument('--image_size', type=int, default=256)
 parser.add_argument('--resume', type=str)
@@ -109,10 +109,10 @@ if args.resume:
 for i in tqdm(range(start_iter, args.max_iter)):
     model.train()
     print(i)
-    gt, mask, image = [x for x in next(iterator_train)]
-    print(image.shape)
-    print(mask.shape)
-    print(gt.shape)
+    image, mask, gt = [x for x in next(iterator_train)]
+    #print(image.shape)
+    #print(mask.shape)
+    #print(gt.shape)
     output, _ = model(image, mask)
     loss_dict = criterion(image, mask, output, gt)
 
