@@ -43,19 +43,19 @@ class InfiniteSampler(data.sampler.Sampler):
 
 parser = argparse.ArgumentParser()
 # training options
-parser.add_argument('--root', type=str, default='/Asi_maskiert/')
-parser.add_argument('--mask_root', type=str, default='./masked_images')
-parser.add_argument('--save_dir', type=str, default='./pdfs')
+parser.add_argument('--root', type=str, default='/')
+parser.add_argument('--mask_root', type=str, default='Asi_maskiert/masked_images/')
+parser.add_argument('--save_dir', type=str, default='Asi_maskiert/results/')
 parser.add_argument('--log_dir', type=str, default='./logs/default')
 parser.add_argument('--mask_year', type=str, default='2020')
 parser.add_argument('--lr', type=float, default=2e-4)
 parser.add_argument('--lr_finetune', type=float, default=5e-5)
-parser.add_argument('--max_iter', type=int, default=1000000)
+parser.add_argument('--max_iter', type=int, default=1000)
 parser.add_argument('--batch_size', type=int, default=16)
-parser.add_argument('--n_threads', type=int, default=16)
-parser.add_argument('--save_model_interval', type=int, default=50000)
-parser.add_argument('--vis_interval', type=int, default=5000)
-parser.add_argument('--log_interval', type=int, default=10)
+parser.add_argument('--n_threads', type=int, default=16) 
+parser.add_argument('--save_model_interval', type=int, default=50)
+parser.add_argument('--vis_interval', type=int, default=100)
+parser.add_argument('--log_interval', type=int, default=50)
 parser.add_argument('--image_size', type=int, default=256)
 parser.add_argument('--resume', type=str)
 parser.add_argument('--finetune', action='store_true')
@@ -73,7 +73,7 @@ if not os.path.exists(args.log_dir):
 writer = SummaryWriter(log_dir=args.log_dir)
 
 size = (args.image_size, args.image_size)
-#size = (288, 288)
+#size = (256, 256)
 img_tf = transforms.Compose(
     [transforms.Normalize(mean=opt.MEAN, std=opt.STD)])
 mask_tf = transforms.Compose(
@@ -82,9 +82,8 @@ mask_tf = transforms.Compose(
 dataset_train = MaskDataset(args.mask_year)
 dataset_val = MaskDataset(args.mask_year)
 
-iterator_train = iter(data.DataLoader(
-    dataset_train, batch_size=args.batch_size,
-    sampler=InfiniteSampler(len(dataset_train)),
+iterator_train = iter(data.DataLoader(dataset_train, 
+    batch_size=args.batch_size, sampler=InfiniteSampler(len(dataset_train)),
     num_workers=args.n_threads))
 print(len(dataset_train))
 model = PConvUNet()
@@ -109,8 +108,8 @@ if args.resume:
 
 for i in tqdm(range(start_iter, args.max_iter)):
     model.train()
-
-    mask, image, gt = [x for x in next(iterator_train)]
+    print(i)
+    image, mask, gt = [x for x in next(iterator_train)]
     #print(image.shape)
     #print(mask.shape)
     #print(gt.shape)
