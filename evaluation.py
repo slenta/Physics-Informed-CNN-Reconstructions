@@ -30,4 +30,4 @@ def evaluate(model, dataset, device, filename):
     dset2 = f.create_dataset('output', (8, 3, 256, 256), dtype = 'float32',data = output)
     f.close()
     
-    save_image(grid, filename)
+    save_image(grid, filename + '.jpg')

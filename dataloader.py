@@ -44,16 +44,7 @@ def preprocessing(path, name, type, plot):
         #print(np.any(np.isnan(sst)))
         rest = np.ones((754, 36, 256)) * 9999
         sst_new = np.concatenate((sst, rest), axis=1)
-        #print(np.shape(sst_new))
-        #for i in range(754):
-        #    for j in range(256):
-        #        for n in range(256):
-        #            if sst_new[i, j, n] == 0:
-        #                print('true')
-        #            else:
-        #                print('false')
-        #                break
-        
+         
         #create new h5 file with symmetric ssts
         f = h5py.File(path + name + '.hdf5', 'w')
         dset1 = f.create_dataset('tos_sym', (754, 256, 256), dtype = 'float32',data = sst_new)
