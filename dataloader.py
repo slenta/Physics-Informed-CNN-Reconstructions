@@ -78,9 +78,9 @@ class MaskDataset(Dataset):
     def __init__(self, year):
         super(MaskDataset, self).__init__()
 
-        self.image_path = 'Asi_maskiert/original_image/'
-        self.mask_path = 'Asi_maskiert/original_masks/'
-        self.masked_images_path = 'Asi_maskiert/masked_images/'
+        self.image_path = '../Asi_maskiert/original_image/'
+        self.mask_path = '../Asi_maskiert/original_masks/'
+        self.masked_images_path = '../Asi_maskiert/masked_images/'
         self.image_name = 'Assimilation_1958_2020'
         self.mask_name = 'Maske_'
         self.masked_images_name = 'tos_r8_mask_en4_'

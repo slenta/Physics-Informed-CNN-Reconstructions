@@ -44,8 +44,8 @@ class InfiniteSampler(data.sampler.Sampler):
 parser = argparse.ArgumentParser()
 # training options
 parser.add_argument('--root', type=str, default='/')
-parser.add_argument('--mask_root', type=str, default='Asi_maskiert/masked_images/')
-parser.add_argument('--save_dir', type=str, default='Asi_maskiert/results/')
+parser.add_argument('--mask_root', type=str, default='../Asi_maskiert/masked_images/')
+parser.add_argument('--save_dir', type=str, default='../Asi_maskiert/results/')
 parser.add_argument('--log_dir', type=str, default='./logs/default')
 parser.add_argument('--mask_year', type=str, default='2020')
 parser.add_argument('--lr', type=float, default=2e-4)
