@@ -28,6 +28,7 @@ def evaluate(model, dataset, device, filename):
     f = h5py.File(filename + '.hdf5', 'w')
     dset1 = f.create_dataset('image', (8, 3, 256, 256), dtype = 'float32',data = gt)
     dset2 = f.create_dataset('output', (8, 3, 256, 256), dtype = 'float32',data = output)
+    dset3 = f.create_dataset('output_comp', (8, 3, 256, 256), dtype = 'float32',data = output_comp)
     f.close()
     
     save_image(grid, filename + '.jpg')

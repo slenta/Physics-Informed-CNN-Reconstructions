@@ -26,7 +26,15 @@ def preprocessing(path, name, type, plot):
     if type == 'mask':
         sst = ds.tho.values[:, 0, :, :]
         x = np.isnan(sst)
-        sst[x] = 9999
+        #sst[x] = -9999
+        for i in range(12):
+            for j in range(220):
+                for k in range(256):
+                    if np.isnan(sst[i, j, k]) == True:
+                        sst[i, j, k] = 0.0001
+                    else:
+                        sst[i, j, k] = 1
+        
         #print(np.shape(sst))
         rest = np.ones((12, 36, 256)) * 9999
         sst_new = np.concatenate((sst, rest), axis=1)
@@ -40,9 +48,9 @@ def preprocessing(path, name, type, plot):
     if type == 'image':
         sst = ds.tos.values
         x = np.isnan(sst)
-        sst[x] = 9999
+        sst[x] = 9999999
         #print(np.any(np.isnan(sst)))
-        rest = np.ones((754, 36, 256)) * 9999
+        rest = np.ones((754, 36, 256)) * 9999999
         sst_new = np.concatenate((sst, rest), axis=1)
          
         #create new h5 file with symmetric ssts
@@ -55,13 +63,13 @@ def preprocessing(path, name, type, plot):
         pixel_plot = plt.figure()
         pixel_plot = plt.imshow(sst_new[1], vmin=-30, vmax=45)
         plt.colorbar(pixel_plot)
-        plt.savefig('Asi_maskiert/pdfs/' + name + '.pdf')
+        plt.savefig('../Asi_maskiert/pdfs/' + name + '.pdf')
         plt.show()
 
 
-#preprocessing('Asi_maskiert/masked_images/', 'tos_r8_mask_en4_2020', type='image', plot=False)
-#preprocessing('Asi_maskiert/original_masks/', 'Maske_2020', type='mask', plot = False)
-#preprocessing('Asi_maskiert/original_image/', 'Assimilation_1958_2020', type='image', plot=True)
+#preprocessing('../Asi_maskiert/masked_images/', 'tos_r8_mask_en4_2020', type='image', plot=True)
+preprocessing('../Asi_maskiert/original_masks/', 'Maske_2020', type='mask', plot = False)
+#preprocessing('../Asi_maskiert/original_image/', 'Assimilation_1958_2020', type='image', plot=True)
 
 
 class MaskDataset(Dataset):
@@ -107,7 +115,7 @@ class MaskDataset(Dataset):
         masked_image = masked_image.repeat(3, 1, 1)
         #print(mask.shape)
 
-        return masked_image, mask, image
+        return mask * image, mask, image
 
     def __len__(self):
         
@@ -124,16 +132,6 @@ dataset = MaskDataset('2020')
 first_data = dataset
 masked_image, mask, image = first_data[0]
 
-print(torch.any(masked_image.isnan()))
-#print(masked_image)
+#print(torch.any(image.isnan()))
 
-#print(np.shape(sst_new))
-#for i in range(3):
-#    for j in range(256):
-#        for n in range(256):
-#            if torch.isnan(mask):
-#                print('true')
-#                break
-#             else:
-#                print('false')
-                
+
