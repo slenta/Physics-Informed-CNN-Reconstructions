@@ -17,6 +17,9 @@ from util.io import load_ckpt
 from util.io import save_ckpt
 
 import torch.multiprocessing as mp
+
+import sys
+print(sys.path)
 #mp.set_start_method('spawn')
 
 class InfiniteSampler(data.sampler.Sampler):
@@ -50,7 +53,7 @@ parser.add_argument('--log_dir', type=str, default='./logs/default')
 parser.add_argument('--mask_year', type=str, default='2020')
 parser.add_argument('--lr', type=float, default=2e-4)
 parser.add_argument('--lr_finetune', type=float, default=5e-5)
-parser.add_argument('--max_iter', type=int, default=500)
+parser.add_argument('--max_iter', type=int, default=3)
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--n_threads', type=int, default=16) 
 parser.add_argument('--save_model_interval', type=int, default=50)
