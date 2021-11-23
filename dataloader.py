@@ -31,12 +31,12 @@ def preprocessing(path, name, type, plot):
             for j in range(220):
                 for k in range(256):
                     if np.isnan(sst[i, j, k]) == True:
-                        sst[i, j, k] = 0.001
+                        sst[i, j, k] = 0.1
                     else:
                         sst[i, j, k] = 1
         
         #print(np.shape(sst))
-        rest = np.ones((12, 36, 256)) * 0.001
+        rest = np.ones((12, 36, 256)) * 0.1
         sst_new = np.concatenate((sst, rest), axis=1)
         sst_new = np.repeat(sst_new, 63, axis=0)
         #print(np.shape(sst_new))
@@ -48,9 +48,9 @@ def preprocessing(path, name, type, plot):
     if type == 'image':
         sst = ds.tos.values
         x = np.isnan(sst)
-        sst[x] = 999999
+        sst[x] = 9999
         #print(np.any(np.isnan(sst)))
-        rest = np.ones((754, 36, 256)) * 999999
+        rest = np.ones((754, 36, 256)) * 9999
         sst_new = np.concatenate((sst, rest), axis=1)
          
         #create new h5 file with symmetric ssts
@@ -61,15 +61,15 @@ def preprocessing(path, name, type, plot):
     #plot ssts in 2d plot
     if plot == True:
         pixel_plot = plt.figure()
-        pixel_plot = plt.imshow(sst_new[1], vmin=-30, vmax=45)
+        pixel_plot = plt.imshow(sst_new[1], vmin=-0, vmax=1)
         plt.colorbar(pixel_plot)
         plt.savefig('../Asi_maskiert/pdfs/' + name + '.pdf')
         plt.show()
 
 
 #preprocessing('../Asi_maskiert/masked_images/', 'tos_r8_mask_en4_2020', type='image', plot=True)
-#preprocessing('../Asi_maskiert/original_masks/', 'Maske_2020', type='mask', plot = False)
-#preprocessing('../Asi_maskiert/original_image/', 'Assimilation_1958_2020', type='image', plot=True)
+preprocessing('../Asi_maskiert/original_masks/', 'Maske_2020', type='mask', plot = False)
+#preprocessing('../Asi_maskiert/original_image/', 'Assimilation_1958_2020', type='image', plot=False)
 
 
 class MaskDataset(Dataset):

@@ -16,13 +16,13 @@ def visualisation(iter):
     plt.subplot(1, 3, 1)
     plt.imshow(image_data, vmin=-10, vmax=40, cmap='jet', aspect='auto')
     plt.subplot(1, 3, 2)
-    im2 = plt.imshow(output_comp, vmin=100, vmax=5000, cmap='jet', aspect='auto')
+    im2 = plt.imshow(output_comp, cmap='jet', aspect='auto')
     plt.subplot(1, 3, 3)
-    im1 = plt.imshow(output_data, vmin=0, vmax=0.01, cmap='jet', aspect='auto')
+    im1 = plt.imshow(output_data, cmap='jet', vmin = 0, vmax = 0.1, aspect='auto')
     #print(output_data)
-    plt.colorbar(im1)
+    plt.colorbar(im2)
     plt.show()
     #print(output_data, output_comp)
 
 
-visualisation('1')
+visualisation('2')
