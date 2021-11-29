@@ -68,7 +68,7 @@ def preprocessing(path, name, type, plot):
 
 
 #preprocessing('../Asi_maskiert/masked_images/', 'tos_r8_mask_en4_2020', type='image', plot=True)
-preprocessing('../Asi_maskiert/original_masks/', 'Maske_2020', type='mask', plot = False)
+#preprocessing('../Asi_maskiert/original_masks/', 'Maske_2020', type='mask', plot = False)
 #preprocessing('../Asi_maskiert/original_image/', 'Assimilation_1958_2020', type='image', plot=False)
 
 
@@ -106,9 +106,9 @@ class MaskDataset(Dataset):
         mask = torch.from_numpy(mask_data[index, :, :])
         masked_image = torch.from_numpy(masked_image_data[index, :, :])
 
-        #image = torch.unsqueeze(image, dim=1)
-        #mask = torch.unsqueeze(mask, dim=1)
-        #masked_image = torch.unsqueeze(masked_image, dim=1)
+        #image = torch.unsqueeze(image, dim=0)
+        #mask = torch.unsqueeze(mask, dim=0)
+        #masked_image = torch.unsqueeze(masked_image, dim=0)
 
         mask = mask.repeat(3, 1, 1)
         image = image.repeat(3, 1, 1)

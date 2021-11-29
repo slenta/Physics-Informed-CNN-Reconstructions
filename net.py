@@ -76,9 +76,9 @@ class PartialConv(nn.Module):
         #print(input.dtype, mask.dtype)
 
         output = self.input_conv(input * mask)
-        im1 = plt.imshow(output.detach().numpy()[0, 0, :, :],cmap='jet', aspect='auto')
-        plt.colorbar()
-        plt.show()
+        #im1 = plt.imshow(output.detach().numpy()[0, 0, :, :],cmap='jet', aspect='auto')
+        #plt.colorbar()
+        #plt.show()
         if self.input_conv.bias is not None:
             output_bias = self.input_conv.bias.view(1, -1, 1, 1).expand_as(
                 output)

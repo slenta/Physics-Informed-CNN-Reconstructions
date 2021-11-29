@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
 import pylab as plt
+import torch
 
 
 
@@ -25,4 +26,7 @@ def visualisation(iter):
     #print(output_data, output_comp)
 
 
-visualisation('2')
+input = torch.zeros(5, 5, 5, 5, 5)
+input = torch.reshape(input, (-1, input.shape[2], input.shape[3], input.shape[4]))
+
+print(input.shape)

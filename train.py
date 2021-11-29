@@ -17,9 +17,6 @@ from util.io import load_ckpt
 from util.io import save_ckpt
 
 import torch.multiprocessing as mp
-
-import sys
-print(sys.path)
 #mp.set_start_method('spawn')
 
 class InfiniteSampler(data.sampler.Sampler):
@@ -57,7 +54,7 @@ parser.add_argument('--max_iter', type=int, default=3)
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--n_threads', type=int, default=16) 
 parser.add_argument('--save_model_interval', type=int, default=50)
-parser.add_argument('--vis_interval', type=int, default=1)
+parser.add_argument('--vis_interval', type=int, default=3)
 parser.add_argument('--log_interval', type=int, default=50)
 parser.add_argument('--image_size', type=int, default=256)
 parser.add_argument('--resume', type=str)
