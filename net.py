@@ -76,6 +76,7 @@ class PartialConv(nn.Module):
         #print(input.dtype, mask.dtype)
 
         output = self.input_conv(input * mask)
+        print(output.shape)
         #im1 = plt.imshow(output.detach().numpy()[0, 0, :, :],cmap='jet', aspect='auto')
         #plt.colorbar()
         #plt.show()

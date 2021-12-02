@@ -17,21 +17,24 @@ def visualisation(iter):
     output_data = f.get('output')[7, 2, :, :]
     output_comp = f.get('output_comp')[7, 2, :, :]
 
-    plt.figure(figsize=(10, 8))
-    plt.subplot(1, 3, 1)
+    plt.figure(figsize=(14, 8))
+    plt.subplot(1, 4, 1)
     plt.title('Masked Image')
     plt.imshow(image_data, vmin=-10, vmax=40, cmap='jet', aspect='auto')
-    plt.subplot(1, 3, 2)
+    plt.subplot(1, 4, 2)
     plt.title('NN Output')
-    im2 = plt.imshow(output_data, vmin=-0.4, vmax=0.05, cmap='jet', aspect='auto')
-    plt.subplot(1, 3, 3)
+    im2 = plt.imshow(output_data, vmin=-0, vmax=0.01, cmap='jet', aspect='auto')
+    plt.subplot(1, 4, 3)
     plt.title('Original Assimilation Image')
-    im1 = plt.imshow(original, cmap='jet', vmin=-10, vmax=50, aspect='auto')
+    im3 = plt.imshow(original, cmap='jet', vmin=-10, vmax=50, aspect='auto')
+    plt.subplot(1, 4, 4)
+    plt.title('Output Composition')
+    im4 = plt.imshow(output_comp, cmap='jet', aspect='auto')
     #print(output_data)
-    plt.colorbar(im2)
-    plt.savefig('../Asi_maskiert/pdfs/results/Erstes_Ergebnis_' + iter + '.pdf')
+    plt.colorbar(im4)
+    #plt.savefig('../Asi_maskiert/pdfs/results/Erstes_Ergebnis_' + iter + '.pdf')
     plt.show()
     #print(output_data, output_comp)
 
 
-visualisation('1000')
+visualisation('3')
