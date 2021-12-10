@@ -26,11 +26,13 @@ def evaluate(model, dataset, device, filename):
         torch.cat((unnormalize(image), mask, unnormalize(output),
                    unnormalize(output_comp), unnormalize(gt)), dim=0))
 
+    n = image.shape
+    print(n)
     f = h5py.File(filename + '.hdf5', 'w')
-    dset1 = f.create_dataset('image', (3, 256, 256), dtype = 'float32',data = image)
-    dset2 = f.create_dataset('output', (3, 256, 256), dtype = 'float32',data = output)
-    dset3 = f.create_dataset('output_comp', (3, 256, 256), dtype = 'float32',data = output_comp)
-    dset4 = f.create_dataset('mask', shape=(3, 256, 256), dtype='float32', data=mask)
+    dset1 = f.create_dataset('image', (n[1], n[2], n[3]), dtype = 'float32',data = image)
+    dset2 = f.create_dataset('output', (n[1], n[2], n[3]), dtype = 'float32',data = output)
+    dset3 = f.create_dataset('output_comp', (n[1], n[2], n[3]), dtype = 'float32',data = output_comp)
+    dset4 = f.create_dataset('mask', shape=(n[1], n[2], n[3]), dtype='float32', data=mask)
     f.close()
     
     save_image(grid, filename + '.jpg')

@@ -16,7 +16,7 @@ name_2 = 'Asmaske_2004'
 fn_3 = 'Asi_maskiert/original_masks/tos_r8_mask_en4_2020.nc'
 name_3 = 'Asmaske_2020'
 
-ds_1 = nc.Dataset(fn_1)
+#ds_1 = nc.Dataset(fn_1)
 
 def plot_picture(fn, name):
     
@@ -47,7 +47,26 @@ def plot_picture(fn, name):
 
     print(sst_new.shape)
 
-plot_picture(fn_1, name_1)
-plot_picture(fn_2, name_2)
-plot_picture(fn_3, name_3)
-    
+#plot_picture(fn_1, name_1)
+#plot_picture(fn_2, name_2)
+#plot_picture(fn_3, name_3)
+
+
+ds = h5py.File('../Asi_maskiert/original_masks/Maske_Chris.hdf5', 'r')
+print(ds)
+
+sst = ds.get('tas')
+n = sst.shape
+x = np.isnan(sst)
+print(sst)
+#sst[x] = -9999
+
+#print(np.shape(sst))
+rest = np.ones((n[0], n[2] - n[1], n[2])) * 0.1
+sst_new = np.concatenate((sst, rest), axis=1)
+sst_new = np.repeat(sst_new, 63, axis=0)
+print(np.shape(sst_new))
+#create new h5 file with symmetric ssts
+#f = h5py.File(path + name + '.hdf5', 'w')
+#dset1 = f.create_dataset('tos_sym', (756, 256, 256), dtype = 'float32', data = sst_new)
+#f.close()

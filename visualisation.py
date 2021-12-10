@@ -18,13 +18,14 @@ def visualisation(iter):
     mask_data = f.get('mask')[2, :, :]
     output_data = f.get('output')[2, :, :]
     output_comp = f.get('output_comp')[2, :, :]
-    img, msk, gt = MaskDataset('2020')[0]
+    #img, msk, gt = MaskDataset('2020')[0]
 
     mask = torch.from_numpy(mask_data)
     output = torch.from_numpy(output_data)
     image = torch.from_numpy(image_data)
 
-
+    print(output)
+    print(image)
 
     plt.figure(figsize=(24, 6))
     plt.subplot(1, 4, 1)
@@ -32,7 +33,7 @@ def visualisation(iter):
     plt.imshow(image_data, vmin=-10, vmax=40, cmap='jet', aspect='auto')
     plt.subplot(1, 4, 2)
     plt.title('NN Output')
-    im2 = plt.imshow(output_data, vmin=0, vmax=0.1, cmap='jet', aspect='auto')
+    im2 = plt.imshow(output_data, vmin=0, vmax=0.01, cmap='jet', aspect='auto')
     plt.subplot(1, 4, 3)
     plt.title('Original Assimilation Image')
     im3 = plt.imshow(original, cmap='jet', vmin=-10, vmax=40, aspect='auto')
@@ -43,7 +44,7 @@ def visualisation(iter):
     plt.title('Output Composition')
     im5 = plt.imshow(output_comp, vmin=-10, vmax=40, cmap='jet', aspect='auto')
     #print(output_data)
-    plt.colorbar(im5)
+    plt.colorbar(im2)
     #plt.savefig('../Asi_maskiert/pdfs/results/Erstes_Ergebnis_' + iter + '.pdf')
     plt.show()
     #print(output_data, output_comp)
