@@ -1,9 +1,10 @@
 #!/bin/bash
 
 #SBATCH -J SimonLentz
-#SBATCH -p compute
+#SBATCH -p gpu
 #SBATCH --account=uo1075
 #SBATCH -n 1
+#SBATCH --nodelist=mg206
 #SBATCH --time=8:00:00
 #SBATCH --mem=32G
 
