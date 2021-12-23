@@ -11,43 +11,36 @@ from dataloader import MaskDataset
 
 def visualisation(iter):
     
-    f = h5py.File('../Asi_maskiert/results/images/test_' + iter + '.hdf5', 'r')
+    f = h5py.File('../Asi_maskiert/results/images/part3/test_' + iter + '.hdf5', 'r')
     fm = h5py.File('../Asi_maskiert/original_image/Assimilation_1958_2020.hdf5', 'r')
     original = fm.get('tos_sym')[1]
     image_data = f.get('image')[2, :, :]
-    mask_data = f.get('mask')[2, :, :]
+    #mask_data = f.get('mask')[2, :, :]
     output_data = f.get('output')[2, :, :]
     output_comp = f.get('output_comp')[2, :, :]
     #img, msk, gt = MaskDataset('2020')[0]
 
-    mask = torch.from_numpy(mask_data)
+    #mask = torch.from_numpy(mask_data)
     output = torch.from_numpy(output_data)
     image = torch.from_numpy(image_data)
 
     print(output)
-    print(image)
 
     plt.figure(figsize=(24, 6))
     plt.subplot(1, 4, 1)
     plt.title('Masked Image')
-    plt.imshow(image_data, vmin=-10, vmax=40, cmap='jet', aspect='auto')
+    im1 = plt.imshow(image_data, vmin=0, vmax=40, cmap='jet', aspect='auto')
     plt.subplot(1, 4, 2)
     plt.title('NN Output')
-    im2 = plt.imshow(output_data, vmin=0, vmax=0.01, cmap='jet', aspect='auto')
+    im2 = plt.imshow(output, cmap = 'jet', aspect = 'auto')
     plt.subplot(1, 4, 3)
     plt.title('Original Assimilation Image')
     im3 = plt.imshow(original, cmap='jet', vmin=-10, vmax=40, aspect='auto')
-    #plt.subplot(1, 5, 4)
-    #plt.title('Output Composition')
-    #im4 = plt.imshow(mask*image + (1 - mask)*output, vmax = 20, cmap='jet', aspect='auto')
     plt.subplot(1, 4, 4)
     plt.title('Output Composition')
     im5 = plt.imshow(output_comp, vmin=-10, vmax=40, cmap='jet', aspect='auto')
-    #print(output_data)
     plt.colorbar(im2)
-    #plt.savefig('../Asi_maskiert/pdfs/results/Erstes_Ergebnis_' + iter + '.pdf')
+    plt.savefig('../Asi_maskiert/pdfs/results/part3_' + iter + '.pdf')
     plt.show()
-    #print(output_data, output_comp)
 
-
-visualisation('2')
+visualisation('8000')
