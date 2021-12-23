@@ -32,12 +32,12 @@ def preprocessing(path, name, year, type, plot):
             for j in range(220):
                 for k in range(256):
                     if np.isnan(sst[i, j, k]) == True:
-                        sst[i, j, k] = 0.01
+                        sst[i, j, k] = 0
                     else:
                         sst[i, j, k] = 1
         
         #print(np.shape(sst))
-        rest = np.ones((12, 36, 256)) * 0.01
+        rest = np.ones((12, 36, 256)) * 0
         sst_new = np.concatenate((sst, rest), axis=1)
         sst_new = np.repeat(sst_new, 63, axis=0)
         #print(np.shape(sst_new))
@@ -68,6 +68,7 @@ def preprocessing(path, name, year, type, plot):
         plt.colorbar(pixel_plot)
         plt.savefig('../Asi_maskiert/pdfs/' + name + '.pdf')
         plt.show()
+        
 
 
 #preprocessing('../Asi_maskiert/masked_images/', 'tos_r8_mask_en4_2004', type='image', plot=True)
