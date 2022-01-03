@@ -18,10 +18,9 @@ class Places2(torch.utils.data.Dataset):
         self.mask_transform = mask_transform
         # use about 8M images in the challenge dataset
         if split == 'train':
-            self.paths = glob('{:s}/data_large/**/*.h5'.format(img_root),
-                              recursive=True)
+            self.paths = '{:s}/Chris_image.hdf5'.format(img_root)
         else:
-            self.paths = glob('{:s}/{:s}_large/*.h5'.format(img_root, split))
+            self.paths = '{:s}/Chris_image.hdf5'.format(img_root)
 
         #self.h5_file = h5py.File('{:s}'.format(self.paths[0]), 'r')
         #self.hdata = self.h5_file.get('tas')
@@ -35,19 +34,19 @@ class Places2(torch.utils.data.Dataset):
             
     def __getitem__(self, index):
         h5_file = h5py.File('{:s}'.format(self.paths[0]), 'r')
-        hdata = h5_file.get('tas')
+        hdata = h5_file.get('tos_sym')
         
         gt_img = hdata[index,:,:]
         #gt_img -= np.mean(gt_img) # the -= means can be read as x = x- np.mean(x)
         #gt_img /= np.std(gt_img) # the /= means can be read as x = x/np.std(x)
-        gt_img = torch.from_numpy(gt_img[:,:])#.float()
+        gt_img = torch.from_numpy(gt_img)#.float()
         gt_img = gt_img.unsqueeze(0)
         a = gt_img[0,:,:]
         gt_img = a.repeat(3, 1, 1)
         #gt_img = self.img_transform(gt_img)
         
         mask_file = h5py.File(self.maskpath)
-        maskdata = mask_file.get('tas')
+        maskdata = mask_file.get('tos_sym')
         N_mask = len((maskdata[:,1,1]))
         mask = torch.from_numpy(maskdata[index,:,:])
         #mask = torch.from_numpy(maskdata[random.randint(0, N_mask - 1),:,:])#.float()
@@ -61,8 +60,7 @@ class Places2(torch.utils.data.Dataset):
         return gt_img * mask, mask, gt_img
 
     def __len__(self):
-        h5_file = h5py.File('{:s}'.format(self.paths[0]), 'r')
-        hdata = h5_file.get('tas')
+        h5_file = h5py.File(self.paths, 'r')
+        hdata = h5_file.get('tos_sym')
         leng = len(hdata[:,1,1])
         return leng
-        
