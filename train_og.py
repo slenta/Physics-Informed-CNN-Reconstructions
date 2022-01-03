@@ -9,9 +9,9 @@ from tqdm import tqdm
 
 import opt
 from evaluation import evaluate
-from loss import InpaintingLoss
-from net import PConvUNet
-from net import VGG16FeatureExtractor
+from loss_og import InpaintingLoss
+from net_og import PConvUNet
+from net_og import VGG16FeatureExtractor
 from places2 import Places2
 from util.io import load_ckpt
 from util.io import save_ckpt
