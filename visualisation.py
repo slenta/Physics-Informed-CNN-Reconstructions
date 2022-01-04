@@ -1,4 +1,3 @@
-from typing import final
 import h5py
 from matplotlib import image
 import numpy as np
@@ -40,7 +39,7 @@ def visualisation(iter):
     plt.title('Output Composition')
     im5 = plt.imshow(output_comp, vmin=-10, vmax=40, cmap='jet', aspect='auto')
     plt.colorbar(im2)
-    plt.savefig('../Asi_maskiert/pdfs/results/part3_' + iter + '.pdf')
+    plt.savefig('../Asi_maskiert/pdfs/results/test_' + iter + '.pdf')
     plt.show()
 
-visualisation('8000')
+visualisation('50000')
