@@ -19,7 +19,7 @@ def evaluate(model, dataset, device, filename):
     gt = torch.as_tensor(gt)
     with torch.no_grad():
         output, _ = model(image.to(device), mask.to(device))
-output = output.to(torch.device('cpu')
+    output = output.to(torch.device('cpu')
     print(output.shape, np.shape(np.array(mask)), np.shape(np.array(image)), np.shape(np.array(gt)))
     output_comp = mask*image + (1 - mask)*output
     #print(output_comp.shape)

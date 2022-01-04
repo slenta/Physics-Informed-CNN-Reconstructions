@@ -32,7 +32,7 @@ def visualisation(iter):
     im1 = plt.imshow(image_data, vmin=0, vmax=40, cmap='jet', aspect='auto')
     plt.subplot(1, 4, 2)
     plt.title('NN Output')
-    im2 = plt.imshow(output, cmap = 'jet', aspect = 'auto')
+    im2 = plt.imshow(output, cmap = 'jet', vmin=-1, vmax=5, aspect = 'auto')
     plt.subplot(1, 4, 3)
     plt.title('Original Assimilation Image')
     im3 = plt.imshow(original, cmap='jet', vmin=-10, vmax=40, aspect='auto')
