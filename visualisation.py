@@ -10,7 +10,7 @@ from dataloader import MaskDataset
 
 def visualisation(iter):
     
-    f = h5py.File('../Asi_maskiert/results/images/part3/test_' + iter + '.hdf5', 'r')
+    f = h5py.File('../Asi_maskiert/results/images/test_' + iter + '.hdf5', 'r')
     fm = h5py.File('../Asi_maskiert/original_image/Assimilation_1958_2020.hdf5', 'r')
     original = fm.get('tos_sym')[1]
     image_data = f.get('image')[2, :, :]
@@ -39,7 +39,7 @@ def visualisation(iter):
     plt.title('Output Composition')
     im5 = plt.imshow(output_comp, vmin=-10, vmax=40, cmap='jet', aspect='auto')
     plt.colorbar(im2)
-    plt.savefig('../Asi_maskiert/pdfs/results/test_' + iter + '.pdf')
+    #plt.savefig('../Asi_maskiert/pdfs/results/test_' + iter + '.pdf')
     plt.show()
 
-visualisation('50000')
+visualisation('5000')
