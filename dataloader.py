@@ -86,7 +86,7 @@ class MaskDataset(Dataset):
         self.masked_images_path = '../Asi_maskiert/masked_images/'
         self.image_name = 'Image_'
         self.mask_name = 'Maske_'
-	self.image_year = '2020'
+        self.image_year = '2020'
         self.masked_images_name = 'tos_r8_mask_en4_'
         self.year = year
 
