@@ -36,10 +36,9 @@ def visualisation(iter):
     plt.title('Original Assimilation Image')
     im3 = plt.imshow(original, cmap='jet', vmin=-10, vmax=40, aspect='auto')
     plt.subplot(1, 4, 4)
-    plt.title('Output Composition')
-    im5 = plt.imshow(output_comp, vmin=-10, vmax=40, cmap='jet', aspect='auto')
-    plt.colorbar(im2)
-    plt.savefig('../Asi_maskiert/results/images/part_1/test_' + iter + '.pdf')
+    plt.title('Error')
+    im5 = plt.imshow(torch.from_numpy(original) - output, vmin=-10, vmax=40, cmap='jet', aspect='auto')
+    plt.savefig('../Asi_maskiert/results/images/part1_' + iter + '.pdf')
     plt.show()
 
 visualisation('200000')
