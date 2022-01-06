@@ -1,5 +1,3 @@
-import math
-from typing import Type
 from matplotlib.pyplot import plot
 import pylab as plt
 import numpy as np
@@ -50,10 +48,10 @@ def preprocessing(path, name, year, type, plot):
         sst = ds.tos.values
         x = np.isnan(sst)
         n = sst.shape
-        sst[x] = 999999
+        sst[x] = 0
         print(sst.shape)
         #print(np.any(np.isnan(sst)))
-        rest = np.ones((n[0], n[2] - n[1], n[2])) * 999999
+        rest = np.ones((n[0], n[2] - n[1], n[2])) * 0
         sst_new = np.concatenate((sst, rest), axis=1)
          
         #create new h5 file with symmetric ssts
@@ -72,7 +70,7 @@ def preprocessing(path, name, year, type, plot):
 
 
 #preprocessing('../Asi_maskiert/masked_images/', 'tos_r8_mask_en4_2004', type='image', plot=True)
-#preprocessing('../Asi_maskiert/original_masks/', 'Maske_', '2020', type='mask', plot = False)
+#preprocessing('../Asi_maskiert/original_masks/', 'Maske_', '1970', type='mask', plot = False)
 #preprocessing('../Asi_maskiert/original_image/', 'Image_', '2020', type='image', plot=False)
 #preprocessing('../Asi_maskiert/Chris_Daten/', 'Chris_image', type='image', plot=True)
 #preprocessing('../Asi_maskiert/Chris_Daten/', 'Chris_masks', type='mask', plot=True)
@@ -88,13 +86,14 @@ class MaskDataset(Dataset):
         self.masked_images_path = '../Asi_maskiert/masked_images/'
         self.image_name = 'Image_'
         self.mask_name = 'Maske_'
+	self.image_year = '2020'
         self.masked_images_name = 'tos_r8_mask_en4_'
         self.year = year
 
     def __getitem__(self, index):
 
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
-        f_image = h5py.File(self.image_path + self.image_name + self.year + '.hdf5', 'r')
+        f_image = h5py.File(self.image_path + self.image_name + self.image_year + '.hdf5', 'r')
         f_mask = h5py.File(self.mask_path + self.mask_name + self.year + '.hdf5', 'r')
         #f_masked_image = h5py.File(self.masked_images_path + self.masked_images_name + self.year + '.hdf5', 'r')
 
