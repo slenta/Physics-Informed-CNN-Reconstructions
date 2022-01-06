@@ -72,14 +72,7 @@ class PartialConv(nn.Module):
         # C(X) = W^T * X + b, C(0) = b, D(M) = 1 * M + 0 = sum(M)
         # W^T* (M .* X) / sum(M) + b = [C(M .* X) – C(0)] / D(M) + C(0)
         
-        #print(input.shape, mask.shape)
-        #print(input.dtype, mask.dtype)
-
         output = self.input_conv(input * mask)
-        print(output.shape)
-        #im1 = plt.imshow(output.detach().numpy()[0, 0, :, :],cmap='jet', aspect='auto')
-        #plt.colorbar()
-        #plt.show()
         if self.input_conv.bias is not None:
             output_bias = self.input_conv.bias.view(1, -1, 1, 1).expand_as(
                 output)

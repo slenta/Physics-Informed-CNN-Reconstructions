@@ -51,12 +51,12 @@ parser.add_argument('--device', type=str, default='cuda')
 parser.add_argument('--mask_year', type=str, default='1970')
 parser.add_argument('--lr', type=float, default=2e-4)
 parser.add_argument('--lr_finetune', type=float, default=5e-5)
-parser.add_argument('--max_iter', type=int, default=200000)
+parser.add_argument('--max_iter', type=int, default=2)
 parser.add_argument('--batch_size', type=int, default=4)
 parser.add_argument('--n_threads', type=int, default=4) 
-parser.add_argument('--save_model_interval', type=int, default=10000)
-parser.add_argument('--vis_interval', type=int, default=10000)
-parser.add_argument('--log_interval', type=int, default=10000)
+parser.add_argument('--save_model_interval', type=int, default=1)
+parser.add_argument('--vis_interval', type=int, default=1)
+parser.add_argument('--log_interval', type=int, default=1)
 parser.add_argument('--image_size', type=int, default=256)
 parser.add_argument('--resume', type=str)
 parser.add_argument('--finetune', action='store_true')
@@ -80,8 +80,8 @@ img_tf = transforms.Compose(
 mask_tf = transforms.Compose(
     [transforms.ToTensor()])
 
-dataset_train = MaskDataset(args.mask_year)
-dataset_val = MaskDataset(args.mask_year)
+dataset_train = MaskDataset(args.mask_year, mode='train')
+dataset_val = MaskDataset(args.mask_year, mode='val')
 
 iterator_train = iter(data.DataLoader(dataset_train, 
     batch_size=args.batch_size, sampler=InfiniteSampler(len(dataset_train)),
@@ -109,7 +109,7 @@ if args.resume:
 
 for i in tqdm(range(start_iter, args.max_iter)):
     model.train()
-    image, mask, gt = [x. for x in next(iterator_train)]
+    image, mask, gt = [x for x in next(iterator_train)]
     #print(image.shape)
     #print(mask.shape)
     #print(gt.shape)
