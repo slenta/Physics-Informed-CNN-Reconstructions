@@ -11,15 +11,10 @@ from dataloader import MaskDataset
 def visualisation(iter):
     
     f = h5py.File('../Asi_maskiert/results/images/Maske_2020/test_' + iter + '.hdf5', 'r')
-    fm = h5py.File('../Asi_maskiert/original_image/Assimilation_1958_2020.hdf5', 'r')
-    original = fm.get('tos_sym')[1]
     image_data = f.get('image')[2, :, :]
     mask_data = f.get('mask')[2, :, :]
     output_data = f.get('output')[2, :, :]
-    output_comp = f.get('output_comp')[2, :, :]
-    #img, msk, gt = MaskDataset('2020')[0]
 
-    #mask = torch.from_numpy(mask_data)
     output = torch.from_numpy(output_data)
     image = torch.from_numpy(image_data)
     mask = torch.from_numpy(mask_data)
