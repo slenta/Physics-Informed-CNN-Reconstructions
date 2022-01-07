@@ -110,9 +110,6 @@ if args.resume:
 for i in tqdm(range(start_iter, args.max_iter)):
     model.train()
     image, mask, gt = [x for x in next(iterator_train)]
-    #print(image.shape)
-    #print(mask.shape)
-    #print(gt.shape)
     output, _ = model(image, mask)
     loss_dict = criterion(image, mask, output, gt)
 
