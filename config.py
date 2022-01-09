@@ -3,7 +3,7 @@ import argparse
 import torch
 
 LAMBDA_DICT_IMG_INPAINTING = {
-    'hole': 6.0, 'tv': 0.1, 'valid': 1.0, 'prc': 0.05, 'style': 120.0
+    'hole': 60.0, 'tv': 0.1, 'valid': 60.0, 'prc': 0.05, 'style': 10.0
 }
 LAMBDA_DICT_HOLE = {
     'hole': 1.0
@@ -57,18 +57,19 @@ def set_train_args():
     arg_parser.add_argument('--data-types', type=str, default='tas')
     arg_parser.add_argument('--log-dir', type=str, default='logs/')
     arg_parser.add_argument('--snapshot-dir', type=str, default='snapshots/')
-    arg_parser.add_argument('--data-root-dir', type=str, default='../data/')
-    arg_parser.add_argument('--mask-dir', type=str, default='masks/')
+    arg_parser.add_argument('--data-root-dir', type=str, default='../Asi_maskiert/original_image/')
+    arg_parser.add_argument('--mask-dir', type=str, default='../Asi_maskiert/original_masks/')
     arg_parser.add_argument('--img-names', type=str, default='train.h5')
     arg_parser.add_argument('--mask-names', type=str, default='mask.h5')
+    arg_parser.add_argument('--mask_year', type=str, default='1970')
     arg_parser.add_argument('--resume-iter', type=int)
     arg_parser.add_argument('--device', type=str, default='cuda')
-    arg_parser.add_argument('--batch-size', type=int, default=18)
-    arg_parser.add_argument('--n-threads', type=int, default=64)
+    arg_parser.add_argument('--batch-size', type=int, default=4)
+    arg_parser.add_argument('--n-threads', type=int, default=4)
     arg_parser.add_argument('--finetune', action='store_true')
     arg_parser.add_argument('--lr', type=float, default=2e-4)
     arg_parser.add_argument('--lr-finetune', type=float, default=5e-5)
-    arg_parser.add_argument('--max-iter', type=int, default=1000000)
+    arg_parser.add_argument('--max-iter', type=int, default=100000)
     arg_parser.add_argument('--log-interval', type=int, default=None)
     arg_parser.add_argument('--save-snapshot-image', action='store_true')
     arg_parser.add_argument('--save-model-interval', type=int, default=50000)
@@ -76,7 +77,7 @@ def set_train_args():
     arg_parser.add_argument('--prev-next-steps', type=int, default=0)
     arg_parser.add_argument('--encoding-layers', type=str, default='3')
     arg_parser.add_argument('--pooling-layers', type=str, default='0')
-    arg_parser.add_argument('--image-sizes', type=str, default='72')
+    arg_parser.add_argument('--image-sizes', type=str, default='256')
     arg_parser.add_argument('--out-channels', type=int, default=1)
     arg_parser.add_argument('--loss-criterion', type=int, default=0)
     arg_parser.add_argument('--eval-timesteps', type=str, default="0,1,2,3,4")
@@ -151,7 +152,8 @@ def set_evaluation_args():
     arg_parser.add_argument('--img-names', type=str, default='train.h5')
     arg_parser.add_argument('--mask-names', type=str, default='mask.h5')
     arg_parser.add_argument('--evaluation-dirs', type=str, default='evaluation/')
-    arg_parser.add_argument('--snapshot-dirs', type=str, default='snapshots/')
+    arg_parser.add_argument('--snapshot-dirs', type=str, default='../Asi_maskiert/results')
+    arg_parser.add_argument('--mask_year', type=str, default='1970')
     arg_parser.add_argument('--data-root-dir', type=str, default='../data/')
     arg_parser.add_argument('--mask-dir', type=str, default='masks/')
     arg_parser.add_argument('--device', type=str, default='cuda')
@@ -161,7 +163,7 @@ def set_evaluation_args():
     arg_parser.add_argument('--prev-next-steps', type=int, default=0)
     arg_parser.add_argument('--encoding-layers', type=str, default='3')
     arg_parser.add_argument('--pooling-layers', type=str, default='0')
-    arg_parser.add_argument('--image-sizes', type=str, default='72')
+    arg_parser.add_argument('--image-sizes', type=str, default='256')
     arg_parser.add_argument('--infill', type=str, default=None)
     arg_parser.add_argument('--create-images', type=str, default=None)
     arg_parser.add_argument('--create-video', action='store_true')
