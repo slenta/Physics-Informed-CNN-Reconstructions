@@ -1,24 +1,51 @@
-# ML Climate Reconstruction
+# Infilling spatial precipitation recordings with a memory assisted CNN
 
-This repository stores code for the implementation of machine learning based reconstruction of climate information.
+## Requirements
+- Python 3.7+
 
-Table of contents
-=================
+```
+pip install -r requirements.txt
+```
 
-* [Table of Contents](#table-of-contents)
-	* [Data processing](#data-processing)
+## Usage
 
+### Preprocess 
+Download climate data. The dataset should contain `data_large`, `val_large`, and `test_large` as the subdirectories and should be in netcdf file format.
 
-## Dataloader.py
-* Mask assimilation data using 
-	cdo -f nc4 -z zip_1 -ymonmul /work/uo1075/u301617/Assimiliationslauf/tos_Omon_MPI-ESM-LR_asSEIKERAf_r8i8p4_195801-202010.nc -lec,9999 -sellevel,6 -selname,tho /work/uo1075/u301617/masken/en4_202001_202012_1744x872_GR15L40.nc /work/uo1075/u301617/Asi_maskiert/tos_r8_mask_en4_2020.nc &
+### Training
+The training process can be started by executing 
 
-* Process to hdf5 files using the preprocessing function
-	* extracts variables from netCDF4 files using xarray; posssibility to plot images
+`python train_and_evaluate/train.py`
 
-* Class Maskdataset: Loads temperature data from hdf5 datasets for mask, image and masked image from predefined paths
-	* converts them to pytorch tensors for later use in CNN
-	* returns mask, image and masked image tensors
-	* prossibility to extract length of image vector for later use
+To specify additional args such as the data root directory, use `--arg arg_value`.
+Here are some important args:
+- `--data-root-dir` -> root directory of training and validation data
+- `--snapshot-dir` -> directory of training checkpoints
+- `--mask-dir` -> directory of mask files
+- `--img-names` -> comma separated list of training data files stored in the data root directory, have to be same shape! First image is ground truth
+- `--mask-names` -> comma separated list of mask files stored in the mask directory, need to correspond to order in img-names
+- `--data-types` -> comma separated list of types of variable, need to correspond to order in img-names and mask-names
+- `--device` -> cuda or cpu
+- `--lstm-steps` -> Number of considered sequences for lstm, set to zero, if lstm module should be deactivated
+- `--encoding-layers` -> number of encoding layers in the CNN
+- `--pooling-layers` -> number of pooling layers in the CNN
+- `--image-size` -> size of image, must be of shape NxN
 
+### Evaluate
+The evaluation process can be started by executing
 
+`python train_and_evaluate/evaluate.py`
+
+Important args:
+- `--evaluation-dir` -> directory where evaluations will be stored
+- `--data-root-dir` -> root directory of test data
+- `--mask-dir` -> directory of mask files
+- `--img-names` -> comma separated list of training data files stored in the data root directory, have to be same shape!
+- `--mask-names` -> comma separated list of mask files stored in the mask directory, need to correspond to order in img-names
+- `--data-types` -> comma separated list of types of variable, need to correspond to order in img-names and mask-names
+- `--device` -> cuda or cpu
+- `--lstm-steps` -> Number of considered sequences for lstm, set to zero, if lstm module should be deactivated
+- `--infill` -> 'test', if mask order is irrelevant, 'infill', if mask order is relevant
+- `--create-images` -> creates images for time window in format 'YYY-MM-DD-HH:MM,YYYY-MM-DD-HH:MM'
+- `--create-video` -> creates video. Images need to be created as well
+- `--create-report` -> creates evaluation report for total test data set
