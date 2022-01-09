@@ -14,6 +14,7 @@ from utils.netcdfloader import NetCDFLoader, InfiniteSampler
 from utils.evaluation import create_snapshot_image
 from model.loss import InpaintingLoss, HoleLoss
 import config as cfg
+from dataloader import MaskDataset
 
 cfg.set_train_args()
 
@@ -104,6 +105,6 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     # create snapshot image
     if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
         model.eval()
-        create_snapshot_image(model, dataset_val, '{:s}/images/iter_{:d}'.format(cfg.snapshot_dir, i + 1))
+        create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
 
 writer.close()
