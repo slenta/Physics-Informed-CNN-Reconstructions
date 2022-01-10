@@ -23,25 +23,25 @@ def preprocessing(path, name, year, type, plot):
 
     #extract the variables from the file
     if type == 'mask':
-        sst = ds.tho.values[:, 0, :, :]
+        sst = ds.tho.values
         x = np.isnan(sst)
-        #sst[x] = -9999
-        for i in range(12):
-            for j in range(220):
-                for k in range(256):
-                    if np.isnan(sst[i, j, k]) == True:
-                        sst[i, j, k] = 0
-                    else:
-                        sst[i, j, k] = 1
+        n = sst.shape
+        for i in range(n[0]):
+            for j in range(n[1]):
+                for k in range(n[2]):
+                    for l in range(n[3]):
+                        if np.isnan(sst[i, j, k, l]) == True:
+                            sst[i, j, k, l] = 0
+                        else:
+                            sst[i, j, k, l] = 1
         
-        #print(np.shape(sst))
-        rest = np.ones((12, 36, 256)) * 0
-        sst_new = np.concatenate((sst, rest), axis=1)
+        rest = np.zeros((n[0], n[1], n[3] - n[2], n[3]))
+        sst_new = np.concatenate((sst, rest), axis=2)
         sst_new = np.repeat(sst_new, 63, axis=0)
-        #print(np.shape(sst_new))
+
         #create new h5 file with symmetric ssts
         f = h5py.File(path + name + year + '.hdf5', 'w')
-        dset1 = f.create_dataset('tos_sym', (756, 256, 256), dtype = 'float32', data = sst_new)
+        dset1 = f.create_dataset('tos_sym', (n[0], n[1], n[3], n[3]), dtype = 'float32', data = sst_new)
         f.close()
 
     if type == 'image':
@@ -49,14 +49,12 @@ def preprocessing(path, name, year, type, plot):
         x = np.isnan(sst)
         n = sst.shape
         sst[x] = 0
-        print(sst.shape)
-        #print(np.any(np.isnan(sst)))
-        rest = np.ones((n[0], n[2] - n[1], n[2])) * 0
-        sst_new = np.concatenate((sst, rest), axis=1)
+        rest = np.zeros((n[0], n[1], n[3] - n[2], n[3]))
+        sst_new = np.concatenate((sst, rest), axis=2)
          
         #create new h5 file with symmetric ssts
         f = h5py.File(path + name + year + '.hdf5', 'w')
-        dset1 = f.create_dataset('tos_sym', (n[0], n[2], n[2]), dtype = 'float32',data = sst_new)
+        dset1 = f.create_dataset('tos_sym', (n[0], n[1], n[3], n[3]), dtype = 'float32',data = sst_new)
         f.close()
 
     #plot ssts in 2d plot
@@ -115,29 +113,45 @@ class MaskDataset(Dataset):
         im_new = np.array(im_new)
 
         #convert to pytorch tensors
-        im_new = torch.from_numpy(im_new[index, :, :])
-        mask = torch.from_numpy(mask_data[index, :, :])
-
-        #Repeat to fit input channels
-        mask = mask.repeat(3, 1, 1)
-        im_new = im_new.repeat(3, 1, 1)
+        im_new = torch.from_numpy(im_new[index, :, :, :])
+        mask = torch.from_numpy(mask_data[index, :, :, :])
 
         return mask*im_new, mask, im_new
 
     def __len__(self):
         
-        mi, ma, im_new = self.__getitem__(0)
+        f_image = h5py.File(self.image_path + self.image_name + self.image_year + '.hdf5', 'r')
+        image = f_image.get('tos_sym')
+
+        n = image.shape
+        im_new = []
+
+        if self.mode == 'train':
+            for i in range(n[0]):
+                if i%5 >= 1:
+                    im_new.append(image[i])
+        elif self.mode == 'val':
+            for i in range(n[0]):
+                if i%5 == 0:
+                    im_new.append(image[i])
+
+        im_new = np.array(im_new)
         n = im_new.shape
         length = n[0]
 
         return length
 
+    def depth(self):
+
+        mi, ma, im_new = self.__getitem__(0)
+        n = im_new.shape
+        depth = n[1]
+
 
 
 #create dataset
-#dataset = MaskDataset('2020')
+dataset = MaskDataset('2020')
 
 #get sample and unpack
-#first_data = dataset
-#masked_image, mask, image = first_data[0]
+masked_image, mask, image = dataset[0]
 
