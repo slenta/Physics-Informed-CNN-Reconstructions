@@ -27,10 +27,14 @@ if not os.path.exists(cfg.log_dir):
 writer = SummaryWriter(log_dir=cfg.log_dir)
 
 # create data sets
-dataset_train = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'train', cfg.data_types,
-                             cfg.lstm_steps, cfg.prev_next_steps)
-dataset_val = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'val', cfg.data_types,
-                           cfg.lstm_steps, cfg.prev_next_steps)
+#dataset_train = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'train', cfg.data_types,
+#                             cfg.lstm_steps, cfg.prev_next_steps)
+#dataset_val = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'val', cfg.data_types,
+#                           cfg.lstm_steps, cfg.prev_next_steps)
+
+dataset_train = MaskDataset('2020', mode='train')
+dataset_val = MaskDataset('2020', mode='val')
+
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
                                  num_workers=cfg.n_threads))
