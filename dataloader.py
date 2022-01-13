@@ -69,7 +69,7 @@ def preprocessing(path, name, year, type, plot):
 
 #preprocessing('../Asi_maskiert/masked_images/', 'tos_r8_mask_en4_2004', type='image', plot=True)
 #preprocessing('../Asi_maskiert/original_masks/', 'Maske_', '1970', type='mask', plot = False)
-#preprocessing('../Asi_maskiert/original_image/', 'Image_', '2020', type='image', plot=False)
+preprocessing('../Asi_maskiert/original_image/', 'Image_3d_1958_', '2020', type='image', plot=False)
 #preprocessing('../Asi_maskiert/Chris_Daten/', 'Chris_image', type='image', plot=True)
 #preprocessing('../Asi_maskiert/Chris_Daten/', 'Chris_masks', type='mask', plot=True)
 
@@ -81,17 +81,15 @@ class MaskDataset(Dataset):
 
         self.image_path = '../Asi_maskiert/original_image/'
         self.mask_path = '../Asi_maskiert/original_masks/'
-        self.image_name = 'Image_'
+        self.image_name = 'Image_3d_1958_2020'
         self.mask_name = 'Maske_'
-        self.image_year = '2020'
-        self.masked_images_name = 'tos_r8_mask_en4_'
         self.year = year
         self.mode = mode
 
     def __getitem__(self, index):
 
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
-        f_image = h5py.File(self.image_path + self.image_name + self.image_year + '.hdf5', 'r')
+        f_image = h5py.File(self.image_path + self.image_name  + '.hdf5', 'r')
         f_mask = h5py.File(self.mask_path + self.mask_name + self.year + '.hdf5', 'r')
 
         #extract sst data/mask data
@@ -120,7 +118,7 @@ class MaskDataset(Dataset):
 
     def __len__(self):
         
-        f_image = h5py.File(self.image_path + self.image_name + self.image_year + '.hdf5', 'r')
+        f_image = h5py.File(self.image_path + self.image_name + '.hdf5', 'r')
         image = f_image.get('tos_sym')
 
         n = image.shape
@@ -147,11 +145,13 @@ class MaskDataset(Dataset):
         n = im_new.shape
         depth = n[1]
 
+        return depth
+
 
 
 #create dataset
-dataset = MaskDataset('2020')
+#dataset = MaskDataset('2020')
 
 #get sample and unpack
-masked_image, mask, image = dataset[0]
+#masked_image, mask, image = dataset[0]
 
