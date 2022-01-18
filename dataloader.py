@@ -45,7 +45,7 @@ def preprocessing(path, name, year, type, plot):
         f.close()
 
     if type == 'image':
-        sst = ds.tos.values
+        sst = ds.tho.values
         x = np.isnan(sst)
         n = sst.shape
         sst[x] = 0
@@ -69,7 +69,7 @@ def preprocessing(path, name, year, type, plot):
 
 #preprocessing('../Asi_maskiert/masked_images/', 'tos_r8_mask_en4_2004', type='image', plot=True)
 #preprocessing('../Asi_maskiert/original_masks/', 'Maske_', '1970', type='mask', plot = False)
-preprocessing('../Asi_maskiert/original_image/', 'Image_3d_1958_', '2020', type='image', plot=False)
+#preprocessing('../Asi_maskiert/original_image/', 'Image_3d_1958_', '2020', type='image', plot=False)
 #preprocessing('../Asi_maskiert/Chris_Daten/', 'Chris_image', type='image', plot=True)
 #preprocessing('../Asi_maskiert/Chris_Daten/', 'Chris_masks', type='mask', plot=True)
 
@@ -114,7 +114,7 @@ class MaskDataset(Dataset):
         im_new = torch.from_numpy(im_new[index, :, :, :])
         mask = torch.from_numpy(mask_data[index, :, :, :])
 
-        return mask*im_new, mask, im_new
+        return mask*im_new, mask, im_new, mask*im_new, mask
 
     def __len__(self):
         
