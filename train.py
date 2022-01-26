@@ -10,11 +10,13 @@ from tqdm import tqdm
 from model.net import PConvLSTM
 from utils.featurizer import VGG16FeatureExtractor
 from utils.io import load_ckpt, save_ckpt
-from utils.netcdfloader import NetCDFLoader, InfiniteSampler
-from utils.evaluation import create_snapshot_image
+from utils.netcdfloader import InfiniteSampler
+#from utils.evaluation import create_snapshot_image
 from model.loss import InpaintingLoss, HoleLoss
 import config as cfg
 from dataloader import MaskDataset
+from evaluation_og import evaluate
+
 
 cfg.set_train_args()
 
@@ -107,8 +109,12 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
                   [('model', model)], [('optimizer', optimizer)], i + 1)
 
     # create snapshot image
-    if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
+    if (i + 1) % cfg.vis_interval == 0:
         model.eval()
-        create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
+        evaluate(model, dataset_val, cfg.device,
+                 '{:s}/images/{:s}/test_{:d}'.format(cfg.save_dir, cfg.save_part, i + 1))
+    #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
+    #    model.eval()
+    #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
 
 writer.close()
