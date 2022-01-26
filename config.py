@@ -65,6 +65,7 @@ def set_train_args():
     arg_parser.add_argument('--img-names', type=str, default='train.h5')
     arg_parser.add_argument('--mask-names', type=str, default='mask.h5')
     arg_parser.add_argument('--mask_year', type=str, default='1970')
+    arg_parser.add_argument('--im_year', type=str, default='r10')
     arg_parser.add_argument('--resume-iter', type=int)
     arg_parser.add_argument('--device', type=str, default='cuda')
     arg_parser.add_argument('--batch-size', type=int, default=4)
