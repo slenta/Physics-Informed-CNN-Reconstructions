@@ -120,7 +120,7 @@ class MaskDataset(Dataset):
 
     def __len__(self):
         
-        f_image = h5py.File(self.image_path + self.image_name + '.hdf5', 'r')
+        f_image = h5py.File(self.image_path + self.image_name + self.im_year + '.hdf5', 'r')
         image = f_image.get('tos_sym')
 
         n = image.shape

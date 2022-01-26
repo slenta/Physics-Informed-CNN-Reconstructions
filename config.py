@@ -2,6 +2,9 @@ import argparse
 
 import torch
 
+MEAN = [0.485, 0.456, 0.406]
+STD = [0.229, 0.224, 0.225]
+
 LAMBDA_DICT_IMG_INPAINTING = {
     'hole': 60.0, 'tv': 0.1, 'valid': 60.0, 'prc': 0.05, 'style': 10.0
 }
@@ -63,7 +66,7 @@ def set_train_args():
     arg_parser.add_argument('--mask-names', type=str, default='mask.h5')
     arg_parser.add_argument('--mask_year', type=str, default='1970')
     arg_parser.add_argument('--resume-iter', type=int)
-    arg_parser.add_argument('--device', type=str, default='cpu')
+    arg_parser.add_argument('--device', type=str, default='cuda')
     arg_parser.add_argument('--batch-size', type=int, default=4)
     arg_parser.add_argument('--n-threads', type=int, default=16)
     arg_parser.add_argument('--finetune', action='store_true')
@@ -156,7 +159,7 @@ def set_evaluation_args():
     arg_parser.add_argument('--mask_year', type=str, default='2020')
     arg_parser.add_argument('--data-root-dir', type=str, default='../Asi_maskiert/original_image/')
     arg_parser.add_argument('--mask-dir', type=str, default='../Asi_maskiert/original_masks/')
-    arg_parser.add_argument('--device', type=str, default='cpu')
+    arg_parser.add_argument('--device', type=str, default='cuda')
     arg_parser.add_argument('--partitions', type=int, default=1)
     arg_parser.add_argument('--prev-next', type=int, default=0)
     arg_parser.add_argument('--lstm-steps', type=int, default=0)

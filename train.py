@@ -34,8 +34,8 @@ writer = SummaryWriter(log_dir=cfg.log_dir)
 #dataset_val = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'val', cfg.data_types,
 #                           cfg.lstm_steps, cfg.prev_next_steps)
 
-dataset_train = MaskDataset('2020', mode='train')
-dataset_val = MaskDataset('2020', mode='val')
+dataset_train = MaskDataset('2020', '3d_1958_2020', mode='train')
+dataset_val = MaskDataset('2020', '3d_1958_2020', mode='val')
 
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
