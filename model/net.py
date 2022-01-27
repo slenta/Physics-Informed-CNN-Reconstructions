@@ -12,7 +12,7 @@ class PConvLSTM(nn.Module):
     def __init__(self, radar_img_size=512, radar_enc_dec_layers=4, radar_pool_layers=4, radar_in_channels=1,
                  radar_out_channels=1,
                  rea_img_sizes=[], rea_enc_layers=[], rea_pool_layers=[], rea_in_channels=[],
-                 lstm=True):
+                 lstm=False):
         super().__init__()
 
         self.freeze_enc_bn = False
