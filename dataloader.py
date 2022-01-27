@@ -1,13 +1,8 @@
 from matplotlib.pyplot import plot
 import pylab as plt
 import numpy as np
-import netCDF4 as nc
 import h5py
 import torch
-from torch._C import dtype
-#from torch._C import float32
-#from torch._C import float32
-#from torch._C import double
 from torch.utils import data
 from torch.utils.data import Dataset
 import xarray as xr
