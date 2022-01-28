@@ -34,8 +34,9 @@ writer = SummaryWriter(log_dir=cfg.log_dir)
 #dataset_val = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'val', cfg.data_types,
 #                           cfg.lstm_steps, cfg.prev_next_steps)
 
-dataset_train = MaskDataset('2020', '3d_1958_2020', mode='train')
-dataset_val = MaskDataset('2020', '3d_1958_2020', mode='val')
+
+dataset_train = MaskDataset(cfg.mask_year, cfg.im_year, mode='train')
+dataset_val = MaskDataset(cfg.mask_year, cfg.im_year, mode='val')
 
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
@@ -46,10 +47,11 @@ lstm = True
 if cfg.lstm_steps == 0:
     lstm = False
 
+
 model = PConvLSTM(radar_img_size=cfg.image_sizes[0],
                   radar_enc_dec_layers=cfg.encoding_layers[0],
                   radar_pool_layers=cfg.pooling_layers[0],
-                  radar_in_channels=2*cfg.prev_next_steps + 1,
+                  radar_in_channels=cfg.in_channels,
                   radar_out_channels=cfg.out_channels,
                   lstm=lstm).to(cfg.device)
 
@@ -84,6 +86,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     model.train()
     image, mask, gt, rea_images, rea_masks, rea_gts = [x.to(cfg.device) for x in next(iterator_train)]
     output = model(image, mask, rea_images, rea_masks)
+    print(image.shape)
 
     # calculate loss function and apply backpropagation
     loss_dict = criterion(mask[:, cfg.lstm_steps, cfg.gt_channels, :, :],
@@ -108,7 +111,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     if (i + 1) % cfg.vis_interval == 0:
         model.eval()
         evaluate(model, dataset_val, cfg.device,
-                 '{:s}/images/{:s}/test_{:d}'.format(cfg.save_dir, cfg.save_part, i + 1))
+                 '{:s}/images/{:s}/test_{:d}'.format(cfg.snapshot_dir, cfg.save_part, i + 1))
     #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
     #    model.eval()
     #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))

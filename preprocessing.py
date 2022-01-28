@@ -11,12 +11,11 @@ import h5py
 
 class preprocessing():
     
-    def __init__(self, name, new_im_size, lon1, lon2, lat1, lat2, mode):
+    def __init__(self, path, new_im_size, lon1, lon2, lat1, lat2, mode):
         super(preprocessing, self).__init__()
 
-        self.path = '../Asi_maskiert/'
+        self.path = path
         self.image_path = '../Asi_maskiert/pdfs/'
-        self.name = name
         self.new_im_size = new_im_size
         self.lon1 = lon1
         self.lon2 = lon2
@@ -26,8 +25,8 @@ class preprocessing():
 
     def __getitem__(self):
         
-        ifile = self.path + self.name + '.nc'
-        ofile = self.path + self.name + '_newgrid.nc'
+        ifile = self.path + '.nc'
+        ofile = self.path + '_newgrid.nc'
 
         cdo.sellonlatbox(self.lon1, self.lon2, self.lat1, self.lat2, input=ifile, output = ofile)
 
@@ -77,14 +76,14 @@ class preprocessing():
         sst_new, n = self.__getitem__()
 
         #create new h5 file with symmetric ssts
-        f = h5py.File(self.path + self.name + '_newgrid.hdf5', 'w')
+        f = h5py.File(self.path + '_newgrid.hdf5', 'w')
         dset1 = f.create_dataset('tos_sym', (n[0], n[1], n[2], n[3]), dtype = 'float32', data = sst_new)
         f.close()
 
 
 
-dataset = preprocessing('original_image/Image_3d_1958_2020', 128, -65, -5, 20, 69,'image')
-sst, n = dataset.__getitem__()
-dataset.plot()
-dataset.save_data()
-print(sst.shape)
+#dataset = preprocessing('../Asi_maskiert/original_masks/Maske_1970', 128, -65, -5, 20, 69,'mask')
+#sst, n = dataset.__getitem__()
+#dataset.plot()
+#dataset.save_data()
+#print(sst.shape)

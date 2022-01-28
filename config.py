@@ -1,4 +1,5 @@
 import argparse
+from numpy import array
 
 import torch
 
@@ -53,24 +54,38 @@ gt_channels = None
 channel_reduction_rate = None
 save_snapshot_image = None
 loss_criterion = None
+mask_year = None
+im_year = None
+in_channels = None
+save_part = None
+im_size = None
+lon_1 = None
+lon_2 = None
+lat_1 = None
+lat_2 = None
+
 
 
 def set_train_args():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--data-types', type=str, default='tas')
     arg_parser.add_argument('--log-dir', type=str, default='logs/')
-    arg_parser.add_argument('--snapshot-dir', type=str, default='snapshots/')
+    arg_parser.add_argument('--snapshot-dir', type=str, default='../Asi_maskiert/results')
     arg_parser.add_argument('--data-root-dir', type=str, default='../Asi_maskiert/original_image/')
     arg_parser.add_argument('--mask-dir', type=str, default='../Asi_maskiert/original_masks/')
-    arg_parser.add_argument('--img-names', type=str, default='train.h5')
-    arg_parser.add_argument('--mask-names', type=str, default='mask.h5')
+    #arg_parser.add_argument('--img-names', type=str, default='train.h5')
+    #arg_parser.add_argument('--mask-names', type=str, default='mask.h5')
     arg_parser.add_argument('--mask_year', type=str, default='1970')
-    arg_parser.add_argument('--im_year', type=str, default='r10')
+    arg_parser.add_argument('--im_year', type=str, default='3d_1958_2020')
     arg_parser.add_argument('--resume-iter', type=int)
     arg_parser.add_argument('--device', type=str, default='cpu')
     arg_parser.add_argument('--batch-size', type=int, default=4)
     arg_parser.add_argument('--n-threads', type=int, default=16)
     arg_parser.add_argument('--finetune', action='store_true')
+    arg_parser.add_argument('--lon_1', type=int, default=-65)
+    arg_parser.add_argument('--lon_2', type=int, default=-5)
+    arg_parser.add_argument('--lat_1', type=int, default=20)
+    arg_parser.add_argument('--lat_2', type=int, default=69)
     arg_parser.add_argument('--lr', type=float, default=2e-4)
     arg_parser.add_argument('--lr-finetune', type=float, default=5e-5)
     arg_parser.add_argument('--max-iter', type=int, default=400000)
@@ -81,16 +96,21 @@ def set_train_args():
     arg_parser.add_argument('--prev-next-steps', type=int, default=0)
     arg_parser.add_argument('--encoding-layers', type=str, default='3')
     arg_parser.add_argument('--pooling-layers', type=str, default='0')
-    arg_parser.add_argument('--image-sizes', type=str, default='256')
+    arg_parser.add_argument('--image-sizes', type=str, default='128')
     arg_parser.add_argument('--out-channels', type=int, default=1)
+    arg_parser.add_argument('--in_channels', type=int, default=1)
     arg_parser.add_argument('--loss-criterion', type=int, default=0)
     arg_parser.add_argument('--eval-timesteps', type=str, default="0,1,2,3,4")
     arg_parser.add_argument('--channel-reduction-rate', type=int, default=1)
+    arg_parser.add_argument('--save_part', type=str, default='part_1')
+    arg_parser.add_argument('--im_size', type=int, default=128)
     args = arg_parser.parse_args()
 
     global data_types
     global img_names
     global mask_names
+    global mask_year
+    global im_year
     global log_dir
     global snapshot_dir
     global data_root_dir
@@ -102,6 +122,10 @@ def set_train_args():
     global finetune
     global lr
     global lr_finetune
+    global lon_1
+    global lon_2
+    global lat_1
+    global lat_2
     global max_iter
     global log_interval
     global save_model_interval
@@ -111,15 +135,18 @@ def set_train_args():
     global pooling_layers
     global image_sizes
     global eval_timesteps
+    global in_channels
     global out_channels
     global gt_channels
     global channel_reduction_rate
     global save_snapshot_image
     global loss_criterion
+    global save_part
+    global im_size
 
     data_types = args.data_types.split(',')
-    img_names = args.img_names.split(',')
-    mask_names = args.mask_names.split(',')
+    #img_names = args.img_names.split(',')
+    #mask_names = args.mask_names.split(',')
     eval_timesteps = args.eval_timesteps.split(',')
     log_dir = args.log_dir
     snapshot_dir = args.snapshot_dir
@@ -148,7 +175,15 @@ def set_train_args():
     loss_criterion = args.loss_criterion
     for i in range(out_channels):
         gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
-
+    in_channels = args.in_channels
+    im_year = args.im_year
+    mask_year = args.mask_year
+    lon_1 = args.lon_1
+    lon_2 = args.lon_2
+    lat_1 = args.lat_1
+    lat_2 = args.lat_2
+    save_part = args.save_part
+    im_size = args.im_size
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()

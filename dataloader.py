@@ -2,6 +2,7 @@ from matplotlib.pyplot import plot
 import pylab as plt
 import numpy as np
 import h5py
+from preprocessing import preprocessing
 import torch
 from torch.utils import data
 from torch.utils.data import Dataset
@@ -11,7 +12,7 @@ import config as cfg
 
 class MaskDataset(Dataset):
 
-    def __init__(self, mask_year, im_year, mode):
+    def __init__(self, mask_year, im_year, mode, depth = True, in_channels = cfg.in_channels, prepro = False, lon_1 = cfg.lon_1, lon_2 = cfg.lon_2, lat_1 = cfg.lat_1, lat_2 = cfg.lat_2, im_size = cfg.image_sizes):
         super(MaskDataset, self).__init__()
 
         self.image_path = '../Asi_maskiert/original_image/'
@@ -21,12 +22,27 @@ class MaskDataset(Dataset):
         self.im_year = im_year
         self.year = mask_year
         self.mode = mode
+        self.depth = depth
+        self.prepro = prepro
+        self.lon_1 = lon_1
+        self.lon_2 = lon_2
+        self.lat_1 = lat_1
+        self.lat_2 = lat_2
+        self.im_size = im_size
+        self.in_channels = in_channels
 
     def __getitem__(self, index):
 
+        if self.prepro == True:
+            dataset_i = preprocessing(self.image_path + self.image_name+ self.im_year, self.im_size, lon1= self.lon_1, lon2 = self.lon_2, lat1=self.lat_1, lat2 = self.lat_2, mode='image')
+            dataset_m = preprocessing(self.mask_path + self.mask_name + self.year, self.im_size, lon1= self.lon_1, lon2 = self.lon_2, lat1=self.lat_1, lat2 = self.lat_2, mode='mask')
+
+            dataset_i.save_data()
+            dataset_m.save_data()
+
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
-        f_image = h5py.File(self.image_path + self.image_name  + self.im_year + '.hdf5', 'r')
-        f_mask = h5py.File(self.mask_path + self.mask_name + self.year + '.hdf5', 'r')
+        f_image = h5py.File(self.image_path + self.image_name  + self.im_year + '_newgrid' + '.hdf5', 'r')
+        f_mask = h5py.File(self.mask_path + self.mask_name + self.year + '_newgrid' + '.hdf5', 'r')
 
         #extract sst data/mask data
         image = f_image.get('tos_sym')
@@ -49,9 +65,17 @@ class MaskDataset(Dataset):
         np.random.shuffle(im_new)
         np.random.shuffle(mask)
 
-        #convert to pytorch tensors
-        im_new = torch.from_numpy(im_new[index, :, :, :])
-        mask = torch.from_numpy(mask[index, :, :, :])
+        #depth indicators
+        if self.depth == False:
+            im_new  = torch.from_numpy(im_new[index, 0, :, :])
+            mask = torch.from_numpy(mask[index, 0, :, :])
+            
+            #Repeat to fit input channels
+            mask = mask.repeat(self.in_channels, 1, 1)
+            im_new = im_new.repeat(self.in_channels, 1, 1)
+        else:
+            im_new = torch.from_numpy(im_new[index, :self.in_channels, :, :])
+            mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
 
         return mask*im_new, mask, im_new, mask*im_new, mask
 
@@ -89,8 +113,8 @@ class MaskDataset(Dataset):
 
 
 #create dataset
-dataset = MaskDataset('1970', '3d_1958_2020', 'val')
+dataset = MaskDataset('1970', '3d_1958_2020', prepro=False, mode = 'val')
 
 #get sample and unpack
 image, mask, gt, image_1, mask_1 = dataset[0]
-
+#print(mask.shape)
