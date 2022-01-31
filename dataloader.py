@@ -49,7 +49,7 @@ class MaskDataset(Dataset):
         im_new = []
 
         if self.mode == 'train':
-            mask = mask.repeat(200, axis=0)
+            mask = np.repeat(mask, 200, axis=0)
             for i in range(n[0]):
                 if i%5 >= 1:
                     im_new.append(image[i])
