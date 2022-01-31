@@ -1,9 +1,7 @@
 
 import numpy as np
 import matplotlib.pylab as plt
-import cdo
 from sympy import N
-cdo = cdo.Cdo()
 import xarray as xr
 import config as cfg
 import h5py
@@ -20,9 +18,8 @@ class preprocessing():
         self.mode = mode
 
     def __getitem__(self):
-        
-        ifile = self.path + '.nc'
-        ofile = self.path + '_newgrid.nc'
+      
+        ofile = self.path + '_new_grid.nc'
 
         #cdo.sellonlatbox(self.lon1, self.lon2, self.lat1, self.lat2, input=ifile, output = ofile)
 
@@ -79,10 +76,10 @@ class preprocessing():
 
 
 dataset1 = preprocessing('../Asi_maskiert/original_masks/Maske_2020', 128,'mask')
-dataset2 = preprocessing('../Asi_maskiert/original_image/Image_r10', 128,'image')
-sst, n = dataset1.__getitem__()
-sst2, n2 = dataset2.__getitem__()
-dataset2.plot()
-#dataset1.save_data()
-#dataset2.save_data()
+dataset2 = preprocessing('../Asi_maskiert/original_image/Image_r10_11', 128,'image')
+#sst, n = dataset1.__getitem__()
+#sst2, n2 = dataset2.__getitem__()
+#dataset2.plot()
+dataset1.save_data()
+dataset2.save_data()
 #print(sst.shape)
