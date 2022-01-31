@@ -58,8 +58,6 @@ class MaskDataset(Dataset):
                     im_new.append(image[i])
 
         im_new = np.array(im_new)
-        np.random.shuffle(im_new)
-        np.random.shuffle(mask)
 
         #depth indicators
         if self.depth == False:
