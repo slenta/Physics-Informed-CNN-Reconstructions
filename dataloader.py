@@ -12,7 +12,7 @@ import config as cfg
 
 class MaskDataset(Dataset):
 
-    def __init__(self, mask_year, im_year, mode, depth = True, in_channels = cfg.in_channels, prepro = False, lon_1 = cfg.lon_1, lon_2 = cfg.lon_2, lat_1 = cfg.lat_1, lat_2 = cfg.lat_2, im_size = cfg.image_sizes):
+    def __init__(self, mask_year, im_year, mode, depth = True, in_channels = cfg.in_channels, prepro = False, im_size = cfg.image_sizes):
         super(MaskDataset, self).__init__()
 
         self.image_path = '../Asi_maskiert/original_image/'
@@ -24,18 +24,14 @@ class MaskDataset(Dataset):
         self.mode = mode
         self.depth = depth
         self.prepro = prepro
-        self.lon_1 = lon_1
-        self.lon_2 = lon_2
-        self.lat_1 = lat_1
-        self.lat_2 = lat_2
         self.im_size = im_size
         self.in_channels = in_channels
 
     def __getitem__(self, index):
 
         if self.prepro == True:
-            dataset_i = preprocessing(self.image_path + self.image_name+ self.im_year, self.im_size, lon1= self.lon_1, lon2 = self.lon_2, lat1=self.lat_1, lat2 = self.lat_2, mode='image')
-            dataset_m = preprocessing(self.mask_path + self.mask_name + self.year, self.im_size, lon1= self.lon_1, lon2 = self.lon_2, lat1=self.lat_1, lat2 = self.lat_2, mode='mask')
+            dataset_i = preprocessing(self.image_path + self.image_name+ self.im_year, self.im_size, mode='image')
+            dataset_m = preprocessing(self.mask_path + self.mask_name + self.year, self.im_size, mode='mask')
 
             dataset_i.save_data()
             dataset_m.save_data()
@@ -113,8 +109,8 @@ class MaskDataset(Dataset):
 
 
 #create dataset
-dataset = MaskDataset('1970', '3d_1958_2020', prepro=False, mode = 'val')
+#dataset = MaskDataset('1970', '3d_1958_2020', prepro=False, mode = 'val')
 
 #get sample and unpack
-image, mask, gt, image_1, mask_1 = dataset[0]
+#image, mask, gt, image_1, mask_1 = dataset[0]
 #print(mask.shape)
