@@ -51,13 +51,13 @@ class MaskDataset(Dataset):
                 if i%5 >= 1:
                     im_new.append(image[i])
         elif self.mode == 'val':
-            mask = mask[:cfg.eval_timesteps]
+            #mask = mask[:8]
             for i in range(n[0]):
                 if i%5 == 0:
                     im_new.append(image[i])
 
         im_new = np.array(im_new)
-        
+
         #depth indicators
         if self.depth == False:
             im_new  = torch.from_numpy(im_new[index, 0, :, :])
