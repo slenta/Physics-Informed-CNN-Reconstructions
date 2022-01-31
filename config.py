@@ -59,10 +59,6 @@ im_year = None
 in_channels = None
 save_part = None
 im_size = None
-lon_1 = None
-lon_2 = None
-lat_1 = None
-lat_2 = None
 
 
 
@@ -82,10 +78,6 @@ def set_train_args():
     arg_parser.add_argument('--batch-size', type=int, default=4)
     arg_parser.add_argument('--n-threads', type=int, default=16)
     arg_parser.add_argument('--finetune', action='store_true')
-    arg_parser.add_argument('--lon_1', type=int, default=-65)
-    arg_parser.add_argument('--lon_2', type=int, default=-5)
-    arg_parser.add_argument('--lat_1', type=int, default=20)
-    arg_parser.add_argument('--lat_2', type=int, default=69)
     arg_parser.add_argument('--lr', type=float, default=2e-4)
     arg_parser.add_argument('--lr-finetune', type=float, default=5e-5)
     arg_parser.add_argument('--max-iter', type=int, default=400000)
@@ -122,10 +114,6 @@ def set_train_args():
     global finetune
     global lr
     global lr_finetune
-    global lon_1
-    global lon_2
-    global lat_1
-    global lat_2
     global max_iter
     global log_interval
     global save_model_interval
@@ -178,10 +166,6 @@ def set_train_args():
     in_channels = args.in_channels
     im_year = args.im_year
     mask_year = args.mask_year
-    lon_1 = args.lon_1
-    lon_2 = args.lon_2
-    lat_1 = args.lat_1
-    lat_2 = args.lat_2
     save_part = args.save_part
     im_size = args.im_size
 
