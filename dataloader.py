@@ -1,13 +1,12 @@
-from matplotlib.pyplot import plot
-import pylab as plt
 import numpy as np
 import h5py
 from preprocessing import preprocessing
 import torch
-from torch.utils import data
 from torch.utils.data import Dataset
 import xarray as xr
 import config as cfg
+
+
 
 
 class MaskDataset(Dataset):
@@ -58,6 +57,8 @@ class MaskDataset(Dataset):
                     im_new.append(image[i])
 
         im_new = np.array(im_new)
+        np.random.shuffle(im_new)
+        np.random.shuffle(mask)
 
         #depth indicators
         if self.depth == False:
@@ -107,8 +108,9 @@ class MaskDataset(Dataset):
 
 
 #create dataset
-#dataset = MaskDataset('1970', '3d_1958_2020', prepro=False, mode = 'val')
+#dataset_train = MaskDataset('1970', '3d_1958_2020', prepro=False, mode = 'val')
 
 #get sample and unpack
-#image, mask, gt, image_1, mask_1 = dataset[0]
+
+
 #print(mask.shape)
