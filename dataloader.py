@@ -1,3 +1,4 @@
+from matplotlib.pyplot import axis
 import numpy as np
 import h5py
 from preprocessing import preprocessing
@@ -44,20 +45,22 @@ class MaskDataset(Dataset):
         mask = f_mask.get('tos_sym')
 
         n = image.shape
+
         im_new = []
 
         if self.mode == 'train':
+            mask = mask.repeat(200, axis=0)
             for i in range(n[0]):
                 if i%5 >= 1:
                     im_new.append(image[i])
         elif self.mode == 'val':
-            #mask = mask[:8]
+            mask = mask[:cfg.eval_timesteps]
             for i in range(n[0]):
                 if i%5 == 0:
                     im_new.append(image[i])
 
         im_new = np.array(im_new)
-
+        
         #depth indicators
         if self.depth == False:
             im_new  = torch.from_numpy(im_new[index, 0, :, :])
