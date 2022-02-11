@@ -34,6 +34,7 @@ writer = SummaryWriter(log_dir=cfg.log_dir)
 #dataset_val = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'val', cfg.data_types,
 #                           cfg.lstm_steps, cfg.prev_next_steps)
 
+print('before')
 
 dataset_train = MaskDataset(cfg.mask_year, cfg.im_year, mode='train')
 dataset_val = MaskDataset(cfg.mask_year, cfg.im_year, mode='val')
@@ -41,7 +42,7 @@ dataset_val = MaskDataset(cfg.mask_year, cfg.im_year, mode='val')
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
                                  num_workers=cfg.n_threads))
-
+print('after')
 # define network model
 lstm = True
 if cfg.lstm_steps == 0:
@@ -54,7 +55,7 @@ model = PConvLSTM(radar_img_size=cfg.image_sizes[0],
                   radar_in_channels=cfg.in_channels,
                   radar_out_channels=cfg.out_channels,
                   lstm=lstm).to(cfg.device)
-
+print('aferafter')
 # define learning rate
 if cfg.finetune:
     lr = cfg.lr_finetune
