@@ -22,6 +22,8 @@ class EncoderBlock(nn.Module):
     def __init__(self, conv_config, kernel, stride, activation, dilation=(1, 1), groups=1,
                  lstm=False):
         super().__init__()
+
+        self.lstm = lstm
         padding = kernel[0] // 2, kernel[1] // 2
         self.partial_conv = PConvBlock(conv_config['in_channels'], conv_config['out_channels'], kernel,
                                        stride, padding, dilation, groups, False, activation, True)
@@ -39,12 +41,13 @@ class EncoderBlock(nn.Module):
         # apply partial convolution
         output, mask = self.partial_conv(input, mask)
 
-        output = batch_to_lstm(output, batch_size)
-        mask = batch_to_lstm(mask, batch_size)
+        if self.lstm:
+            output = batch_to_lstm(output, batch_size)
+            mask = batch_to_lstm(mask, batch_size)
 
-        # apply LSTM convolution
-        if hasattr(self, 'lstm_conv'):
-            output, lstm_state = self.lstm_conv(output, lstm_state)
+            # apply LSTM convolution
+            if hasattr(self, 'lstm_conv'):
+                output, lstm_state = self.lstm_conv(output, lstm_state)
 
         return output, mask, lstm_state
 
@@ -53,6 +56,7 @@ class DecoderBlock(nn.Module):
     def __init__(self, conv_config, kernel, stride, activation, dilation=(1, 1), groups=1,
                  lstm=False, bias=False, bn=True):
         super().__init__()
+        self.lstm = lstm
         padding = kernel[0] // 2, kernel[1] // 2
         self.partial_conv = PConvBlock(conv_config['in_channels'] + conv_config['skip_channels'],
                                        conv_config['out_channels'], kernel, stride, padding, dilation, groups, bias,
@@ -85,7 +89,8 @@ class DecoderBlock(nn.Module):
         # apply partial convolution
         output, mask = self.partial_conv(h, h_mask)
 
-        output = batch_to_lstm(output, batch_size)
-        mask = batch_to_lstm(mask, batch_size)
+        if self.lstm:
+            output = batch_to_lstm(output, batch_size)
+            mask = batch_to_lstm(mask, batch_size)
 
         return output, mask, lstm_state
