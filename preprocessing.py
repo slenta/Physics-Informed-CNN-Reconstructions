@@ -18,10 +18,8 @@ class preprocessing():
         self.mode = mode
 
     def __getitem__(self):
+
         ofile = self.path + '_newgrid.nc'
-
-        #cdo.sellonlatbox(self.lon1, self.lon2, self.lat1, self.lat2, input=ifile, output = ofile)
-
         ds = xr.load_dataset(ofile, decode_times=False)
 
         #extract the variables from the file
@@ -39,7 +37,7 @@ class preprocessing():
                                 sst[i, j, k, l] = 1
 
         elif self.mode == 'image':
-            sst = ds.thetao.values
+            sst = ds.thetao.values[564:]
             x = np.isnan(sst)
             n = sst.shape
             sst[x] = 0
@@ -78,10 +76,10 @@ class preprocessing():
 
 
 #dataset1 = preprocessing('../Asi_maskiert/original_masks/Kontinentmaske', 128,'mask')
-#dataset2 = preprocessing('../Asi_maskiert/original_image/Image_r10_11', 128,'image')
+dataset2 = preprocessing('../Asi_maskiert/original_image/Image_r10', 128,'image')
 #sst, n = dataset1.__getitem__()
 #sst2, n2 = dataset2.__getitem__()
 #dataset2.plot()
 #dataset1.save_data()
-#dataset2.save_data()
+dataset2.save_data()
 #print(sst.shape)

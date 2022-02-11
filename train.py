@@ -37,6 +37,9 @@ writer = SummaryWriter(log_dir=cfg.log_dir)
 print('before')
 
 dataset_train = MaskDataset(cfg.mask_year, cfg.im_year, mode='train')
+
+print('inbetween')
+
 dataset_val = MaskDataset(cfg.mask_year, cfg.im_year, mode='val')
 
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
@@ -55,7 +58,7 @@ model = PConvLSTM(radar_img_size=cfg.image_sizes[0],
                   radar_in_channels=cfg.in_channels,
                   radar_out_channels=cfg.out_channels,
                   lstm=lstm).to(cfg.device)
-print('aferafter')
+                  
 # define learning rate
 if cfg.finetune:
     lr = cfg.lr_finetune

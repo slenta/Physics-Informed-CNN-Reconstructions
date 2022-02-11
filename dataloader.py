@@ -58,8 +58,11 @@ class MaskDataset(Dataset):
             for i in range(n[0]):
                 if i%5 == 0:
                     im_new.append(image[i])
+            im_new = im_new[:cfg.eval_timesteps]
 
         im_new = np.array(im_new)
+        np.random.shuffle(im_new)
+        np.random.shuffle(mask)
         
         #depth indicators
         if self.depth == False:
