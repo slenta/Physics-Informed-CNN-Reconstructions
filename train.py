@@ -88,7 +88,7 @@ if cfg.resume_iter:
 for i in tqdm(range(start_iter, cfg.max_iter)):
     # train model
     model.train()
-    image, mask, gt = [x.to(cfg.device) for x in next(iterator_train)]
+    image, mask, gt, im_rea, mask_rea = [x.to(cfg.device) for x in next(iterator_train)]
     output = model(image, mask)
     print(image.shape)
 
