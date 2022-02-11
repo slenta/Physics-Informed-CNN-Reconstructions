@@ -38,14 +38,11 @@ writer = SummaryWriter(log_dir=cfg.log_dir)
 dataset_train = MaskDataset(cfg.mask_year, cfg.im_year, mode='train')
 dataset_val = MaskDataset(cfg.mask_year, cfg.im_year, mode='val')
 
-print('inbetween2')
-
-print(len(dataset_train))
 
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
                                  num_workers=cfg.n_threads))
-print('after')
+
 # define network model
 lstm = True
 if cfg.lstm_steps == 0:
@@ -89,7 +86,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     # train model
     model.train()
     image, mask, gt, im_rea, mask_rea = [x.to(cfg.device) for x in next(iterator_train)]
-    output = model(image, mask)
+    output = model(image, mask, im_rea, mask_rea)
     print(image.shape)
 
     # calculate loss function and apply backpropagation

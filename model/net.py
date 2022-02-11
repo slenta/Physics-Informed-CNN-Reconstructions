@@ -88,7 +88,7 @@ class PConvLSTM(nn.Module):
                 kernel=(3, 3), stride=(1, 1), activation=activation, lstm=lstm, bn=bn, bias=bias))
         self.decoder = nn.ModuleList(decoding_layers)
 
-    def forward(self, input, input_mask, rea_input=[], rea_input_mask=[]):
+    def forward(self, input, input_mask, rea_input, rea_input_mask):
         # create lists for skip connections
         h = input
         h_mask = input_mask
