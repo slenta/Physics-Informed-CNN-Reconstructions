@@ -10,20 +10,18 @@ from model.partial_conv_module import PConvBlock
 
 
 def lstm_to_batch(input):
-    return torch.reshape(input, (-1, input.shape[2], input.shape[3], input.shape[4]))
-
+    #return torch.reshape(input, (-1, input.shape[2], input.shape[3], input.shape[4]))
+    return input
 
 def batch_to_lstm(input, batch_size):
-    return torch.reshape(input,
-                         (batch_size, 2 * cfg.lstm_steps + 1, input.shape[1], input.shape[2], input.shape[3]))
-
+    #return torch.reshape(input,
+    #                     (batch_size, 2 * cfg.lstm_steps + 1, input.shape[1], input.shape[2], input.shape[3]))
+    return input
 
 class EncoderBlock(nn.Module):
     def __init__(self, conv_config, kernel, stride, activation, dilation=(1, 1), groups=1,
                  lstm=False):
         super().__init__()
-
-        self.lstm = lstm
         padding = kernel[0] // 2, kernel[1] // 2
         self.partial_conv = PConvBlock(conv_config['in_channels'], conv_config['out_channels'], kernel,
                                        stride, padding, dilation, groups, False, activation, True)
@@ -41,13 +39,12 @@ class EncoderBlock(nn.Module):
         # apply partial convolution
         output, mask = self.partial_conv(input, mask)
 
-        if self.lstm:
-            output = batch_to_lstm(output, batch_size)
-            mask = batch_to_lstm(mask, batch_size)
+        output = batch_to_lstm(output, batch_size)
+        mask = batch_to_lstm(mask, batch_size)
 
-            # apply LSTM convolution
-            if hasattr(self, 'lstm_conv'):
-                output, lstm_state = self.lstm_conv(output, lstm_state)
+        # apply LSTM convolution
+        if hasattr(self, 'lstm_conv'):
+            output, lstm_state = self.lstm_conv(output, lstm_state)
 
         return output, mask, lstm_state
 
@@ -56,7 +53,6 @@ class DecoderBlock(nn.Module):
     def __init__(self, conv_config, kernel, stride, activation, dilation=(1, 1), groups=1,
                  lstm=False, bias=False, bn=True):
         super().__init__()
-        self.lstm = lstm
         padding = kernel[0] // 2, kernel[1] // 2
         self.partial_conv = PConvBlock(conv_config['in_channels'] + conv_config['skip_channels'],
                                        conv_config['out_channels'], kernel, stride, padding, dilation, groups, bias,
@@ -89,8 +85,7 @@ class DecoderBlock(nn.Module):
         # apply partial convolution
         output, mask = self.partial_conv(h, h_mask)
 
-        if self.lstm:
-            output = batch_to_lstm(output, batch_size)
-            mask = batch_to_lstm(mask, batch_size)
+        output = batch_to_lstm(output, batch_size)
+        mask = batch_to_lstm(mask, batch_size)
 
         return output, mask, lstm_state
