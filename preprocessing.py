@@ -76,10 +76,10 @@ class preprocessing():
 
 
 #dataset1 = preprocessing('../Asi_maskiert/original_masks/Kontinentmaske', 128,'mask')
-dataset2 = preprocessing('../Asi_maskiert/original_image/Image_r10', 128,'image')
+#dataset2 = preprocessing('../Asi_maskiert/original_image/Image_r10', 128,'image')
 #sst, n = dataset1.__getitem__()
 #sst2, n2 = dataset2.__getitem__()
 #dataset2.plot()
 #dataset1.save_data()
-dataset2.save_data()
+#dataset2.save_data()
 #print(sst.shape)

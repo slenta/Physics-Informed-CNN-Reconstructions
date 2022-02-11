@@ -63,6 +63,8 @@ class MaskDataset(Dataset):
         im_new = np.array(im_new)
         np.random.shuffle(im_new)
         np.random.shuffle(mask)
+
+        print(self.in_channels)
         
         #depth indicators
         if self.depth == False:
@@ -109,12 +111,12 @@ class MaskDataset(Dataset):
 
         return depth
 
-
+cfg.set_train_args()
 
 #create dataset
-#dataset_train = MaskDataset('1970', '3d_1958_2020', prepro=False, mode = 'val')
+dataset_train = MaskDataset('1970', '3d_1958_2020', prepro=False, mode = 'train')
 
 #get sample and unpack
 
-
-#print(mask.shape)
+im, m, g, i, ma = dataset_train[0]
+print(im.shape)

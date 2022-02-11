@@ -215,7 +215,13 @@ def set_evaluation_args():
     arg_parser.add_argument('--ts-range', type=str, default=None)
     arg_parser.add_argument('--out-channels', type=int, default=1)
     arg_parser.add_argument('--eval-threshold', type=float, default=None)
+    arg_parser.add_argument('--in_channels', type=int, default=1)
     arg_parser.add_argument('--channel-reduction-rate', type=int, default=1)
+    arg_parser.add_argument('--save_part', type=str, default='part_1')
+    arg_parser.add_argument('--im_size', type=int, default=128)
+    arg_parser.add_argument('--weights', type=str, default=None)
+    arg_parser.add_argument('--attention', action='store_true')
+    arg_parser.add_argument('--disable-skip-layers', action='store_true')
     args = arg_parser.parse_args()
 
     global data_types
@@ -242,6 +248,12 @@ def set_evaluation_args():
     global ts_range
     global out_channels
     global channel_reduction_rate
+    global loss_criterion
+    global save_part
+    global im_size
+    global attention
+    global skip_layers
+    global weights
 
     data_types = args.data_types.split(',')
     img_names = args.img_names.split(',')
@@ -272,6 +284,19 @@ def set_evaluation_args():
     out_channels = args.out_channels
     channel_reduction_rate = args.channel_reduction_rate
     gt_channels = []
+    for i in range(out_channels):
+        gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
+    in_channels = args.in_channels
+    im_year = args.im_year
+    mask_year = args.mask_year
+    save_part = args.save_part
+    im_size = args.im_size
+    attention = args.attention
+    weights = args.weights
+    if args.disable_skip_layers:
+        skip_layers = 0
+    else:
+        skip_layers = 1
     for i in range(out_channels):
         gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
 
