@@ -42,6 +42,8 @@ print('inbetween')
 
 dataset_val = MaskDataset(cfg.mask_year, cfg.im_year, mode='val')
 
+print('inbetween2')
+
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
                                  num_workers=cfg.n_threads))
@@ -58,7 +60,7 @@ model = PConvLSTM(radar_img_size=cfg.image_sizes[0],
                   radar_in_channels=cfg.in_channels,
                   radar_out_channels=cfg.out_channels,
                   lstm=lstm).to(cfg.device)
-                  
+
 # define learning rate
 if cfg.finetune:
     lr = cfg.lr_finetune
