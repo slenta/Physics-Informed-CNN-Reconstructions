@@ -34,15 +34,13 @@ writer = SummaryWriter(log_dir=cfg.log_dir)
 #dataset_val = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'val', cfg.data_types,
 #                           cfg.lstm_steps, cfg.prev_next_steps)
 
-print('before')
 
 dataset_train = MaskDataset(cfg.mask_year, cfg.im_year, mode='train')
-
-print('inbetween')
-
 dataset_val = MaskDataset(cfg.mask_year, cfg.im_year, mode='val')
 
 print('inbetween2')
+
+print(len(dataset_train))
 
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
