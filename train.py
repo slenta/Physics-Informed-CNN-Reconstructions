@@ -84,8 +84,8 @@ if cfg.resume_iter:
 for i in tqdm(range(start_iter, cfg.max_iter)):
     # train model
     model.train()
-    image, mask, gt, rea_images, rea_masks, rea_gts = [x.to(cfg.device) for x in next(iterator_train)]
-    output = model(image, mask, rea_images, rea_masks)
+    image, mask, gt = [x.to(cfg.device) for x in next(iterator_train)]
+    output = model(image, mask)
     print(image.shape)
 
     # calculate loss function and apply backpropagation
