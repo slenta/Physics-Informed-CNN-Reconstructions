@@ -59,6 +59,10 @@ im_year = None
 in_channels = None
 save_part = None
 im_size = None
+attention = None
+smoothing_factor = None
+weights = None
+skip_layers = None
 
 
 
@@ -96,6 +100,9 @@ def set_train_args():
     arg_parser.add_argument('--channel-reduction-rate', type=int, default=1)
     arg_parser.add_argument('--save_part', type=str, default='part_1')
     arg_parser.add_argument('--im_size', type=int, default=128)
+    arg_parser.add_argument('--weights', type=str, default=None)
+    arg_parser.add_argument('--attention', action='store_true')
+    arg_parser.add_argument('--disable-skip-layers', action='store_true')
     args = arg_parser.parse_args()
 
     global data_types
@@ -131,6 +138,10 @@ def set_train_args():
     global loss_criterion
     global save_part
     global im_size
+    global attention
+    global skip_layers
+    global weights
+
 
     data_types = args.data_types.split(',')
     #img_names = args.img_names.split(',')
@@ -168,6 +179,14 @@ def set_train_args():
     mask_year = args.mask_year
     save_part = args.save_part
     im_size = args.im_size
+    attention = args.attention
+    weights = args.weights
+    if args.disable_skip_layers:
+        skip_layers = 0
+    else:
+        skip_layers = 1
+    for i in range(out_channels):
+        gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()
