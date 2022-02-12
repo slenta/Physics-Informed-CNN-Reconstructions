@@ -63,6 +63,7 @@ attention = None
 smoothing_factor = None
 weights = None
 skip_layers = None
+vis_interval = None
 
 
 
@@ -103,6 +104,8 @@ def set_train_args():
     arg_parser.add_argument('--weights', type=str, default=None)
     arg_parser.add_argument('--attention', action='store_true')
     arg_parser.add_argument('--disable-skip-layers', action='store_true')
+    arg_parser.add_argument('--vis_interval', type=int, default=50000)
+
     args = arg_parser.parse_args()
 
     global data_types
@@ -141,6 +144,7 @@ def set_train_args():
     global attention
     global skip_layers
     global weights
+    global vis_interval
 
 
     data_types = args.data_types.split(',')
@@ -187,6 +191,7 @@ def set_train_args():
         skip_layers = 1
     for i in range(out_channels):
         gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
+    vis_interval = args.vis_interval
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()

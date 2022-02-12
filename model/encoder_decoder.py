@@ -32,7 +32,6 @@ class EncoderBlock(nn.Module):
 
     def forward(self, input, mask, lstm_state=None):
         batch_size = input.shape[0]
-        print('input:', input.shape)
 
         input = lstm_to_batch(input)
         mask = lstm_to_batch(mask)
@@ -46,8 +45,6 @@ class EncoderBlock(nn.Module):
         # apply LSTM convolution
         if hasattr(self, 'lstm_conv'):
             output, lstm_state = self.lstm_conv(output, lstm_state)
-
-        print(output.shape)
 
         return output, mask, lstm_state
 
