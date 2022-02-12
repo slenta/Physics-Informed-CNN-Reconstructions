@@ -162,6 +162,8 @@ class PConvLSTM(nn.Module):
                                                     (lstm_state_h, lstm_state_c))
 
         # return last element of output from last decoding layer
+
+        print(h.shape)
         return h
 
     def train(self, mode=True):
