@@ -163,7 +163,6 @@ class PConvLSTM(nn.Module):
 
         # return last element of output from last decoding layer
 
-        print(h.shape)
         return h
 
     def train(self, mode=True):
