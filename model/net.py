@@ -96,6 +96,8 @@ class PConvLSTM(nn.Module):
         hs_mask = [h_mask]
         lstm_states = []
 
+        print('input model:', h.shape)
+
         h_rea = rea_input
         h_rea_mask = rea_input_mask
         attentions = []

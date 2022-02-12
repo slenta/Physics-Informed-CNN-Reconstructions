@@ -32,7 +32,7 @@ class EncoderBlock(nn.Module):
 
     def forward(self, input, mask, lstm_state=None):
         batch_size = input.shape[0]
-        print(input.shape)
+        print('input:', input.shape)
 
         input = lstm_to_batch(input)
         mask = lstm_to_batch(mask)
