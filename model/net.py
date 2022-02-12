@@ -106,10 +106,10 @@ class PConvLSTM(nn.Module):
 
         # forward pass encoding layers
         for i in range(self.net_depth):
-            if h_rea.size()[1] != 0 and h.shape[3] == h_rea.shape[3]:
-                if not cfg.attention:
-                    hs[i] = torch.cat([hs[i], h_rea], dim=2)
-                    hs_mask[i] = torch.cat([hs_mask[i], h_rea_mask], dim=2)
+            #if h_rea.size()[1] != 0 and h.shape[3] == h_rea.shape[3]:
+                #if not cfg.attention:
+                    #hs[i] = torch.cat([hs[i], h_rea], dim=2)
+                    #hs_mask[i] = torch.cat([hs_mask[i], h_rea_mask], dim=2)
 
             h, h_mask, lstm_state = self.encoder[i](hs[i],
                                                     hs_mask[i],
