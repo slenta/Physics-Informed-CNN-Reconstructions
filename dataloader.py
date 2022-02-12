@@ -12,7 +12,7 @@ import config as cfg
 
 class MaskDataset(Dataset):
 
-    def __init__(self, mask_year, im_year, mode, depth = True, in_channels = cfg.in_channels, prepro = False, im_size = cfg.image_sizes):
+    def __init__(self, mask_year, im_year, mode, depth = True, prepro = False, im_size = cfg.image_sizes):
         super(MaskDataset, self).__init__()
 
         self.image_path = '../Asi_maskiert/original_image/'
@@ -25,7 +25,6 @@ class MaskDataset(Dataset):
         self.depth = depth
         self.prepro = prepro
         self.im_size = im_size
-        self.in_channels = in_channels
 
     def __getitem__(self, index):
 
@@ -63,8 +62,6 @@ class MaskDataset(Dataset):
         im_new = np.array(im_new)
         np.random.shuffle(im_new)
         np.random.shuffle(mask)
-
-        print(self.in_channels)
         
         #depth indicators
         if self.depth == False:
@@ -72,11 +69,11 @@ class MaskDataset(Dataset):
             mask = torch.from_numpy(mask[index, 0, :, :])
             
             #Repeat to fit input channels
-            mask = mask.repeat(self.in_channels, 1, 1)
-            im_new = im_new.repeat(self.in_channels, 1, 1)
+            mask = mask.repeat(cfg.in_channels, 1, 1)
+            im_new = im_new.repeat(cfg.in_channels, 1, 1)
         else:
-            im_new = torch.from_numpy(im_new[index, :self.in_channels, :, :])
-            mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
+            im_new = torch.from_numpy(im_new[index, :cfg.in_channels, :, :])
+            mask = torch.from_numpy(mask[index, :cfg.in_channels, :, :])
 
         return mask*im_new, mask, im_new, mask*im_new, mask
 
