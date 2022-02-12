@@ -81,7 +81,7 @@ def set_train_args():
     arg_parser.add_argument('--resume-iter', type=int)
     arg_parser.add_argument('--device', type=str, default='cpu')
     arg_parser.add_argument('--batch-size', type=int, default=4)
-    arg_parser.add_argument('--n-threads', type=int, default=16)
+    arg_parser.add_argument('--n-threads', type=int, default=4)
     arg_parser.add_argument('--finetune', action='store_true')
     arg_parser.add_argument('--lr', type=float, default=2e-4)
     arg_parser.add_argument('--lr-finetune', type=float, default=5e-5)
