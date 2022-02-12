@@ -90,9 +90,9 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     print(image.shape)
 
     # calculate loss function and apply backpropagation
-    loss_dict = criterion(mask[:, cfg.lstm_steps, cfg.gt_channels, :, :],
-                          output[:, cfg.lstm_steps, :, :, :],
-                          gt[:, cfg.lstm_steps, cfg.gt_channels, :, :])
+    loss_dict = criterion(mask[:, :, :, :],
+                          output[:, :, :, :],
+                          gt[:, :, :, :])
     loss = 0.0
     for key, factor in lambda_dict.items():
         value = factor * loss_dict[key]
