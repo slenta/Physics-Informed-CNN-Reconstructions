@@ -111,9 +111,9 @@ class MaskDataset(Dataset):
 cfg.set_train_args()
 
 #create dataset
-dataset_train = MaskDataset('1970', '3d_1958_2020', prepro=False, mode = 'train')
+#dataset_train = MaskDataset('1970', '3d_1958_2020', prepro=False, mode = 'train')
 
 #get sample and unpack
 
-im, m, g, i, ma = dataset_train[0]
-print(im.shape)
+#im, m, g, i, ma = dataset_train[0]
+#print(im.shape)
