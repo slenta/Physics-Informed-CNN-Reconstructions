@@ -21,12 +21,14 @@ from evaluation_og import evaluate
 cfg.set_train_args()
 
 if not os.path.exists(cfg.snapshot_dir):
-    os.makedirs('{:s}/images'.format(cfg.snapshot_dir))
-    os.makedirs('{:s}/ckpt'.format(cfg.snapshot_dir))
+    os.makedirs('{:s}/{:s}/images'.format(cfg.snapshot_dir, cfg.save_part))
+    os.makedirs('{:s}/{:s}/ckpt'.format(cfg.snapshot_dir, cfg.save_part))
 
-if not os.path.exists(cfg.log_dir):
-    os.makedirs(cfg.log_dir)
-writer = SummaryWriter(log_dir=cfg.log_dir)
+
+log_dir = cfg.log_dir + '_' + cfg.save_part
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+writer = SummaryWriter(log_dir=log_dir)
 
 # create data sets
 #dataset_train = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'train', cfg.data_types,
@@ -79,7 +81,7 @@ else:
 start_iter = 0
 if cfg.resume_iter:
     start_iter = load_ckpt(
-        '{}/ckpt/{}.pth'.format(cfg.snapshot_dir, cfg.resume_iter), [('model', model)], cfg.device, [('optimizer', optimizer)])
+        '{}/ckpt/{}/{}.pth'.format(cfg.snapshot_dir, cfg.save_part, cfg.resume_iter), [('model', model)], cfg.device, [('optimizer', optimizer)])
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     print('Starting from iter ', start_iter)
@@ -107,7 +109,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
 
     # save checkpoint
     if (i + 1) % cfg.save_model_interval == 0 or (i + 1) == cfg.max_iter:
-        save_ckpt('{:s}/ckpt/{:d}.pth'.format(cfg.snapshot_dir, i + 1),
+        save_ckpt('{:s}/ckpt/{:s}/{:d}.pth'.format(cfg.snapshot_dir, cfg.save_part, i + 1),
                   [('model', model)], [('optimizer', optimizer)], i + 1)
 
     # create snapshot image

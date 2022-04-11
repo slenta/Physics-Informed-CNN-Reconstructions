@@ -65,22 +65,22 @@ weights = None
 skip_layers = None
 vis_interval = None
 mode = None
-attributes = None
 lon1 = None
 lon2 = None
 lat1 = None
 lat2 = None
 save_part = None
-attribute0 = None
-attribute1 = None
+attribute_depth = None
+attribute_anomaly = None
 depth = None
+attribute_argo = None
 
 
 
 def set_train_args():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--data-types', type=str, default='tas')
-    arg_parser.add_argument('--log-dir', type=str, default='logs/')
+    arg_parser.add_argument('--log_dir', type=str, default='logs/')
     arg_parser.add_argument('--snapshot-dir', type=str, default='../Asi_maskiert/results')
     arg_parser.add_argument('--data-root-dir', type=str, default='../Asi_maskiert/original_image/')
     arg_parser.add_argument('--mask-dir', type=str, default='../Asi_maskiert/original_masks/')
@@ -327,8 +327,9 @@ def set_preprocessing_args():
     arg_parser.add_argument('--mask_name', type=str, default='Maske_1970_1985_newgrid')
     arg_parser.add_argument('--depth', type=int, default=3)
     arg_parser.add_argument('--mode', type=str, default='image')
-    arg_parser.add_argument('--attribute0', type=str, default='anomalies')   
-    arg_parser.add_argument('--attribute1', type=str, default='depth')
+    arg_parser.add_argument('--attribute_anomaly', type=str, default='anomalies')   
+    arg_parser.add_argument('--attribute_depth', type=str, default='depth')
+    arg_parser.add_argument('--attribute_argo', type=str, default='argoera')
     arg_parser.add_argument('--lon1', type=str, default='-65')
     arg_parser.add_argument('--lon2', type=str, default='-5')
     arg_parser.add_argument('--lat1', type=str, default='20')
@@ -347,8 +348,9 @@ def set_preprocessing_args():
     global lon2
     global lat1
     global lat2
-    global attribute0
-    global attribute1
+    global attribute_anomaly
+    global attribute_argo
+    global attribute_depth
 
     image_size = args.image_size
     image_dir = args.image_dir
@@ -361,7 +363,8 @@ def set_preprocessing_args():
     lon2 = args.lon2
     lat1 = args.lat1
     lat2 = args.lat2
-    attribute0 = args.attribute0
-    attribute1 = args.attribute1
+    attribute_depth = args.attribute_depth
+    attribute_anomaly = args.attribute_anomaly
+    attribute_argo = args.attribute_argo
 
 

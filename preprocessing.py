@@ -11,7 +11,7 @@ import netCDF4
 
 class preprocessing():
     
-    def __init__(self, path, name, new_im_size, mode, depth, attribute1, attribute2, lon1, lon2, lat1, lat2):
+    def __init__(self, path, name, new_im_size, mode, depth, attribute_depth, attribute_anomaly, attribute_argo, lon1, lon2, lat1, lat2):
         super(preprocessing, self).__init__()
 
         self.path = path
@@ -20,7 +20,7 @@ class preprocessing():
         self.new_im_size = new_im_size
         self.mode = mode
         self.depth = depth
-        self.attributes = [attribute1, attribute2]
+        self.attributes = [attribute_depth, attribute_anomaly, attribute_argo]
         self.lon1 = int(lon1)
         self.lon2 = int(lon2)
         self.lat1 = int(lat1)
@@ -96,7 +96,7 @@ class preprocessing():
         sst_new, n = self.__getitem__()
 
         #create new h5 file with symmetric ssts
-        f = h5py.File(self.path + self.name + '_' +  self.attributes[0] + '_' + self.attributes[1] + '.hdf5', 'w')
+        f = h5py.File(self.path + self.name + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '.hdf5', 'w')
         dset1 = f.create_dataset('tos_sym', shape=n, dtype = 'float32', data = sst_new)
         f.close()
 
@@ -105,7 +105,7 @@ cfg.set_preprocessing_args()
 
 if cfg.mode == 'image':
     print(cfg.attribute0, cfg.attribute1)
-    dataset = preprocessing(cfg.image_dir, cfg.image_name, cfg.image_size, 'image', cfg.depth, cfg.attribute0, cfg.attribute1, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+    dataset = preprocessing(cfg.image_dir, cfg.image_name, cfg.image_size, 'image', cfg.depth, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
     dataset.save_data()
 elif cfg.mode == 'mask':
     dataset = preprocessing(cfg.mask_dir, cfg.mask_name, cfg.image_size, 'mask', cfg.depth, cfg.attributes)
