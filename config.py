@@ -105,7 +105,7 @@ def set_train_args():
     arg_parser.add_argument('--encoding-layers', type=str, default='3')
     arg_parser.add_argument('--pooling-layers', type=str, default='0')
     arg_parser.add_argument('--image-size', type=str, default='128')
-    arg_parser.add_argument('--out-channels', type=int, default=1)
+    arg_parser.add_argument('--out_channels', type=int, default=1)
     arg_parser.add_argument('--in_channels', type=int, default=1)
     arg_parser.add_argument('--loss-criterion', type=int, default=0)
     arg_parser.add_argument('--eval-timesteps', type=str, default="0,1,2,3,4")
