@@ -64,6 +64,16 @@ smoothing_factor = None
 weights = None
 skip_layers = None
 vis_interval = None
+mode = None
+attributes = None
+lon1 = None
+lon2 = None
+lat1 = None
+lat2 = None
+save_part = None
+attribute0 = None
+attribute1 = None
+depth = None
 
 
 
@@ -88,6 +98,7 @@ def set_train_args():
     arg_parser.add_argument('--max-iter', type=int, default=400000)
     arg_parser.add_argument('--log-interval', type=int, default=None)
     arg_parser.add_argument('--save-snapshot-image', action='store_true')
+    arg_parser.add_argument('--depth', action='store_true')
     arg_parser.add_argument('--save-model-interval', type=int, default=50000)
     arg_parser.add_argument('--lstm-steps', type=int, default=0)
     arg_parser.add_argument('--prev-next-steps', type=int, default=0)
@@ -145,6 +156,7 @@ def set_train_args():
     global skip_layers
     global weights
     global vis_interval
+    global depth
 
 
     data_types = args.data_types.split(',')
@@ -192,6 +204,7 @@ def set_train_args():
     for i in range(out_channels):
         gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
     vis_interval = args.vis_interval
+    depth = args.depth
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()
@@ -304,4 +317,51 @@ def set_evaluation_args():
         skip_layers = 1
     for i in range(out_channels):
         gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
+
+def set_preprocessing_args():
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('--image_size', type=int, default=128)
+    arg_parser.add_argument('--image_dir', type=str, default='../Asi_maskiert/original_image/')
+    arg_parser.add_argument('--mask_dir', type=str, default='../Asi_maskiert/original_masks/')
+    arg_parser.add_argument('--image_name', type=str, default='Image_r10_newgrid')
+    arg_parser.add_argument('--mask_name', type=str, default='Maske_1970_1985_newgrid')
+    arg_parser.add_argument('--depth', type=int, default=3)
+    arg_parser.add_argument('--mode', type=str, default='image')
+    arg_parser.add_argument('--attribute0', type=str, default='anomalies')   
+    arg_parser.add_argument('--attribute1', type=str, default='depth')
+    arg_parser.add_argument('--lon1', type=str, default='-65')
+    arg_parser.add_argument('--lon2', type=str, default='-5')
+    arg_parser.add_argument('--lat1', type=str, default='20')
+    arg_parser.add_argument('--lat2', type=str, default='69')
+    args = arg_parser.parse_args()
+
+
+    global image_size
+    global image_dir
+    global mask_dir
+    global image_name
+    global mask_name
+    global depth
+    global mode
+    global lon1
+    global lon2
+    global lat1
+    global lat2
+    global attribute0
+    global attribute1
+
+    image_size = args.image_size
+    image_dir = args.image_dir
+    mask_dir = args.mask_dir
+    image_name = args.image_name
+    mask_name = args.mask_name
+    depth = args.depth
+    mode = args.mode
+    lon1 = args.lon1
+    lon2 = args.lon2
+    lat1 = args.lat1
+    lat2 = args.lat2
+    attribute0 = args.attribute0
+    attribute1 = args.attribute1
+
 
