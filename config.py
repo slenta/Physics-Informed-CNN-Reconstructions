@@ -58,7 +58,7 @@ mask_year = None
 im_year = None
 in_channels = None
 save_part = None
-im_size = None
+image_size = None
 attention = None
 smoothing_factor = None
 weights = None
@@ -104,14 +104,14 @@ def set_train_args():
     arg_parser.add_argument('--prev-next-steps', type=int, default=0)
     arg_parser.add_argument('--encoding-layers', type=str, default='3')
     arg_parser.add_argument('--pooling-layers', type=str, default='0')
-    arg_parser.add_argument('--image-sizes', type=str, default='128')
+    arg_parser.add_argument('--image-size', type=str, default='128')
     arg_parser.add_argument('--out-channels', type=int, default=1)
     arg_parser.add_argument('--in_channels', type=int, default=1)
     arg_parser.add_argument('--loss-criterion', type=int, default=0)
     arg_parser.add_argument('--eval-timesteps', type=str, default="0,1,2,3,4")
     arg_parser.add_argument('--channel-reduction-rate', type=int, default=1)
     arg_parser.add_argument('--save_part', type=str, default='part_1')
-    arg_parser.add_argument('--im_size', type=int, default=128)
+    arg_parser.add_argument('--image_size', type=int, default=128)
     arg_parser.add_argument('--weights', type=str, default=None)
     arg_parser.add_argument('--attention', action='store_true')
     arg_parser.add_argument('--disable-skip-layers', action='store_true')
@@ -142,7 +142,7 @@ def set_train_args():
     global prev_next_steps
     global encoding_layers
     global pooling_layers
-    global image_sizes
+    global image_size
     global eval_timesteps
     global in_channels
     global out_channels
@@ -194,7 +194,7 @@ def set_train_args():
     im_year = args.im_year
     mask_year = args.mask_year
     save_part = args.save_part
-    im_size = args.im_size
+    image_size = args.image_size
     attention = args.attention
     weights = args.weights
     if args.disable_skip_layers:
