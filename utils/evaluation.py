@@ -1,4 +1,6 @@
+from cProfile import label
 import h5py
+from sqlalchemy import true
 import torch
 import netCDF4
 import numpy as np
@@ -6,7 +8,8 @@ import pandas as pd
 import imageio
 import matplotlib.pyplot as plt
 from dateutil import parser
-from netCDF4 import Dataset
+from dataloader import MaskDataset
+from preprocessing import preprocessing
 from fpdf import FPDF
 from cdo import *
 from numpy import ma
@@ -66,7 +69,7 @@ def create_snapshot_image(model, dataset, filename):
 
 
 def get_data(file, var):
-    data = Dataset(file)
+    data = MaskDataset(file)
     time = data.variables['time']
     variable = data.variables[var]
     return variable, time
@@ -142,6 +145,68 @@ def infill(model, dataset, partitions):
         h5.close()
 
     return ma.masked_array(gt, mask)[:, 0, :, :], ma.masked_array(output_comp, mask)[:, 0, :, :]
+
+
+class HeatContent():
+
+    def __init__(self, image_dir, image_year, mask_dir, mask_year, image_size, depth, attribute_depth, attribute_anomaly, attribute_argo, lon1, lon2, lat1, lat2, preprocessing, depth_steps):
+        self.im_dir = image_dir
+        self.im_year = image_year
+        self.mask_dir = mask_dir
+        self.mask_year = mask_year
+        self.image_path = '../Asi_maskiert/pdfs/'
+        self.im_size = image_size
+        self.mode = preprocessing
+        self.depth = depth
+        self.attributes = [attribute_depth, attribute_anomaly, attribute_argo]
+        self.lon1 = int(lon1)
+        self.lon2 = int(lon2)
+        self.lat1 = int(lat1)
+        self.lat2 = int(lat2)
+        self.im_name = 'Image_' + str(image_year) + attribute_depth + attribute_anomaly + attribute_argo
+        self.mask_name = 'Maske_' + str(mask_year) + attribute_depth + attribute_anomaly + attribute_argo
+        self.shc_sw = 3850
+        self.depth_steps = depth_steps
+
+    def seawater_density(z):
+        return 1025
+
+    def creat_hc_timeseries(self, model, partitions):
+
+        if preprocessing == true:
+            dset_im = preprocessing(self.im_dir, self.im_name, self.im_size, 'image', self.depth, self.attributes[0], self.attributes[1], self.attributes[2], self.lon1, self.lon2, self.lat1, self.lat2)
+            dset_im.save_data()
+            dset_mask = preprocessing(self.mask_dir, self.mask_name, self.im_size, 'mask', self.depth, self.attributes[0], self.attributes[1], self.attributes[2], self.lon1, self.lon2, self.lat1, self.lat2)
+            dset_mask.save_data()
+
+        depth = True
+        if self.depth != 1:
+            depth = True
+        
+        dataset = MaskDataset(depth, self.depth, self.mask_year, self.im_year)
+
+        gt, output_comp = infill(model, dataset, partitions)
+        network = np.mean(np.mean(output_comp, axis=2), axis=2)
+        assi = np.mean(np.mean(gt, axis=2), axis=2)
+        n = output_comp.shape
+        hc_network = np.zeros(n[0])
+        hc_assi = np.zeros(n[0])
+
+        for i in range(n[0]):
+            hc_network[i] = np.sum([(self.depth_steps[k] - self.depth_steps[k-1])*network[i, k]*self.seawater_density(self.depth_steps(k))*self.shc_sw for k in range(1, n[1])])
+            hc_assi[i] = np.sum([(self.depth_steps[k] - self.depth_steps[k-1])*assi[i, k]*self.seawater_density(self.depth_steps(k))*self.shc_sw for k in range(1, n[1])])
+
+        plt.plot(range(n[0]), hc_network, label='Network Reconstructed Heat Content')
+        plt.plot(range(n[0]), hc_assi, label='Assimilation Heat Content')
+        plt.grid()
+        plt.legend()
+        plt.xlabel('Months since January 1958')
+        plt.ylabel('Heat Content [J/m²]')
+        plt.savefig('heat_content_timeseries.pdf')
+        plt.show()
+            
+
+
 
 
 def convert_all_to_netcdf():
