@@ -43,7 +43,7 @@ lstm_steps = None
 prev_next_steps = None
 encoding_layers = None
 pooling_layers = None
-image_sizes = None
+#image_sizes = None
 eval_names = None
 eval_threshold = None
 eval_range = None
@@ -151,7 +151,7 @@ def set_train_args():
     global save_snapshot_image
     global loss_criterion
     global save_part
-    global im_size
+    global image_size
     global attention
     global skip_layers
     global weights
@@ -182,7 +182,7 @@ def set_train_args():
     prev_next_steps = args.prev_next_steps
     encoding_layers = list(map(int, args.encoding_layers.split(',')))
     pooling_layers = list(map(int, args.pooling_layers.split(',')))
-    image_sizes = list(map(int, args.image_sizes.split(',')))
+    #image_sizes = list(map(int, args.image_sizes.split(',')))
     channel_reduction_rate = args.channel_reduction_rate
     out_channels = args.out_channels
     save_snapshot_image = args.save_snapshot_image
@@ -236,7 +236,7 @@ def set_evaluation_args():
     arg_parser.add_argument('--in_channels', type=int, default=1)
     arg_parser.add_argument('--channel-reduction-rate', type=int, default=1)
     arg_parser.add_argument('--save_part', type=str, default='part_1')
-    arg_parser.add_argument('--im_size', type=int, default=128)
+    arg_parser.add_argument('--image_size', type=int, default=128)
     arg_parser.add_argument('--weights', type=str, default=None)
     arg_parser.add_argument('--attention', action='store_true')
     arg_parser.add_argument('--disable-skip-layers', action='store_true')
@@ -255,7 +255,7 @@ def set_evaluation_args():
     global prev_next_steps
     global encoding_layers
     global pooling_layers
-    global image_sizes
+    #global image_sizes
     global infill
     global create_images
     global create_video
@@ -268,7 +268,7 @@ def set_evaluation_args():
     global channel_reduction_rate
     global loss_criterion
     global save_part
-    global im_size
+    global image_size
     global attention
     global skip_layers
     global weights
@@ -287,7 +287,7 @@ def set_evaluation_args():
     prev_next_steps = args.prev_next_steps
     encoding_layers = list(map(int, args.encoding_layers.split(',')))
     pooling_layers = list(map(int, args.pooling_layers.split(',')))
-    image_sizes = list(map(int, args.image_sizes.split(',')))
+    #image_sizes = list(map(int, args.image_sizes.split(',')))
     infill = args.infill
     if args.create_images:
         create_images = args.create_images.split(',')
@@ -308,7 +308,7 @@ def set_evaluation_args():
     im_year = args.im_year
     mask_year = args.mask_year
     save_part = args.save_part
-    im_size = args.im_size
+    image_size = args.image_size
     attention = args.attention
     weights = args.weights
     if args.disable_skip_layers:
