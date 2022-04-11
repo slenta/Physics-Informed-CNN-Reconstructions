@@ -51,7 +51,7 @@ if cfg.lstm_steps == 0:
     lstm = False
 
 
-model = PConvLSTM(radar_img_size=cfg.image_sizes[0],
+model = PConvLSTM(radar_img_size=cfg.image_size,
                   radar_enc_dec_layers=cfg.encoding_layers[0],
                   radar_pool_layers=cfg.pooling_layers[0],
                   radar_in_channels=cfg.in_channels,
