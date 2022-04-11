@@ -88,7 +88,7 @@ class MaskDataset(Dataset):
 
     def __len__(self):
         
-        mi, ma, im_new = self.__getitem__(0)
+        mi, ma, im_new, mis, mas = self.__getitem__(0)
         n = im_new.shape
         length = n[0]
 
