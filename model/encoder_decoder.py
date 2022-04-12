@@ -88,6 +88,4 @@ class DecoderBlock(nn.Module):
         output = batch_to_lstm(output, batch_size)
         mask = batch_to_lstm(mask, batch_size)
 
-        print(output.shape)
-
         return output, mask, lstm_state

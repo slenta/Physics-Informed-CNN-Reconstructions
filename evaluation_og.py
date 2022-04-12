@@ -10,7 +10,7 @@ import h5py
 
 
 def evaluate(model, dataset, device, filename):
-    image, mask, gt = zip(*[dataset[i] for i in range(16)])
+    image, mask, gt = zip(*[dataset[i] for i in range(8)])
 
     image = torch.stack(image)
     mask = torch.stack(mask)
@@ -18,7 +18,7 @@ def evaluate(model, dataset, device, filename):
     image = torch.as_tensor(image)
     mask = torch.as_tensor(mask)
     gt = torch.as_tensor(gt)
-    print(image.shape, mask.shape, gt.shape)
+
     with torch.no_grad():
         output, _ = model(image.to(device), mask.to(device))
     output = output.to(torch.device('cpu'))
