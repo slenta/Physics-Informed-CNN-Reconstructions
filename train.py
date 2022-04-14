@@ -25,7 +25,7 @@ if not os.path.exists(cfg.snapshot_dir):
     os.makedirs('{:s}/{:s}/ckpt'.format(cfg.snapshot_dir, cfg.save_part))
 
 
-log_dir = cfg.log_dir + '_' + cfg.save_part
+log_dir = '{}{}/'.format(cfg.log_dir, cfg.save_part)
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 writer = SummaryWriter(log_dir=log_dir)
