@@ -10,7 +10,7 @@ import h5py
 
 
 def evaluate(model, dataset, device, filename):
-    image, mask, gt = zip(*[dataset[i] for i in range(8)])
+    image, mask, gt, i1, m1 = zip(*[dataset[i] for i in range(8)])
 
     image = torch.stack(image)
     mask = torch.stack(mask)
