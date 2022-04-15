@@ -20,7 +20,7 @@ def evaluate(model, dataset, device, filename):
     gt = torch.as_tensor(gt)
 
     with torch.no_grad():
-        output, _ = model(image.to(device), mask.to(device))
+        output, _ = model(image.to(device), mask.to(device), i1.to(device), m1.to(device))
     output = output.to(torch.device('cpu'))
     output_comp = mask*image + (1 - mask)*output
 
