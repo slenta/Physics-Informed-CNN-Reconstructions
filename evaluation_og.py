@@ -15,9 +15,14 @@ def evaluate(model, dataset, device, filename):
     image = torch.stack(image)
     mask = torch.stack(mask)
     gt = torch.stack(gt)
+    i1 = torch.stack(i1)
+    m1 = torch.stack(m1)
+
     image = torch.as_tensor(image)
     mask = torch.as_tensor(mask)
     gt = torch.as_tensor(gt)
+    i1 = torch.as_tensor(i1)
+    m1 = torch.as_tensor(m1)
 
     with torch.no_grad():
         output, _ = model(image.to(device), mask.to(device), i1.to(device), m1.to(device))
