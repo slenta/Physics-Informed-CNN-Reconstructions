@@ -37,9 +37,9 @@ def evaluate(model, dataset, device, filename):
     output = output.to(torch.device('cpu'))
     output_comp = mask*image + (1 - mask)*output
 
-    grid = make_grid(
-        torch.cat((unnormalize(image), unnormalize(mask), unnormalize(output),
-                   unnormalize(output_comp), unnormalize(gt)), dim=0))
+    #grid = make_grid(
+    #    torch.cat((unnormalize(image), unnormalize(mask), unnormalize(output),
+    #               unnormalize(output_comp), unnormalize(gt)), dim=0))
 
     n = image.shape
 
@@ -50,7 +50,7 @@ def evaluate(model, dataset, device, filename):
     dset4 = f.create_dataset('mask', shape=(n[0], n[1], n[2], n[3]), dtype='float32', data=mask) 
     f.close()
     
-    save_image(grid, filename + '.jpg')
+    #save_image(grid, filename + '.jpg')
 
 def infill(model, dataset, partitions):
     if not os.path.exists(cfg.evaluation_dirs[0]):
