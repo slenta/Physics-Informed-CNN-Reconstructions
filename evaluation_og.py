@@ -32,7 +32,7 @@ def evaluate(model, dataset, device, filename):
     print(image.shape, mask.shape, gt.shape, output.shape)
 
     grid = make_grid(
-        torch.cat((unnormalize(image), mask, unnormalize(output),
+        torch.cat((unnormalize(image), unnormalize(mask), unnormalize(output),
                    unnormalize(output_comp), unnormalize(gt)), dim=0))
 
     n = image.shape
