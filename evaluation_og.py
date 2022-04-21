@@ -29,6 +29,8 @@ def evaluate(model, dataset, device, filename):
     output = output.to(torch.device('cpu'))
     output_comp = mask*image + (1 - mask)*output
 
+    print(image.shape, mask.shape, gt.shape, output.shape)
+
     grid = make_grid(
         torch.cat((unnormalize(image), mask, unnormalize(output),
                    unnormalize(output_comp), unnormalize(gt)), dim=0))
