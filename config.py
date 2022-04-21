@@ -325,7 +325,7 @@ def set_preprocessing_args():
     arg_parser.add_argument('--mask_dir', type=str, default='../Asi_maskiert/original_masks/')
     arg_parser.add_argument('--image_name', type=str, default='Image_r10_newgrid')
     arg_parser.add_argument('--mask_name', type=str, default='Maske_1970_1985_newgrid')
-    arg_parser.add_argument('--depth', type=int, default=3)
+    arg_parser.add_argument('--in_channels', type=int, default=10)
     arg_parser.add_argument('--mode', type=str, default='image')
     arg_parser.add_argument('--attribute_anomaly', type=str, default='anomalies')   
     arg_parser.add_argument('--attribute_depth', type=str, default='depth')
@@ -342,7 +342,7 @@ def set_preprocessing_args():
     global mask_dir
     global image_name
     global mask_name
-    global depth
+    global in_channels
     global mode
     global lon1
     global lon2
@@ -357,7 +357,7 @@ def set_preprocessing_args():
     mask_dir = args.mask_dir
     image_name = args.image_name
     mask_name = args.mask_name
-    depth = args.depth
+    in_channels = args.in_channels
     mode = args.mode
     lon1 = args.lon1
     lon2 = args.lon2
