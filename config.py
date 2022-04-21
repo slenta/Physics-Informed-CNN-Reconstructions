@@ -115,7 +115,7 @@ def set_train_args():
     arg_parser.add_argument('--weights', type=str, default=None)
     arg_parser.add_argument('--attention', action='store_true')
     arg_parser.add_argument('--disable-skip-layers', action='store_true')
-    arg_parser.add_argument('--vis_interval', type=int, default=1)
+    arg_parser.add_argument('--vis_interval', type=int, default=50000)
 
     args = arg_parser.parse_args()
 
