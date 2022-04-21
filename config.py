@@ -25,8 +25,7 @@ create_images = None
 create_video = None
 create_report = None
 log_dir = None
-snapshot_dir = None
-snapshot_dirs = None
+save_dir = None
 im_dir = None
 mask_dir = None
 resume_iter = None
@@ -82,7 +81,7 @@ def set_train_args():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--data-types', type=str, default='tas')
     arg_parser.add_argument('--log_dir', type=str, default='logs/')
-    arg_parser.add_argument('--snapshot-dir', type=str, default='../Asi_maskiert/results/')
+    arg_parser.add_argument('--save_dir', type=str, default='../Asi_maskiert/results/')
     arg_parser.add_argument('--im_dir', type=str, default='../Asi_maskiert/original_image/')
     arg_parser.add_argument('--mask_dir', type=str, default='../Asi_maskiert/original_masks/')
     arg_parser.add_argument('--im_name', type=str, default='Image_')
@@ -105,7 +104,6 @@ def set_train_args():
     arg_parser.add_argument('--prev-next-steps', type=int, default=0)
     arg_parser.add_argument('--encoding_layers', type=str, default='3')
     arg_parser.add_argument('--pooling_layers', type=str, default='0')
-    arg_parser.add_argument('--image-size', type=str, default='128')
     arg_parser.add_argument('--out_channels', type=int, default=1)
     arg_parser.add_argument('--in_channels', type=int, default=1)
     arg_parser.add_argument('--loss-criterion', type=int, default=0)
@@ -118,7 +116,6 @@ def set_train_args():
     arg_parser.add_argument('--disable-skip-layers', action='store_true')
     arg_parser.add_argument('--vis_interval', type=int, default=50000)
     arg_parser.add_argument('--eval_im_year', type=str, default='r16_newgrid')
-    arg_parser.add_argument('--image_size', type=int, default=128)
     arg_parser.add_argument('--mode', type=str, default='image')
     arg_parser.add_argument('--attribute_anomaly', type=str, default='anomalies')   
     arg_parser.add_argument('--attribute_depth', type=str, default='depth')
@@ -127,7 +124,7 @@ def set_train_args():
     arg_parser.add_argument('--lon2', type=str, default='-5')
     arg_parser.add_argument('--lat1', type=str, default='20')
     arg_parser.add_argument('--lat2', type=str, default='69')
-    arg_parser.add_argument('--val_interval', type=int, default=100000)
+    arg_parser.add_argument('--val_interval', type=int, default=1)
 
 
     args = arg_parser.parse_args()
@@ -138,7 +135,7 @@ def set_train_args():
     global mask_year
     global im_year
     global log_dir
-    global snapshot_dir
+    global save_dir
     global im_dir
     global mask_dir
     global resume_iter
@@ -184,11 +181,11 @@ def set_train_args():
 
 
     data_types = args.data_types.split(',')
-    im_name = args.im_name.split(',')
-    mask_name = args.mask_name.split(',')
+    im_name = args.im_name
+    mask_name = args.mask_name
     eval_timesteps = args.eval_timesteps.split(',')
     log_dir = args.log_dir
-    snapshot_dir = args.snapshot_dir
+    save_dir = args.save_dir
     im_dir = args.im_dir
     mask_dir = args.mask_dir
     resume_iter = args.resume_iter
