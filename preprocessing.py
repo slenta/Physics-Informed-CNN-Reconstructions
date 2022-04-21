@@ -99,20 +99,3 @@ class preprocessing():
         f = h5py.File(self.path + self.name + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '.hdf5', 'w')
         dset1 = f.create_dataset('tos_sym', shape=n, dtype = 'float32', data = sst_new)
         f.close()
-
-
-cfg.set_preprocessing_args()
-
-if cfg.mode == 'image':
-    print(cfg.attribute0, cfg.attribute1)
-    dataset = preprocessing(cfg.image_dir, cfg.image_name, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
-    dataset.save_data()
-elif cfg.mode == 'mask':
-    dataset = preprocessing(cfg.mask_dir, cfg.mask_name, cfg.image_size, 'mask', cfg.in_channels, cfg.attributes)
-    dataset.save_data()
-elif cfg.mode == 'both':
-    dataset = preprocessing(cfg.image_dir, cfg.image_name, cfg.image_size, 'image', cfg.in_channels, cfg.attributes, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
-    dataset1 = preprocessing(cfg.mask_dir, cfg.mask_name, cfg.image_size, 'mask', cfg.in_channels, cfg.attributes, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
-    dataset.save_data()
-    dataset1.save_data()
-
