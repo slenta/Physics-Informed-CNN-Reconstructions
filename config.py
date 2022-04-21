@@ -16,8 +16,8 @@ LAMBDA_DICT_HOLE = {
 PDF_BINS = [0, 0.01, 0.02, 0.1, 1, 2, 10, 100]
 
 data_types = None
-mask_names = None
-img_names = None
+mask_name = None
+im_name = None
 evaluation_dirs = None
 partitions = None
 infill = None
@@ -27,7 +27,7 @@ create_report = None
 log_dir = None
 snapshot_dir = None
 snapshot_dirs = None
-data_root_dir = None
+im_dir = None
 mask_dir = None
 resume_iter = None
 device = None
@@ -74,18 +74,19 @@ attribute_depth = None
 attribute_anomaly = None
 depth = None
 attribute_argo = None
-
+eval_im_year = None
+val_interval = None
 
 
 def set_train_args():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--data-types', type=str, default='tas')
     arg_parser.add_argument('--log_dir', type=str, default='logs/')
-    arg_parser.add_argument('--snapshot-dir', type=str, default='../Asi_maskiert/results')
-    arg_parser.add_argument('--data-root-dir', type=str, default='../Asi_maskiert/original_image/')
-    arg_parser.add_argument('--mask-dir', type=str, default='../Asi_maskiert/original_masks/')
-    #arg_parser.add_argument('--img-names', type=str, default='train.h5')
-    #arg_parser.add_argument('--mask-names', type=str, default='mask.h5')
+    arg_parser.add_argument('--snapshot-dir', type=str, default='../Asi_maskiert/results/')
+    arg_parser.add_argument('--im_dir', type=str, default='../Asi_maskiert/original_image/')
+    arg_parser.add_argument('--mask_dir', type=str, default='../Asi_maskiert/original_masks/')
+    arg_parser.add_argument('--im_name', type=str, default='Image_')
+    arg_parser.add_argument('--mask_name', type=str, default='Maske_')
     arg_parser.add_argument('--mask_year', type=str, default='1970')
     arg_parser.add_argument('--im_year', type=str, default='3d_1958_2020')
     arg_parser.add_argument('--resume-iter', type=int)
@@ -116,17 +117,29 @@ def set_train_args():
     arg_parser.add_argument('--attention', action='store_true')
     arg_parser.add_argument('--disable-skip-layers', action='store_true')
     arg_parser.add_argument('--vis_interval', type=int, default=50000)
+    arg_parser.add_argument('--eval_im_year', type=str, default='r16_newgrid')
+    arg_parser.add_argument('--image_size', type=int, default=128)
+    arg_parser.add_argument('--mode', type=str, default='image')
+    arg_parser.add_argument('--attribute_anomaly', type=str, default='anomalies')   
+    arg_parser.add_argument('--attribute_depth', type=str, default='depth')
+    arg_parser.add_argument('--attribute_argo', type=str, default='argoera')
+    arg_parser.add_argument('--lon1', type=str, default='-65')
+    arg_parser.add_argument('--lon2', type=str, default='-5')
+    arg_parser.add_argument('--lat1', type=str, default='20')
+    arg_parser.add_argument('--lat2', type=str, default='69')
+    arg_parser.add_argument('--val_interval', type=int, default=100000)
+
 
     args = arg_parser.parse_args()
 
     global data_types
-    global img_names
-    global mask_names
+    global im_name
+    global mask_name
     global mask_year
     global im_year
     global log_dir
     global snapshot_dir
-    global data_root_dir
+    global im_dir
     global mask_dir
     global resume_iter
     global device
@@ -157,15 +170,26 @@ def set_train_args():
     global weights
     global vis_interval
     global depth
+    global eval_im_year
+    global mode
+    global lon1
+    global lon2
+    global lat1
+    global lat2
+    global attribute_anomaly
+    global attribute_argo
+    global attribute_depth
+    global val_interval
+
 
 
     data_types = args.data_types.split(',')
-    #img_names = args.img_names.split(',')
-    #mask_names = args.mask_names.split(',')
+    im_name = args.im_name.split(',')
+    mask_name = args.mask_name.split(',')
     eval_timesteps = args.eval_timesteps.split(',')
     log_dir = args.log_dir
     snapshot_dir = args.snapshot_dir
-    data_root_dir = args.data_root_dir
+    im_dir = args.im_dir
     mask_dir = args.mask_dir
     resume_iter = args.resume_iter
     torch.backends.cudnn.benchmark = True
@@ -205,6 +229,16 @@ def set_train_args():
         gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
     vis_interval = args.vis_interval
     depth = args.depth
+    eval_im_year = args.eval_im_year
+    mode = args.mode
+    lon1 = args.lon1
+    lon2 = args.lon2
+    lat1 = args.lat1
+    lat2 = args.lat2
+    attribute_depth = args.attribute_depth
+    attribute_anomaly = args.attribute_anomaly
+    attribute_argo = args.attribute_argo
+    val_interval = args.val_interval
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()
@@ -317,54 +351,5 @@ def set_evaluation_args():
         skip_layers = 1
     for i in range(out_channels):
         gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
-
-def set_preprocessing_args():
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--image_size', type=int, default=128)
-    arg_parser.add_argument('--image_dir', type=str, default='../Asi_maskiert/original_image/')
-    arg_parser.add_argument('--mask_dir', type=str, default='../Asi_maskiert/original_masks/')
-    arg_parser.add_argument('--image_name', type=str, default='Image_r10_newgrid')
-    arg_parser.add_argument('--mask_name', type=str, default='Maske_1970_1985_newgrid')
-    arg_parser.add_argument('--depth', type=int, default=3)
-    arg_parser.add_argument('--mode', type=str, default='image')
-    arg_parser.add_argument('--attribute_anomaly', type=str, default='anomalies')   
-    arg_parser.add_argument('--attribute_depth', type=str, default='depth')
-    arg_parser.add_argument('--attribute_argo', type=str, default='argoera')
-    arg_parser.add_argument('--lon1', type=str, default='-65')
-    arg_parser.add_argument('--lon2', type=str, default='-5')
-    arg_parser.add_argument('--lat1', type=str, default='20')
-    arg_parser.add_argument('--lat2', type=str, default='69')
-    args = arg_parser.parse_args()
-
-
-    global image_size
-    global image_dir
-    global mask_dir
-    global image_name
-    global mask_name
-    global depth
-    global mode
-    global lon1
-    global lon2
-    global lat1
-    global lat2
-    global attribute_anomaly
-    global attribute_argo
-    global attribute_depth
-
-    image_size = args.image_size
-    image_dir = args.image_dir
-    mask_dir = args.mask_dir
-    image_name = args.image_name
-    mask_name = args.mask_name
-    depth = args.depth
-    mode = args.mode
-    lon1 = args.lon1
-    lon2 = args.lon2
-    lat1 = args.lat1
-    lat2 = args.lat2
-    attribute_depth = args.attribute_depth
-    attribute_anomaly = args.attribute_anomaly
-    attribute_argo = args.attribute_argo
 
 

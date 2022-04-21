@@ -119,36 +119,29 @@ def infill(model, dataset, partitions):
 
 class HeatContent():
 
-    def __init__(self, image_dir, image_year, mask_dir, mask_year, image_size, depth, attribute_depth, attribute_anomaly, attribute_argo, lon1, lon2, lat1, lat2, preprocessing, depth_steps):
-        self.im_dir = image_dir
-        self.im_year = image_year
-        self.mask_dir = mask_dir
-        self.mask_year = mask_year
-        self.image_path = '../Asi_maskiert/pdfs/'
-        self.im_size = image_size
+    def __init__(self, depth_steps, iter):
+        self.iter = iter
+        self.im_dir = cfg.im_dir
+        self.im_year = cfg.eval_im_year
+        self.mask_dir = cfg.mask_dir
+        self.mask_year = cfg.mask_year
+        self.save_path = cfg.snapshot_dir + cfg.save_part
+        self.im_size = cfg.image_size
         self.mode = preprocessing
-        self.depth = depth
-        self.attributes = [attribute_depth, attribute_anomaly, attribute_argo]
-        self.lon1 = int(lon1)
-        self.lon2 = int(lon2)
-        self.lat1 = int(lat1)
-        self.lat2 = int(lat2)
-        self.im_name = 'Image_' + str(image_year) + attribute_depth + attribute_anomaly + attribute_argo
-        self.mask_name = 'Maske_' + str(mask_year) + attribute_depth + attribute_anomaly + attribute_argo
+        self.attributes = [cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo]
+        self.lon1 = int(cfg.lon1)
+        self.lon2 = int(cfg.lon2)
+        self.lat1 = int(cfg.lat1)
+        self.lat2 = int(cfg.lat2)
+        self.im_name = 'Image_' + str(cfg.image_name) + cfg.attribute_depth + cfg.attribute_anomaly + cfg.attribute_argo
+        self.mask_name = 'Maske_' + str(cfg.mask_year) + cfg.attribute_depth + cfg.attribute_anomaly + cfg.attribute_argo
         self.shc_sw = 3850
         self.depth_steps = depth_steps
-        self.preprocessing = preprocessing
 
     def seawater_density(z):
         return 1025
 
     def creat_hc_timeseries(self, model, partitions):
-
-        if self.preprocessing == True:
-            dset_im = preprocessing(self.im_dir, self.im_name, self.im_size, 'image', self.depth, self.attributes[0], self.attributes[1], self.attributes[2], self.lon1, self.lon2, self.lat1, self.lat2)
-            dset_im.save_data()
-            dset_mask = preprocessing(self.mask_dir, self.mask_name, self.im_size, 'mask', self.depth, self.attributes[0], self.attributes[1], self.attributes[2], self.lon1, self.lon2, self.lat1, self.lat2)
-            dset_mask.save_data()
 
         depth = True
         if self.depth != 1:
@@ -173,6 +166,6 @@ class HeatContent():
         plt.legend()
         plt.xlabel('Months since January 1958')
         plt.ylabel('Heat Content [J/m²]')
-        plt.savefig('heat_content_timeseries.pdf')
+        plt.savefig('{:s}/images/{:s}/heat_content_timeseries_{:s}.pdf'.format(cfg.snapshot_dir, cfg.save_part, self.iter))
         plt.show()
             

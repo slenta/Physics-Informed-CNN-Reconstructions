@@ -21,7 +21,7 @@ from image import unnormalize
 #dataloader and dataloader
 class MaskDataset(Dataset):
 
-    def __init__(self, depth, in_channels, year, im_year, mode):
+    def __init__(self, depth, in_channels, year, im_year, mode, shuffle = True):
         super(MaskDataset, self).__init__()
 
         self.image_path = '../Asi_maskiert/original_image/'
@@ -33,6 +33,7 @@ class MaskDataset(Dataset):
         self.mode = mode
         self.in_channels = in_channels
         self.depth = depth
+        self.shuffle = shuffle
 
     def __getitem__(self, index):
 
@@ -55,7 +56,7 @@ class MaskDataset(Dataset):
             for i in range(n[0]):
                 if i%5 >= 1:
                     im_new.append(image[i])
-        elif self.mode == 'val':
+        elif self.mode == 'test':
             mask = mask[:8]
             for i in range(n[0]):
                 if i%5 == 0:
@@ -63,7 +64,10 @@ class MaskDataset(Dataset):
             im_new = im_new[:8]
 
         im_new = np.array(im_new)
-        np.random.shuffle(im_new)
+
+        if self.shuffle == True:
+            np.random.shuffle(im_new)
+        
         np.random.shuffle(mask)
 
         #convert to pytorch tensors
@@ -92,6 +96,7 @@ class MaskDataset(Dataset):
         length = n[0]
 
         return length
+        
 
 
 class SpecificValDataset():

@@ -16,6 +16,8 @@ from model.loss import InpaintingLoss, HoleLoss
 import config as cfg
 from dataloader import MaskDataset
 from evaluation_og import evaluate
+from evaluation_og import HeatContent
+from preprocessing import preprocessing
 
 
 cfg.set_train_args()
@@ -41,7 +43,7 @@ else:
     depth = False
 
 dataset_train = MaskDataset(depth, cfg.in_channels, cfg.mask_year, cfg.im_year, mode='train')
-dataset_val = MaskDataset(depth, cfg.in_channels, cfg.mask_year, cfg.im_year, mode='val')
+dataset_test = MaskDataset(depth, cfg.in_channels, cfg.mask_year, cfg.im_year, mode='test')
 
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
@@ -109,14 +111,24 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
 
     # save checkpoint
     if (i + 1) % cfg.save_model_interval == 0 or (i + 1) == cfg.max_iter:
-        save_ckpt('{:s}/ckpt/{:s}/{:d}.pth'.format(cfg.snapshot_dir, cfg.save_part, i + 1),
+        save_ckpt('{:s}ckpt/{:s}/{:d}.pth'.format(cfg.snapshot_dir, cfg.save_part, i + 1),
                   [('model', model)], [('optimizer', optimizer)], i + 1)
 
     # create snapshot image
     if (i + 1) % cfg.vis_interval == 0:
         model.eval()
-        evaluate(model, dataset_val, cfg.device,
+        evaluate(model, dataset_test, cfg.device,
                  '{:s}/images/{:s}/test_{:d}'.format(cfg.snapshot_dir, cfg.save_part, i + 1))
+
+    #validate using validation ensemble member and create ohc timeseries
+    if (i + 1) % cfg.val_interval == 0:
+        prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+        prepo.save_data()
+        depths = prepo.depths()
+
+        val_dataset = MaskDataset(depth, cfg.in_channels, cfg.mask_year, cfg.eval_im_year, 'eval', shuffle=False)
+        ohc = HeatContent(depth_steps=depths, iter = i + 1)
+        ohc.creat_hc_timeseries(model, cfg.batch_size)
     #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
     #    model.eval()
     #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
