@@ -31,8 +31,8 @@ class preprocessing():
 
     def __getitem__(self):
         
-        ifile = self.path + self.name + self.year + '.nc'
-        ofile = self.path + self.name + self.year + '_newgrid.nc'
+        ofile = self.path + self.name + self.year + '.nc'
+        #ofile = self.path + self.name + self.year + '_newgrid.nc'
 
         #cdo.sellonlatbox(self.lon1, self.lon2, self.lat1, self.lat2, input = ifile, output = ofile)
 
@@ -100,7 +100,7 @@ class preprocessing():
 
     def depths(self):
 
-        ofile = self.path + self.name + self.year + '_newgrid.nc'        
+        ofile = self.path + self.name + self.year    
         ds = xr.load_dataset(ofile, decode_times=False)
         depth = ds.depth.values
 
