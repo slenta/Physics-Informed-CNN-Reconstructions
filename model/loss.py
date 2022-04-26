@@ -34,6 +34,7 @@ class InpaintingLoss(nn.Module):
             'tv': 0.0
         }
 
+        print(mask.shape, gt.shape, output.shape)
         # create output_comp
         output_comp = mask * gt + (1 - mask) * output
 
