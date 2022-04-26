@@ -111,7 +111,7 @@ class preprocessing():
         sst_new, n = self.__getitem__()
 
         #create new h5 file with symmetric ssts
-        f = h5py.File(self.path + self.name + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '.hdf5', 'w')
+        f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '.hdf5', 'w')
         dset1 = f.create_dataset('tos_sym', shape=n, dtype = 'float32', data = sst_new)
         f.close()
 

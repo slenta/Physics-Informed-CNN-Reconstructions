@@ -42,8 +42,8 @@ if cfg.depth:
 else:
     depth = False
 
-dataset_train = MaskDataset(depth, cfg.in_channels, cfg.mask_year, cfg.im_year, mode='train')
-dataset_test = MaskDataset(depth, cfg.in_channels, cfg.mask_year, cfg.im_year, mode='test')
+dataset_train = MaskDataset(depth, cfg.in_channels, mode='train')
+dataset_test = MaskDataset(depth, cfg.in_channels, mode='test')
 
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
