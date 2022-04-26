@@ -22,9 +22,9 @@ from preprocessing import preprocessing
 
 cfg.set_train_args()
 
-if not os.path.exists(cfg.snapshot_dir):
-    os.makedirs('{:s}/{:s}/images'.format(cfg.snapshot_dir, cfg.save_part))
-    os.makedirs('{:s}/{:s}/ckpt'.format(cfg.snapshot_dir, cfg.save_part))
+if not os.path.exists(cfg.save_dir):
+    os.makedirs('{:s}/{:s}/images'.format(cfg.save_dir, cfg.save_part))
+    os.makedirs('{:s}/{:s}/ckpt'.format(cfg.save_dir, cfg.save_part))
 
 
 log_dir = '{}{}/'.format(cfg.log_dir, cfg.save_part)
