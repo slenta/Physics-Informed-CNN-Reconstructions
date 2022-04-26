@@ -7,8 +7,8 @@ import xarray as xr
 import config as cfg
 import h5py
 import netCDF4
-import cdo 
-cdo = cdo.Cdo()
+#import cdo 
+#cdo = cdo.Cdo()
 
 
 class preprocessing():
@@ -34,7 +34,7 @@ class preprocessing():
         ifile = self.path + self.name + self.year + '.nc'
         ofile = self.path + self.name + self.year + '_newgrid.nc'
 
-        cdo.sellonlatbox(self.lon1, self.lon2, self.lat1, self.lat2, input = ifile, output = ofile)
+        #cdo.sellonlatbox(self.lon1, self.lon2, self.lat1, self.lat2, input = ifile, output = ofile)
 
         ds = xr.load_dataset(ofile, decode_times=False)
         
