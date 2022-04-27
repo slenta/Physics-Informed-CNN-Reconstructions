@@ -69,6 +69,8 @@ if cfg.finetune:
 else:
     lr = cfg.lr
 
+print('first')
+
 # define optimizer and loss functions
 optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
 if cfg.loss_criterion == 1:
@@ -98,7 +100,6 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     output = model(image, mask, im_rea, mask_rea)
     #print(image.shape, mask.shape, gt.shape, output.shape)
     
-    print('final')
     # calculate loss function and apply backpropagation
     loss_dict = criterion(mask[:, :, :, :],
                           output[:, :, :, :],
