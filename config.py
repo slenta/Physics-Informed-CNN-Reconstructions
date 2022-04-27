@@ -75,6 +75,7 @@ depth = None
 attribute_argo = None
 eval_im_year = None
 val_interval = None
+val_dir = None
 
 
 def set_train_args():
@@ -87,7 +88,7 @@ def set_train_args():
     arg_parser.add_argument('--im_name', type=str, default='Image_')
     arg_parser.add_argument('--mask_name', type=str, default='Maske_')
     arg_parser.add_argument('--mask_year', type=str, default='1970')
-    arg_parser.add_argument('--im_year', type=str, default='3d_1958_2020')
+    arg_parser.add_argument('--im_year', type=str, default='3d_1958_2020_newgrid')
     arg_parser.add_argument('--resume-iter', type=int)
     arg_parser.add_argument('--device', type=str, default='cpu')
     arg_parser.add_argument('--batch-size', type=int, default=4)
@@ -116,7 +117,7 @@ def set_train_args():
     arg_parser.add_argument('--disable_skip_layers', action='store_true')
     arg_parser.add_argument('--vis_interval', type=int, default=50000)
     arg_parser.add_argument('--eval_im_year', type=str, default='r16_newgrid')
-    arg_parser.add_argument('--mode', type=str, default='both')
+    arg_parser.add_argument('--mode', type=str, default='image')
     arg_parser.add_argument('--attribute_anomaly', type=str, default='anomalies')   
     arg_parser.add_argument('--attribute_depth', type=str, default='depth')
     arg_parser.add_argument('--attribute_argo', type=str, default='argoera')
@@ -125,6 +126,8 @@ def set_train_args():
     arg_parser.add_argument('--lat1', type=str, default='20')
     arg_parser.add_argument('--lat2', type=str, default='69')
     arg_parser.add_argument('--val_interval', type=int, default=1)
+    arg_parser.add_argument('--val_dir', type=str, default='../Asi_maskiert/results/validation/')
+
 
 
     args = arg_parser.parse_args()
@@ -177,7 +180,7 @@ def set_train_args():
     global attribute_argo
     global attribute_depth
     global val_interval
-
+    global val_dir
 
 
     data_types = args.data_types.split(',')
@@ -236,6 +239,7 @@ def set_train_args():
     attribute_anomaly = args.attribute_anomaly
     attribute_argo = args.attribute_argo
     val_interval = args.val_interval
+    val_dir = args.val_dir
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()

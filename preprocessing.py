@@ -74,6 +74,8 @@ class preprocessing():
             n = sst.shape
             sst[x] = 0
 
+        print(n)
+
         rest = np.zeros((n[0], n[1], self.new_im_size - n[2], n[3]))
         sst = np.concatenate((sst, rest), axis=2)
         n = sst.shape
@@ -100,7 +102,7 @@ class preprocessing():
 
     def depths(self):
 
-        ofile = self.path + self.name + self.year    
+        ofile = self.path + self.name + self.year + '.nc'  
         ds = xr.load_dataset(ofile, decode_times=False)
         depth = ds.depth.values
 

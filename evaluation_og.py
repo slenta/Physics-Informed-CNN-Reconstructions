@@ -44,15 +44,16 @@ def evaluate(model, dataset, device, filename):
     n = image.shape
 
     f = h5py.File(filename + '.hdf5', 'w')
-    dset1 = f.create_dataset('image', (n[0], n[1], n[2], n[3]), dtype = 'float32',data = gt)
+    dset1 = f.create_dataset('image', (n[0], n[1], n[2], n[3]), dtype = 'float32',data = image)
     dset2 = f.create_dataset('output', (n[0], n[1], n[2], n[3]), dtype = 'float32',data = output)
     dset3 = f.create_dataset('output_comp', (n[0], n[1], n[2], n[3]), dtype = 'float32',data = output_comp)
-    dset4 = f.create_dataset('mask', shape=(n[0], n[1], n[2], n[3]), dtype='float32', data=mask) 
+    dset4 = f.create_dataset('mask', shape=(n[0], n[1], n[2], n[3]), dtype='float32', data=mask)
+    dset5 = f.create_dataset('gt', (n[0], n[1], n[2], n[3]), dtype = 'float32',data = gt)
     f.close()
     
     #save_image(grid, filename + '.jpg')
 
-def infill(model, dataset, partitions):
+def infill(model, dataset, partitions, filename):
     if not os.path.exists(cfg.evaluation_dirs[0]):
         os.makedirs('{:s}'.format(cfg.evaluation_dirs[0]))
     image = []
@@ -117,6 +118,41 @@ def infill(model, dataset, partitions):
 
 
 
+def heat_content_timeseries(ifile, depth_steps, plotting=False):
+
+    rho = 1025  #density of seawater
+    shc = 3850  #specific heat capacity of seawater
+
+    f = h5py.File(ifile, 'r')
+    output = f.get('output_comp')
+    gt = f.get('image')
+
+    #take spatial mean of network output and ground truth
+    output = np.mean(np.mean(output, axis=2), axis=2)
+    gt = np.mean(np.mean(gt, axis=2), axis=2)
+    n = output.shape
+    hc_network = np.zeros(n[0])
+    hc_assi = np.zeros(n[0])
+
+    for i in range(n[0]):
+        hc_network[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*output[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * output[i, 0] * rho * shc
+        hc_assi[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * gt[i, 0] * rho * shc
+
+
+    if plotting == True:
+
+        plt.plot(range(n[0]), hc_network, label='Network Reconstructed Heat Content')
+        plt.plot(range(n[0]), hc_assi, label='Assimilation Heat Content')
+        plt.grid()
+        plt.legend()
+        plt.xlabel('Months since January 1958')
+        plt.ylabel('Heat Content [J/m²]')
+        #plt.savefig('{:s}/images/{:s}/heat_content_timeseries_{}.pdf'.format(cfg.save_dir, cfg.save_part, len(depth_steps)))
+        plt.show()
+                
+
+
+
 class HeatContent():
 
     def __init__(self, depth_steps, iter):
@@ -165,7 +201,14 @@ class HeatContent():
         plt.grid()
         plt.legend()
         plt.xlabel('Months since January 1958')
-        plt.ylabel('Heat Content [J/m²]')
+        plt.ylabel('Heat Content [J/gridcell]')
         plt.savefig('{:s}/images/{:s}/heat_content_timeseries_{:s}.pdf'.format(cfg.snapshot_dir, cfg.save_part, self.iter))
         plt.show()
             
+
+
+cfg.set_train_args()
+dataset = preprocessing(cfg.im_dir, cfg.im_name, cfg.im_year, cfg.image_size, 'image', 3, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+depths = dataset.depths()
+heat_content_timeseries('../Asi_maskiert/results/images/depth/test_550000.hdf5', depths, plotting=True)
+
