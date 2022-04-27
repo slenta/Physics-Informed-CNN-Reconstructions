@@ -67,7 +67,7 @@ def infill(model, dataset, partitions, iter):
         print("WARNING: The size of the dataset should be dividable by the number of partitions. The last "
               + str(dataset.__len__() % partitions) + " time steps will not be infilled.")
     for split in range(partitions):
-        image_part, mask_part, gt_part, rea_images_part, rea_masks_part, rea_gts_part = zip(
+        image_part, mask_part, gt_part, rea_images_part, rea_masks_part = zip(
             *[dataset[i + split * (dataset.__len__() // partitions)] for i in
               range(dataset.__len__() // partitions)])
         image_part = torch.stack(image_part)
@@ -75,7 +75,6 @@ def infill(model, dataset, partitions, iter):
         gt_part = torch.stack(gt_part)
         rea_images_part = torch.stack(rea_images_part)
         rea_masks_part = torch.stack(rea_masks_part)
-        rea_gts_part = torch.stack(rea_gts_part)
         # get results from trained network
         with torch.no_grad():
             output_part = model(image_part.to(cfg.device), mask_part.to(cfg.device),
