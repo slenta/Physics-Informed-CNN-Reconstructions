@@ -22,18 +22,19 @@ import config as cfg
 #dataloader and dataloader
 class MaskDataset(Dataset):
 
-    def __init__(self, depth, in_channels, mode, shuffle = True):
+    def __init__(self, im_year, depth, in_channels, mode, shuffle = True):
         super(MaskDataset, self).__init__()
 
         self.mode = mode
         self.in_channels = in_channels
         self.depth = depth
         self.shuffle = shuffle
+        self.im_year = im_year
 
     def __getitem__(self, index):
 
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
-        f_image = h5py.File(cfg.im_dir + cfg.im_name + cfg.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '.hdf5', 'r')
+        f_image = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '.hdf5', 'r')
         f_mask = h5py.File(cfg.mask_dir + cfg.mask_name + cfg.mask_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '.hdf5', 'r')
 
         #extract sst data/mask data

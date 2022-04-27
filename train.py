@@ -41,8 +41,8 @@ if cfg.depth:
 else:
     depth = False
 
-dataset_train = MaskDataset(depth, cfg.in_channels, mode='train')
-dataset_test = MaskDataset(depth, cfg.in_channels, mode='test')
+dataset_train = MaskDataset(cfg.im_year, depth, cfg.in_channels, mode='train')
+dataset_test = MaskDataset(cfg.im_year, depth, cfg.in_channels, mode='test')
 
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
@@ -126,7 +126,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
         prepo.save_data()
         depths = prepo.depths()
 
-        val_dataset = MaskDataset(depth, cfg.in_channels, cfg.mask_year, cfg.eval_im_year, 'eval', shuffle=False)
+        val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
         evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1))
         evalu.heat_content_timeseries(depths, iter=str(i+1), plotting=True)
     #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
