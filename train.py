@@ -44,7 +44,7 @@ else:
 
 dataset_train = MaskDataset(cfg.im_year, depth, cfg.in_channels, mode='train')
 dataset_test = MaskDataset(cfg.im_year, depth, cfg.in_channels, mode='test')
-
+print('start')
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
                                  num_workers=cfg.n_threads))
@@ -53,6 +53,8 @@ iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
 lstm = True
 if cfg.lstm_steps == 0:
     lstm = False
+
+print('middle')
 
 
 model = PConvLSTM(radar_img_size=cfg.image_size,
@@ -93,7 +95,6 @@ if cfg.resume_iter:
     print('Starting from iter ', start_iter)
 
 for i in tqdm(range(start_iter, cfg.max_iter)):
-    print('middle')
     # train model
     model.train()
     image, mask, gt, im_rea, mask_rea = [x.to(cfg.device) for x in next(iterator_train)]
