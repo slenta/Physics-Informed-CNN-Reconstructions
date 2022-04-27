@@ -18,7 +18,6 @@ from dataloader import MaskDataset
 import evaluation_og as evalu
 from preprocessing import preprocessing
 
-print('start')
 
 
 cfg.set_train_args()
@@ -79,6 +78,8 @@ else:
     criterion = InpaintingLoss(VGG16FeatureExtractor()).to(cfg.device)
     lambda_dict = cfg.LAMBDA_DICT_IMG_INPAINTING
 
+print('start')
+
 
 # define start point
 start_iter = 0
@@ -90,12 +91,14 @@ if cfg.resume_iter:
     print('Starting from iter ', start_iter)
 
 for i in tqdm(range(start_iter, cfg.max_iter)):
+    print('middle')
     # train model
     model.train()
     image, mask, gt, im_rea, mask_rea = [x.to(cfg.device) for x in next(iterator_train)]
     output = model(image, mask, im_rea, mask_rea)
     #print(image.shape, mask.shape, gt.shape, output.shape)
-
+    
+    print('final')
     # calculate loss function and apply backpropagation
     loss_dict = criterion(mask[:, :, :, :],
                           output[:, :, :, :],
@@ -109,8 +112,6 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
-
-    print('middle')
 
     # save checkpoint
     if (i + 1) % cfg.save_model_interval == 0 or (i + 1) == cfg.max_iter:
@@ -133,7 +134,6 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
         val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
         evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1))
         evalu.heat_content_timeseries(depths, iter=str(i+1), plotting=True)
-        print('late')
     #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
     #    model.eval()
     #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
