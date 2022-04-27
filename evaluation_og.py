@@ -117,7 +117,7 @@ def infill(model, dataset, partitions, iter):
         h5.create_dataset(name=cname[x], shape=cvar[x].shape, dtype=float, data=cvar[x].to(torch.device('cpu')))
         #for dim in range(0, 3):
         #    h5[cfg.data_types[0]].dims[dim].label = dname[dim]
-        h5.close()
+    h5.close()
 
     return ma.masked_array(gt, mask)[:, :, :, :, :], ma.masked_array(output_comp, mask)[:, :, :, :, :]
 
