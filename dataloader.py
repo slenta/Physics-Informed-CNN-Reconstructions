@@ -58,7 +58,7 @@ class MaskDataset(Dataset):
                 if i%5 == 0:
                     im_new.append(image[i])
             im_new = im_new[:8]
-        elif self.mode == 'val':
+        elif self.mode == 'eval':
             im_new = image
 
         im_new = np.array(im_new)
