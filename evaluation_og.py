@@ -208,8 +208,8 @@ class HeatContent():
             
 
 
-cfg.set_train_args()
-dataset = preprocessing(cfg.im_dir, cfg.im_name, cfg.im_year, cfg.image_size, 'image', 3, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
-depths = dataset.depths()
-heat_content_timeseries('../Asi_maskiert/results/images/depth/test_550000.hdf5', depths, plotting=True)
+#cfg.set_train_args()
+#dataset = preprocessing(cfg.im_dir, cfg.im_name, cfg.im_year, cfg.image_size, 'image', 3, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+#depths = dataset.depths()
+#<heat_content_timeseries('../Asi_maskiert/results/images/depth/test_550000.hdf5', depths, plotting=True)
 
