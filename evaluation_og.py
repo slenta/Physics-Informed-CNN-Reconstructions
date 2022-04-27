@@ -80,15 +80,20 @@ def infill(model, dataset, partitions, iter):
             output_part = model(image_part.to(cfg.device), mask_part.to(cfg.device),
                                 rea_images_part.to(cfg.device), rea_masks_part.to(cfg.device))
 
-        image_part = image_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
-        mask_part = mask_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
-        gt_part = gt_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
-        output_part = output_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
+        if cfg.lstm_steps == 0:
 
-        # only select first channel
-        image_part = torch.unsqueeze(image_part[:, 0, :, :], dim=1)
-        gt_part = torch.unsqueeze(gt_part[:, 0, :, :], dim=1)
-        mask_part = torch.unsqueeze(mask_part[:, 0, :, :], dim=1)
+            image_part = image_part[:, :, :, :].to(torch.device('cpu'))
+            mask_part = mask_part[:, :, :, :].to(torch.device('cpu'))
+            gt_part = gt_part[:, :, :, :].to(torch.device('cpu'))
+            output_part = output_part[:, :, :, :].to(torch.device('cpu'))
+
+        else:
+
+            image_part = image_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
+            mask_part = mask_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
+            gt_part = gt_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
+            output_part = output_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))            
+
 
         image.append(image_part)
         mask.append(mask_part)
