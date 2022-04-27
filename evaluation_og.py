@@ -114,7 +114,7 @@ def infill(model, dataset, partitions, iter):
     
     h5 = h5py.File(cfg.val_dir + iter + '.hdf5', 'w')
     for x in range(0, 5):
-        h5.create_dataset(name=cname[x], shape=cname[x].shape, dtype=cfg.data_types[0], data=cvar[x].to(torch.device('cpu')))
+        h5.create_dataset(name=cname[x], shape=cvar[x].shape, dtype=cfg.data_types[0], data=cvar[x].to(torch.device('cpu')))
         #for dim in range(0, 3):
         #    h5[cfg.data_types[0]].dims[dim].label = dname[dim]
         h5.close()
