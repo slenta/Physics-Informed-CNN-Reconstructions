@@ -126,7 +126,7 @@ def set_train_args():
     arg_parser.add_argument('--lat1', type=str, default='20')
     arg_parser.add_argument('--lat2', type=str, default='69')
     arg_parser.add_argument('--val_interval', type=int, default=1)
-    arg_parser.add_argument('--val_dir', type=str, default='../Asi_maskiert/results/validation/')
+    arg_parser.add_argument('--val_dir', type=str, default='../Asi_maskiert/results/validation/validation_')
 
 
 

@@ -121,12 +121,10 @@ def infill(model, dataset, partitions, iter):
 
 def heat_content_timeseries(depth_steps, iter, plotting=False):
 
-    ifile = cfg.val_dir + iter + '.hdf5'
-
     rho = 1025  #density of seawater
     shc = 3850  #specific heat capacity of seawater
 
-    f = h5py.File(ifile, 'r')
+    f = h5py.File(cfg.val_dir + iter + '.hdf5', 'r')
     output = f.get('output_comp')
     gt = f.get('image')
 
