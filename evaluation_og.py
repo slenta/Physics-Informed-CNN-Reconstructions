@@ -119,7 +119,7 @@ def infill(model, dataset, partitions, iter):
         #    h5[cfg.data_types[0]].dims[dim].label = dname[dim]
     h5.close()
 
-    return ma.masked_array(gt, mask)[:, :, :, :, :], ma.masked_array(output_comp, mask)[:, :, :, :, :]
+    return ma.masked_array(gt, mask)[:, :, :, :], ma.masked_array(output_comp, mask)[:, :, :, :]
 
 
 
