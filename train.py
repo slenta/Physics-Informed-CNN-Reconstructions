@@ -18,6 +18,8 @@ from dataloader import MaskDataset
 import evaluation_og as evalu
 from preprocessing import preprocessing
 
+print('start')
+
 
 cfg.set_train_args()
 
@@ -108,6 +110,8 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     loss.backward()
     optimizer.step()
 
+    print('middle')
+
     # save checkpoint
     if (i + 1) % cfg.save_model_interval == 0 or (i + 1) == cfg.max_iter:
         save_ckpt('{:s}ckpt/{:s}/{:d}.pth'.format(cfg.snapshot_dir, cfg.save_part, i + 1),
@@ -129,7 +133,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
         val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
         evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1))
         evalu.heat_content_timeseries(depths, iter=str(i+1), plotting=True)
-        print(i)
+        print('late')
     #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
     #    model.eval()
     #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
