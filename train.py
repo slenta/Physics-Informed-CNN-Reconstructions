@@ -49,12 +49,11 @@ iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
                                  num_workers=cfg.n_threads))
 
+print('second')
 # define network model
 lstm = True
 if cfg.lstm_steps == 0:
     lstm = False
-
-print('middle')
 
 
 model = PConvLSTM(radar_img_size=cfg.image_size,
@@ -71,7 +70,6 @@ if cfg.finetune:
 else:
     lr = cfg.lr
 
-print('first')
 
 # define optimizer and loss functions
 optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
@@ -82,7 +80,6 @@ else:
     criterion = InpaintingLoss(VGG16FeatureExtractor()).to(cfg.device)
     lambda_dict = cfg.LAMBDA_DICT_IMG_INPAINTING
 
-print('start')
 
 
 # define start point
