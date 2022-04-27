@@ -129,6 +129,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
         val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
         evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1))
         evalu.heat_content_timeseries(depths, iter=str(i+1), plotting=True)
+        print(i)
     #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
     #    model.eval()
     #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
