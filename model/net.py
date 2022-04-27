@@ -113,7 +113,6 @@ class PConvLSTM(nn.Module):
                                                     hs_mask[i],
                                                     None)
 
-            print('encoder nr. {}: {}'.format(i, h.shape))
 
             # execute attention module if configured
             if cfg.attention and i >= (self.net_depth - self.attention_depth):
@@ -163,7 +162,6 @@ class PConvLSTM(nn.Module):
                                                     h_mask, hs_mask[self.net_depth - i - 1],
                                                     (lstm_state_h, lstm_state_c))
             
-            print('decoder nr. {}: {}'.format(i, h.shape))
 
         # return last element of output from last decoding layer
 
