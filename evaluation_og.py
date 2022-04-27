@@ -54,8 +54,8 @@ def evaluate(model, dataset, device, filename):
     #save_image(grid, filename + '.jpg')
 
 def infill(model, dataset, partitions, iter):
-    if not os.path.exists(cfg.evaluation_dirs[0]):
-        os.makedirs('{:s}'.format(cfg.evaluation_dirs[0]))
+    if not os.path.exists(cfg.val_dir):
+        os.makedirs('{:s}'.format(cfg.val_dir))
     image = []
     mask = []
     gt = []
