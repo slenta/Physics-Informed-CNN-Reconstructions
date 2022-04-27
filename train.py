@@ -15,8 +15,7 @@ from utils.netcdfloader import InfiniteSampler
 from model.loss import InpaintingLoss, HoleLoss
 import config as cfg
 from dataloader import MaskDataset
-from evaluation_og import evaluate
-from evaluation_og import HeatContent
+import evaluation_og as evalu
 from preprocessing import preprocessing
 
 
@@ -117,18 +116,19 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     # create snapshot image
     if (i + 1) % cfg.vis_interval == 0:
         model.eval()
-        evaluate(model, dataset_test, cfg.device,
+        evalu.evaluate(model, dataset_test, cfg.device,
                  '{:s}/images/{:s}/test_{:d}'.format(cfg.snapshot_dir, cfg.save_part, i + 1))
 
     #validate using validation ensemble member and create ohc timeseries
     if (i + 1) % cfg.val_interval == 0:
-        prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+        model.eval()
+        prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
         prepo.save_data()
         depths = prepo.depths()
 
         val_dataset = MaskDataset(depth, cfg.in_channels, cfg.mask_year, cfg.eval_im_year, 'eval', shuffle=False)
-        ohc = HeatContent(depth_steps=depths, iter = i + 1)
-        ohc.creat_hc_timeseries(model, cfg.batch_size)
+        evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1))
+        evalu.heat_content_timeseries(depths, iter=str(i + 1), plotting=True)
     #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
     #    model.eval()
     #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))

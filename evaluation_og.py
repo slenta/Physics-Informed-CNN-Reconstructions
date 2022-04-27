@@ -53,7 +53,7 @@ def evaluate(model, dataset, device, filename):
     
     #save_image(grid, filename + '.jpg')
 
-def infill(model, dataset, partitions, filename):
+def infill(model, dataset, partitions, iter):
     if not os.path.exists(cfg.evaluation_dirs[0]):
         os.makedirs('{:s}'.format(cfg.evaluation_dirs[0]))
     image = []
@@ -107,18 +107,21 @@ def infill(model, dataset, partitions, filename):
     cvar = [image, mask, output, output_comp, gt]
     cname = ['image', 'mask', 'output', 'output_comp', 'gt']
     dname = ['time', 'lat', 'lon']
+    
+    h5 = h5py.File(cfg.val_dir + iter + '.hdf5', 'w')
     for x in range(0, 5):
-        h5 = h5py.File('%s' % (cfg.evaluation_dirs[0] + cname[x]), 'w')
-        h5.create_dataset(cfg.data_types[0], data=cvar[x].to(torch.device('cpu')))
-        for dim in range(0, 3):
-            h5[cfg.data_types[0]].dims[dim].label = dname[dim]
+        h5.create_dataset(name=cname[x], shape=cname[x].shape, dtype=cfg.data_types[0], data=cvar[x].to(torch.device('cpu')))
+        #for dim in range(0, 3):
+        #    h5[cfg.data_types[0]].dims[dim].label = dname[dim]
         h5.close()
 
     return ma.masked_array(gt, mask)[:, :, :, :], ma.masked_array(output_comp, mask)[:, :, :, :]
 
 
 
-def heat_content_timeseries(ifile, depth_steps, plotting=False):
+def heat_content_timeseries(depth_steps, iter, plotting=False):
+
+    ifile = cfg.val_dir + iter + '.hdf5'
 
     rho = 1025  #density of seawater
     shc = 3850  #specific heat capacity of seawater
