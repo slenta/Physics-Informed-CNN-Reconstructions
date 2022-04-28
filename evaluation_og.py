@@ -154,61 +154,14 @@ def heat_content_timeseries(depth_steps, iter, plotting=False):
         plt.ylabel('Heat Content [J/m²]')
         #plt.savefig('{:s}/images/{:s}/heat_content_timeseries_{}.pdf'.format(cfg.save_dir, cfg.save_part, len(depth_steps)))
         plt.show()
+
+
+    f_final = h5py(cfg.val_dir + iter + '.hdf5', 'w')
+    f_final.create_dataset(name='network_ts', shape=hc_network.shape, dtype=float, data=hc_network)
+    f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
+    f.close()
+
                 
-
-
-
-class HeatContent():
-
-    def __init__(self, depth_steps, iter):
-        self.iter = iter
-        self.im_dir = cfg.im_dir
-        self.im_year = cfg.eval_im_year
-        self.mask_dir = cfg.mask_dir
-        self.mask_year = cfg.mask_year
-        self.save_path = cfg.snapshot_dir + cfg.save_part
-        self.im_size = cfg.image_size
-        self.mode = preprocessing
-        self.attributes = [cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo]
-        self.lon1 = int(cfg.lon1)
-        self.lon2 = int(cfg.lon2)
-        self.lat1 = int(cfg.lat1)
-        self.lat2 = int(cfg.lat2)
-        self.im_name = 'Image_' + str(cfg.image_name) + cfg.attribute_depth + cfg.attribute_anomaly + cfg.attribute_argo
-        self.mask_name = 'Maske_' + str(cfg.mask_year) + cfg.attribute_depth + cfg.attribute_anomaly + cfg.attribute_argo
-        self.shc_sw = 3850
-        self.depth_steps = depth_steps
-
-    def seawater_density(z):
-        return 1025
-
-    def creat_hc_timeseries(self, model, partitions):
-
-        depth = True
-        if self.depth != 1:
-            depth = True
-        
-        dataset = MaskDataset(depth, self.depth, self.mask_year, self.im_year)
-
-        gt, output_comp = infill(model, dataset, partitions)
-        network = np.mean(np.mean(output_comp, axis=2), axis=2)
-        assi = np.mean(np.mean(gt, axis=2), axis=2)
-        n = output_comp.shape
-        hc_network = np.zeros(n[0])
-        hc_assi = np.zeros(n[0])
-
-        for i in range(n[0]):
-            hc_network[i] = np.sum([(self.depth_steps[k] - self.depth_steps[k-1])*network[i, k]*self.seawater_density(self.depth_steps(k))*self.shc_sw for k in range(1, n[1])])
-            hc_assi[i] = np.sum([(self.depth_steps[k] - self.depth_steps[k-1])*assi[i, k]*self.seawater_density(self.depth_steps(k))*self.shc_sw for k in range(1, n[1])])
-
-        plt.plot(range(n[0]), hc_network, label='Network Reconstructed Heat Content')
-        plt.plot(range(n[0]), hc_assi, label='Assimilation Heat Content')
-        plt.grid()
-        plt.legend()
-        plt.xlabel('Months since January 1958')
-        plt.ylabel('Heat Content [J/gridcell]')
-        plt.savefig('{:s}/images/{:s}/heat_content_timeseries_{:s}.pdf'.format(cfg.snapshot_dir, cfg.save_part, self.iter))
-        plt.show()
             
 
 
