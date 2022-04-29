@@ -95,21 +95,20 @@ def vis_single(timestep, path, name, argo_state, type, param, title):
 
 def visualisation(path, iter, depth):
     
-    f = h5py.File(path, 'r')
-    fm = h5py.File('../Asi_maskiert/original_masks/Kontinentmaske.hdf5', 'r')
+    f = h5py.File(path + iter + '.hdf5', 'r')
+    fm = h5py.File('../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5', 'r')
     
     continent_mask = fm.get('tos_sym')
     image_data = f.get('image')[1, depth, :, :]
     mask_data = f.get('mask')[1, depth,:, :]
     output_data = f.get('output')[1, depth,:, :]
+    continent_mask = np.array(continent_mask)
 
-    image_runter = f.get('image')[1, depth, :, :]
-    
-    print(np.sum(image_data - image_runter))
 
-    error = np.zeros((8, 3))
+
+    error = np.zeros((8, depth))
     for i in range(8):
-        for j in range(3):
+        for j in range(depth):
             image = f.get('image')[i, j, :, :]
             output = f.get('output')[i, j, :, :]
             mask = f.get('mask')[i, j, :, :]
@@ -120,42 +119,56 @@ def visualisation(path, iter, depth):
 
     print(error)
 
-    mask = torch.from_numpy(mask_data)
-    output = torch.from_numpy(output_data)
-    image = torch.from_numpy(image_data)
+    n = mask_data.shape
+    mask_grey = np.zeros(n)
+
+    for i in range(n[0]):
+        for j in range(n[1]):
+            if mask_data[i, j] == 0:
+                mask_grey[i, j] = np.NaN
+            else:
+                mask_grey[i, j] = mask_data[i, j]
+
+    continent_mask = torch.from_numpy(continent_mask)
+    mask_grey = torch.from_numpy(mask_grey) * continent_mask
+    mask = torch.from_numpy(mask_data) * continent_mask
+    output = torch.from_numpy(output_data) * continent_mask
+    image = torch.from_numpy(image_data) * continent_mask
     outputcomp = mask*image + (1 - mask)*output
     print(np.mean(error))
 
-    fig = plt.figure(figsize=(10, 7), constrained_layout=True)
+    fig = plt.figure(figsize=(12, 4), constrained_layout=True)
     fig.suptitle('Anomaly North Atlantic SSTs')
-    plt.subplot(2, 2, 3)
+    plt.subplot(1, 3, 1)
     plt.title('Masked Image')
-    im1 = plt.imshow(image * mask, cmap='jet', vmin=-3, vmax=3, aspect='auto')
+    current_cmap = plt.cm.jet
+    current_cmap.set_bad(color='gray')
+    im1 = plt.imshow(image * mask_grey, cmap=current_cmap, vmin=-3, vmax=3, aspect='auto', interpolation=None)
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
-    plt.colorbar(label='Temperature in °C')
-    plt.subplot(2, 2, 2)
+    #plt.colorbar(label='Temperature in °C')
+    plt.subplot(1, 3, 2)
     plt.title('NN Output')
     im2 = plt.imshow(outputcomp, cmap = 'jet', vmin=-3, vmax=3, aspect = 'auto')
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
-    plt.colorbar(label='Temperature in °C')
-    plt.subplot(2, 2, 1)
+    #plt.colorbar(label='Temperature in °C')
+    plt.subplot(1, 3, 3)
     plt.title('Original Assimilation Image')
     im3 = plt.imshow(image, cmap='jet', vmin=-3, vmax=3, aspect='auto')
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     plt.colorbar(label='Temperature in °C')
-    plt.subplot(2, 2, 4)
-    plt.title('Error')
-    im5 = plt.imshow(image - output, vmin=-1.5, vmax=1.5, cmap='jet', aspect='auto')
-    plt.xlabel('Transformed Longitudes')
-    plt.ylabel('Transformed Latitudes')
-    plt.colorbar(label='Temperature in °C')
-    #plt.savefig('../Asi_maskiert/results/images/depth/test_' + iter + '.pdf')
+    #plt.subplot(2, 2, 4)
+    #plt.title('Error')
+    #im5 = plt.imshow(image - output, vmin=-1.5, vmax=1.5, cmap='jet', aspect='auto')
+    #plt.xlabel('Transformed Longitudes')
+    #plt.ylabel('Transformed Latitudes')
+    #plt.colorbar(label='Temperature in °C')
+    fig.savefig('../Asi_maskiert/results/images/depth/test_' + iter + '.pdf', dpi = fig.dpi)
     plt.show()
 
-visualisation('../Asi_maskiert/results/images/depth_10/test_' + '50000' + '.hdf5', '50000', 9)
+visualisation('../Asi_maskiert/results/images/depth/test_', '600000', 0)
 
 #vis_single(753, '../Asi_maskiert/original_image/', 'Image_3d_newgrid', 'r1011_shuffle_newgrid/short_val/Maske_1970_1985r1011_shuffle_newgrid/short_val/Maske_1970_1985Argo-era', 'image', 'image', 'North Atlantic Assimilation October 2020')
 #vis_single(9, '../Asi_maskiert/original_masks/', 'Maske_2020_newgrid', 'pre-Argo-era', 'mask', 'mask', 'North Atlantic Observations October 2020')

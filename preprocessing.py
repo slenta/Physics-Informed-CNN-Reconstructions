@@ -56,12 +56,17 @@ class preprocessing():
                             else:
                                 sst[i, j, k, l] = 1
 
+
         elif self.mode == 'image':
             
             time_var = ds.time
             ds['time'] = netCDF4.num2date(time_var[:],time_var.units)
+            if self.attributes[2] == 'argo':
+                ds = ds.sel(time=slice('2004-01', '2020-10'))
+            elif self.attribute[2] == 'preargo':
+                ds = ds.sel(time=slice('1958-01', '2004-01'))
+
             ds_monthly = ds.groupby('time.month').mean('time')
-            ds = ds.sel(time=slice('2004-01', '2020-10'))
 
             sst_mean = ds_monthly.thetao.values
             sst = ds.thetao.values
@@ -82,8 +87,9 @@ class preprocessing():
         rest2 = np.zeros((n[0], n[1], n[2], self.new_im_size - n[3]))
         sst = np.concatenate((sst, rest2), axis=3)[:, :self.depth, :, :]
 
-        if self.attributes[1]=='depth':
-            sst = sst[:, 0, :, :]
+
+        #if self.attributes[1]=='depth':
+        #    sst = sst[:, 0, :, :]
 
         n = sst.shape
 
@@ -114,6 +120,7 @@ class preprocessing():
 
         #create new h5 file with symmetric ssts
         f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '.hdf5', 'w')
+
         dset1 = f.create_dataset('tos_sym', shape=n, dtype = 'float32', data = sst_new)
         f.close()
 
