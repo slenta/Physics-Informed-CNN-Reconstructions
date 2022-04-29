@@ -18,6 +18,8 @@ from dataloader import MaskDataset
 import evaluation_og as evalu
 from preprocessing import preprocessing
 
+torch.cuda.empty_cache()
+
 
 
 cfg.set_train_args()
