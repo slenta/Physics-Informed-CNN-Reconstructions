@@ -154,7 +154,7 @@ def heat_content_timeseries(depth_steps, iteration, plotting=False):
         plt.show()
 
 
-    f_final = h5py(cfg.val_dir + 'timeseries_' + iteration + '.hdf5', 'w')
+    f_final = h5py.File(cfg.val_dir + 'timeseries_' + iteration + '.hdf5', 'w')
     f_final.create_dataset(name='network_ts', shape=hc_network.shape, dtype=float, data=hc_network)
     f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
     f.close()
