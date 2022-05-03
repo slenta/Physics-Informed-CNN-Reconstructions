@@ -1,5 +1,5 @@
 from matplotlib.pyplot import axis, plot
-import pylab as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
 import h5py
