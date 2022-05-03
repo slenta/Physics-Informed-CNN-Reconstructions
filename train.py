@@ -1,4 +1,5 @@
 import os
+import matplotlib
 from sklearn.utils import shuffle
 import torch
 import sys
@@ -22,7 +23,7 @@ import matplotlib.pyplot as plt
 
 torch.cuda.empty_cache()
 
-plt.use('Agg')
+matplotlib.use('Agg')
 
 
 
