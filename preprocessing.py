@@ -79,8 +79,6 @@ class preprocessing():
             n = sst.shape
             sst[x] = 0
 
-        print(n)
-
         rest = np.zeros((n[0], n[1], self.new_im_size - n[2], n[3]))
         sst = np.concatenate((sst, rest), axis=2)
         n = sst.shape
@@ -101,7 +99,6 @@ class preprocessing():
         sst_new, n = self.__getitem__()
         pixel_plot = plt.figure()
         pixel_plot = plt.imshow(sst_new[0, 0, :, :], vmin = -5, vmax = 5)
-        print(sst_new.shape)
         plt.colorbar(pixel_plot)
         #plt.savefig(self.image_path + self.name + '.pdf')
         plt.show()

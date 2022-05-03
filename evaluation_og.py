@@ -10,8 +10,6 @@ import matplotlib.pyplot as plt
 import config as cfg
 from numpy import ma
 import sys
-from preprocessing import preprocessing
-from dataloader import MaskDataset
 import os
 
 
@@ -123,12 +121,12 @@ def infill(model, dataset, partitions, iter):
 
 
 
-def heat_content_timeseries(depth_steps, iter, plotting=False):
+def heat_content_timeseries(depth_steps, iteration, plotting=False):
 
     rho = 1025  #density of seawater
     shc = 3850  #specific heat capacity of seawater
 
-    f = h5py.File(cfg.val_dir + iter + '.hdf5', 'r')
+    f = h5py.File(cfg.val_dir + iteration + '.hdf5', 'r')
     output = f.get('output_comp')
     gt = f.get('image')
 
@@ -156,7 +154,7 @@ def heat_content_timeseries(depth_steps, iter, plotting=False):
         plt.show()
 
 
-    f_final = h5py(cfg.val_dir + iter + '.hdf5', 'w')
+    f_final = h5py(cfg.val_dir + 'timeseries_' + iteration + '.hdf5', 'w')
     f_final.create_dataset(name='network_ts', shape=hc_network.shape, dtype=float, data=hc_network)
     f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
     f.close()
