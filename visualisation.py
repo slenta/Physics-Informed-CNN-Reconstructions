@@ -8,8 +8,7 @@ import pylab as plt
 import torch
 import xarray as xr
 from mpl_toolkits.mplot3d import axes3d
-import cdo
-cdo = cdo.Cdo()
+import config as cfg
 
 def vis_single(timestep, path, name, argo_state, type, param, title):
 
@@ -168,7 +167,34 @@ def visualisation(path, iter, depth):
     fig.savefig('../Asi_maskiert/results/images/depth/test_' + iter + '.pdf', dpi = fig.dpi)
     plt.show()
 
-visualisation('../Asi_maskiert/results/images/depth/test_', '600000', 0)
+
+                
+def timeseries_plotting(iteration):
+    f = h5py.File(cfg.val_dir + 'timeseries_' + str(iteration) + '.hdf5', 'r')
+    hc_network = f.get('network_ts')
+    hc_gt = f.get('gt_ts')
+
+    f_og = h5py.File(cfg.val_dir + str(iteration) + '.hdf5', 'r')
+    output_comp = f_og.get('output_comp')
+    print(output_comp.shape)
+
+    n = hc_network.shape
+
+    plt.plot(range(n[0]), hc_network, label='Network Reconstructed Heat Content')
+    plt.plot(range(n[0]), hc_gt, label='Assimilation Heat Content')
+    plt.grid()
+    plt.legend()
+    plt.xlabel('Months since January 1958')
+    plt.ylabel('Heat Content [J/m²]')
+    #plt.savefig('{:s}/images/{:s}/heat_content_timeseries_{}.pdf'.format(cfg.save_dir, cfg.save_part, len(depth_steps)))
+    plt.show()
+
+
+cfg.set_train_args()
+#visualisation('../Asi_maskiert/results/images/depth/test_', '600000', 0)
+timeseries_plotting(8)
+
+
 
 #vis_single(753, '../Asi_maskiert/original_image/', 'Image_3d_newgrid', 'r1011_shuffle_newgrid/short_val/Maske_1970_1985r1011_shuffle_newgrid/short_val/Maske_1970_1985Argo-era', 'image', 'image', 'North Atlantic Assimilation October 2020')
 #vis_single(9, '../Asi_maskiert/original_masks/', 'Maske_2020_newgrid', 'pre-Argo-era', 'mask', 'mask', 'North Atlantic Observations October 2020')

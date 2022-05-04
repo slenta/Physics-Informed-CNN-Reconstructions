@@ -121,7 +121,7 @@ def infill(model, dataset, partitions, iter):
 
 
 
-def heat_content_timeseries(depth_steps, iteration, plotting=False):
+def heat_content_timeseries(depth_steps, iteration):
 
     rho = 1025  #density of seawater
     shc = 3850  #specific heat capacity of seawater
@@ -142,25 +142,12 @@ def heat_content_timeseries(depth_steps, iteration, plotting=False):
         hc_assi[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * gt[i, 0] * rho * shc
 
 
-    if plotting == True:
-
-        plt.plot(range(n[0]), hc_network, label='Network Reconstructed Heat Content')
-        plt.plot(range(n[0]), hc_assi, label='Assimilation Heat Content')
-        plt.grid()
-        plt.legend()
-        plt.xlabel('Months since January 1958')
-        plt.ylabel('Heat Content [J/m²]')
-        #plt.savefig('{:s}/images/{:s}/heat_content_timeseries_{}.pdf'.format(cfg.save_dir, cfg.save_part, len(depth_steps)))
-        plt.show()
-
-
     f_final = h5py.File(cfg.val_dir + 'timeseries_' + iteration + '.hdf5', 'w')
     f_final.create_dataset(name='network_ts', shape=hc_network.shape, dtype=float, data=hc_network)
     f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
     f.close()
 
-                
-            
+
 
 
 #cfg.set_train_args()

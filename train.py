@@ -120,14 +120,14 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
 
     # save checkpoint
     if (i + 1) % cfg.save_model_interval == 0 or (i + 1) == cfg.max_iter:
-        save_ckpt('{:s}ckpt/{:s}/{:d}.pth'.format(cfg.snapshot_dir, cfg.save_part, i + 1),
+        save_ckpt('{:s}ckpt/{:s}/{:d}.pth'.format(cfg.save_dir, cfg.save_part, i + 1),
                   [('model', model)], [('optimizer', optimizer)], i + 1)
 
     # create snapshot image
     if (i + 1) % cfg.vis_interval == 0:
         model.eval()
         evalu.evaluate(model, dataset_test, cfg.device,
-                 '{:s}/images/{:s}/test_{:d}'.format(cfg.snapshot_dir, cfg.save_part, i + 1))
+                 '{:s}/images/{:s}/test_{:d}'.format(cfg.save_dir, cfg.save_part, i + 1))
 
     #validate using validation ensemble member and create ohc timeseries
     if (i + 1) % cfg.val_interval == 0:
