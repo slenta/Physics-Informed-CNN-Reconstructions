@@ -89,7 +89,44 @@ def vis_single(timestep, path, name, argo_state, type, param, title):
 
         plt.show()
 
+def vis_variable(path_1, path_2, path_3, var_1, var_2, var_3, name):
 
+    f1 = h5py.File(path_1, 'r')
+    f2 = h5py.File(path_2, 'r')
+    f3 = h5py.File(path_3, 'r')
+
+    v1 = f1.get(var_1)
+    v2 = f2.get(var_2)
+    v3 = f3.get(var_3)
+
+    fc = h5py.File('../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5', 'r')
+    continent_mask = fc.get('tos_sym')
+
+
+    fig = plt.figure(figsize=(12, 4), constrained_layout=True)
+    fig.suptitle('Anomaly North Atlantic SSTs')
+    plt.subplot(1, 3, 1)
+    plt.title('Step 1: Binary Assimilation Mask: October 2020')
+    current_cmap = plt.cm.jet
+    current_cmap.set_bad(color='gray')
+    im1 = plt.imshow(v1, cmap=current_cmap, vmin=-3, vmax=3, aspect='auto', interpolation=None)
+    plt.xlabel('Transformed Longitudes')
+    plt.ylabel('Transformed Latitudes')
+    #plt.colorbar(label='Temperature in °C')
+    plt.subplot(1, 3, 2)
+    plt.title('Step 2: Binary Assimilation Mask: January 1970')
+    im2 = plt.imshow(v2, cmap = 'jet', vmin=-3, vmax=3, aspect = 'auto')
+    plt.xlabel('Transformed Longitudes')
+    plt.ylabel('Transformed Latitudes')
+    #plt.colorbar(label='Temperature in °C')
+    plt.subplot(1, 3, 3)
+    plt.title('Step 3: Observations: January 1970')
+    im3 = plt.imshow(v3, cmap='jet', vmin=-3, vmax=3, aspect='auto')
+    plt.xlabel('Transformed Longitudes')
+    plt.ylabel('Transformed Latitudes')
+    plt.colorbar(label='Temperature in °C')
+    fig.savefig('../Asi_maskiert/pdfs/' + name + '.pdf', dpi = fig.dpi)
+    plt.show()
 
 
 def visualisation(path, iter, depth):

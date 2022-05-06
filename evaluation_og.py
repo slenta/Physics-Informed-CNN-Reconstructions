@@ -59,6 +59,8 @@ def infill(model, dataset, partitions, iter):
     gt = []
     output = []
 
+    print(len(dataset))
+
     if partitions > dataset.__len__():
         partitions = dataset.__len__()
     if dataset.__len__() % partitions != 0:
