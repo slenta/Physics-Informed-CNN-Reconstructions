@@ -19,7 +19,6 @@ import config as cfg
 from dataloader import MaskDataset
 import evaluation_og as evalu
 from preprocessing import preprocessing
-import matplotlib.pyplot as plt
 
 torch.cuda.empty_cache()
 
@@ -92,7 +91,7 @@ else:
 start_iter = 0
 if cfg.resume_iter:
     start_iter = load_ckpt(
-        '{}/ckpt/{}/{}.pth'.format(cfg.snapshot_dir, cfg.save_part, cfg.resume_iter), [('model', model)], cfg.device, [('optimizer', optimizer)])
+        '{}/ckpt/{}/{}.pth'.format(cfg.save_dir, cfg.save_part, cfg.resume_iter), [('model', model)], cfg.device, [('optimizer', optimizer)])
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     print('Starting from iter ', start_iter)
