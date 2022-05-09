@@ -85,7 +85,7 @@ else:
     criterion = InpaintingLoss(VGG16FeatureExtractor()).to(cfg.device)
     lambda_dict = cfg.LAMBDA_DICT_IMG_INPAINTING
 
-
+print('first')
 
 # define start point
 start_iter = 0
@@ -97,6 +97,7 @@ if cfg.resume_iter:
     print('Starting from iter ', start_iter)
 
 for i in tqdm(range(start_iter, cfg.max_iter)):
+    print(i)
     # train model
     model.train()
     image, mask, gt, im_rea, mask_rea = [x.to(cfg.device) for x in next(iterator_train)]
