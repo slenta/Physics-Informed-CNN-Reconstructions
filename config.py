@@ -96,7 +96,7 @@ def set_train_args():
     arg_parser.add_argument('--finetune', action='store_true')
     arg_parser.add_argument('--lr', type=float, default=2e-4)
     arg_parser.add_argument('--lr-finetune', type=float, default=5e-5)
-    arg_parser.add_argument('--max_iter', type=int, default=50000)
+    arg_parser.add_argument('--max_iter', type=int, default=500000)
     arg_parser.add_argument('--log-interval', type=int, default=None)
     arg_parser.add_argument('--save-snapshot-image', action='store_true')
     arg_parser.add_argument('--depth', action='store_true')
@@ -125,7 +125,7 @@ def set_train_args():
     arg_parser.add_argument('--lon2', type=str, default='-5')
     arg_parser.add_argument('--lat1', type=str, default='20')
     arg_parser.add_argument('--lat2', type=str, default='69')
-    arg_parser.add_argument('--val_interval', type=int, default=1)
+    arg_parser.add_argument('--val_interval', type=int, default=50000)
     arg_parser.add_argument('--val_dir', type=str, default='../Asi_maskiert/results/validation/validation_')
 
 
