@@ -97,7 +97,7 @@ def set_train_args():
     arg_parser.add_argument('--lr', type=float, default=2e-4)
     arg_parser.add_argument('--lr-finetune', type=float, default=5e-5)
     arg_parser.add_argument('--max_iter', type=int, default=500000)
-    arg_parser.add_argument('--log-interval', type=int, default=None)
+    arg_parser.add_argument('--log_interval', type=int, default=10)
     arg_parser.add_argument('--save-snapshot-image', action='store_true')
     arg_parser.add_argument('--depth', action='store_true')
     arg_parser.add_argument('--save-model-interval', type=int, default=50000)

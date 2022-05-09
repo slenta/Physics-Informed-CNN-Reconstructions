@@ -3,8 +3,8 @@
 import numpy as np
 from tensorboard.backend.event_processing import event_multiplexer
 
-LOGDIR = '/home/wchargin/data/scalars_demo/'
-RUN_NAME = 'temperature:t0=270,tA=270,kH=0.001'
+LOGDIR = '../Asi_maskiert/logs/default/'
+RUN_NAME = 'events.out.tfevents.1652028193.mg207'
 
 def main():
   multiplexer = event_multiplexer.EventMultiplexer()
