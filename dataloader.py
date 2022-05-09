@@ -46,7 +46,6 @@ class MaskDataset(Dataset):
         mask = mask[:n[0], :, :, :]
         m = mask.shape
 
-        print(n)
         im_new = []
 
         if self.mode == 'train':
@@ -61,6 +60,7 @@ class MaskDataset(Dataset):
             im_new = im_new[:8]
         elif self.mode == 'eval':
             im_new = image
+            print('shape of val dataset:' + str(im_new.shape))
 
         im_new = np.array(im_new)
 
