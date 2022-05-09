@@ -119,6 +119,8 @@ class preprocessing():
         f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '.hdf5', 'w')
 
         dset1 = f.create_dataset('tos_sym', shape=n, dtype = 'float32', data = sst_new)
+        #for dim in range(0, 3):
+        #    h5[cfg.data_types[0]].dims[dim].label = dname[dim]
         f.close()
 
 
