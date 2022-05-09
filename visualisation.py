@@ -135,9 +135,9 @@ def visualisation(path, iter, depth):
     fm = h5py.File('../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5', 'r')
     
     continent_mask = fm.get('tos_sym')
-    image_data = f.get('image')[1, depth, :, :]
-    mask_data = f.get('mask')[1, depth,:, :]
-    output_data = f.get('output')[1, depth,:, :]
+    image_data = f.get('gt')[0, depth, :, :]
+    mask_data = f.get('mask')[0, depth,:, :]
+    output_data = f.get('output')[0, depth,:, :]
     continent_mask = np.array(continent_mask)
 
 
@@ -185,13 +185,13 @@ def visualisation(path, iter, depth):
     #plt.colorbar(label='Temperature in °C')
     plt.subplot(1, 3, 2)
     plt.title('NN Output')
-    im2 = plt.imshow(outputcomp, cmap = 'jet', vmin=-3, vmax=3, aspect = 'auto')
+    im2 = plt.imshow(outputcomp, cmap = 'jet', vmin=-3, vmax=10, aspect = 'auto')
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     #plt.colorbar(label='Temperature in °C')
     plt.subplot(1, 3, 3)
     plt.title('Original Assimilation Image')
-    im3 = plt.imshow(image, cmap='jet', vmin=-3, vmax=3, aspect='auto')
+    im3 = plt.imshow(image, cmap='jet', vmin=-3, vmax=20, aspect='auto')
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     plt.colorbar(label='Temperature in °C')
@@ -227,8 +227,8 @@ def timeseries_plotting(iteration):
 
 
 cfg.set_train_args()
-#visualisation('../Asi_maskiert/results/images/depth/test_', '600000', 0)
-timeseries_plotting(1)
+visualisation('../Asi_maskiert/results/validation/validation_', '1', 9)
+#timeseries_plotting(1)
 
 
 

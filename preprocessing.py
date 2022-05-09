@@ -71,7 +71,7 @@ class preprocessing():
             sst_mean = ds_monthly.thetao.values
             sst = ds.thetao.values
 
-            if self.attributes[0]=='anomalies':
+            if self.attributes[1]=='anomalies':
                 for i in range(len(sst)):
                     sst[i] = sst[i] - sst_mean[i%12]
 
