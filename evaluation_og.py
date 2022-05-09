@@ -60,7 +60,6 @@ def infill(model, dataset, partitions, iter):
     output = []
 
     print(len(dataset))
-    print(dataset.__len__())
 
     if partitions > dataset.__len__():
         partitions = dataset.__len__()

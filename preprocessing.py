@@ -90,6 +90,7 @@ class preprocessing():
         #    sst = sst[:, 0, :, :]
 
         n = sst.shape
+        print(n)
 
         return sst, n
 

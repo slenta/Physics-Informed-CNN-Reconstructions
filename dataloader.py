@@ -46,6 +46,7 @@ class MaskDataset(Dataset):
         mask = mask[:n[0], :, :, :]
         m = mask.shape
 
+        print(n)
         im_new = []
 
         if self.mode == 'train':

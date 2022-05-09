@@ -85,7 +85,6 @@ else:
     criterion = InpaintingLoss(VGG16FeatureExtractor()).to(cfg.device)
     lambda_dict = cfg.LAMBDA_DICT_IMG_INPAINTING
 
-print('first')
 
 # define start point
 start_iter = 0
@@ -97,7 +96,6 @@ if cfg.resume_iter:
     print('Starting from iter ', start_iter)
 
 for i in tqdm(range(start_iter, cfg.max_iter)):
-    print(i)
     # train model
     model.train()
     image, mask, gt, im_rea, mask_rea = [x.to(cfg.device) for x in next(iterator_train)]
@@ -131,7 +129,6 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
 
     #validate using validation ensemble member and create ohc timeseries
     if (i + 1) % cfg.val_interval == 0:
-        print(i + 1)
         model.eval()
         prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
         prepo.save_data()
