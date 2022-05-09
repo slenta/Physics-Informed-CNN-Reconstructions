@@ -211,14 +211,13 @@ def timeseries_plotting(iteration):
     hc_network = f.get('network_ts')
     hc_gt = f.get('gt_ts')
 
+    hc_network = np.array(hc_network)
+    hc_gt = np.array(hc_gt)
     f_og = h5py.File(cfg.val_dir + str(iteration) + '.hdf5', 'r')
     output_comp = f_og.get('output_comp')
-    print(output_comp.shape)
 
-    n = hc_network.shape
-
-    plt.plot(range(n[0]), hc_network, label='Network Reconstructed Heat Content')
-    plt.plot(range(n[0]), hc_gt, label='Assimilation Heat Content')
+    plt.plot(hc_network, label='Network Reconstructed Heat Content')
+    plt.plot(hc_gt, label='Assimilation Heat Content')
     plt.grid()
     plt.legend()
     plt.xlabel('Months since January 1958')
@@ -229,7 +228,7 @@ def timeseries_plotting(iteration):
 
 cfg.set_train_args()
 #visualisation('../Asi_maskiert/results/images/depth/test_', '600000', 0)
-timeseries_plotting(8)
+timeseries_plotting(1)
 
 
 
