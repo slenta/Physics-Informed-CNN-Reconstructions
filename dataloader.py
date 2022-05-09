@@ -60,7 +60,6 @@ class MaskDataset(Dataset):
             im_new = im_new[:8]
         elif self.mode == 'eval':
             im_new = image
-            print('shape of val dataset:' + str(im_new.shape))
 
         im_new = np.array(im_new)
 
@@ -90,9 +89,26 @@ class MaskDataset(Dataset):
 
     def __len__(self):
         
-        mi, ma, im_new, mis, mas = self.__getitem__(0)
-        n = im_new.shape
-        length = n[0]
+        f_image = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '.hdf5', 'r')
+        image = f_image.get('tos_sym')
+        n = image.shape
+        im_new = []
+
+        if self.mode == 'train':
+            for i in range(n[0]):
+                if i%5 >= 1:
+                    im_new.append(image[i])
+        elif self.mode == 'test':
+            mask = mask[:8]
+            for i in range(n[0]):
+                if i%5 == 0:
+                    im_new.append(image[i])
+            im_new = im_new[:8]
+        elif self.mode == 'eval':
+            im_new = image
+
+        im_new = np.array(im_new)
+        length = im_new.shape[0]
 
         return length
         
