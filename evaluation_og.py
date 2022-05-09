@@ -107,7 +107,7 @@ def infill(model, dataset, partitions, iter):
 
     # create output_comp
     output_comp = mask * image + (1 - mask) * output
-
+    print('output shape: {}'.format(output_comp.shape))
     cvar = [image, mask, output, output_comp, gt]
     cname = ['image', 'mask', 'output', 'output_comp', 'gt']
     dname = ['time', 'lat', 'lon']
