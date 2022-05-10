@@ -243,7 +243,7 @@ def set_train_args():
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--data-types', type=str, default='tas')
+    arg_parser.add_argument('--data-types', type=str, default='tho')
     arg_parser.add_argument('--img-names', type=str, default='Image_3d_1958_2020.hdf5')
     arg_parser.add_argument('--mask-names', type=str, default='Maske_')
     arg_parser.add_argument('--evaluation-dirs', type=str, default='evaluation/')
