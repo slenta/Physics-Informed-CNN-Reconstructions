@@ -185,13 +185,13 @@ def visualisation(path, iter, depth):
     #plt.colorbar(label='Temperature in °C')
     plt.subplot(1, 3, 2)
     plt.title('NN Output')
-    im2 = plt.imshow(outputcomp, cmap = 'jet', vmin=-3, vmax=10, aspect = 'auto')
+    im2 = plt.imshow(outputcomp, cmap = 'jet', vmin=-3, vmax=3, aspect = 'auto')
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     #plt.colorbar(label='Temperature in °C')
     plt.subplot(1, 3, 3)
     plt.title('Original Assimilation Image')
-    im3 = plt.imshow(image, cmap='jet', vmin=-3, vmax=20, aspect='auto')
+    im3 = plt.imshow(image, cmap='jet', vmin=-3, vmax=3, aspect='auto')
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     plt.colorbar(label='Temperature in °C')
@@ -208,26 +208,44 @@ def visualisation(path, iter, depth):
                 
 def timeseries_plotting(iteration):
     f = h5py.File(cfg.val_dir + 'timeseries_' + str(iteration) + '.hdf5', 'r')
+    f1_compare = h5py.File(cfg.val_dir + 'timeseries_r12_newgrid.hdf5', 'r')
+    f2_compare = h5py.File(cfg.val_dir + 'timeseries_r13_newgrid.hdf5', 'r')
+    f3_compare = h5py.File(cfg.val_dir + 'timeseries_r14_newgrid.hdf5', 'r')
+
+    hc_c1 = f1_compare.get('gt_ts')
+    hc_c2 = f2_compare.get('gt_ts')
+    hc_c3 = f3_compare.get('gt_ts')
     hc_network = f.get('network_ts')
     hc_gt = f.get('gt_ts')
 
     hc_network = np.array(hc_network)
     hc_gt = np.array(hc_gt)
+    hc_c1 = np.array(hc_c1)
+    hc_c2 = np.array(hc_c2)
+    hc_c3 = np.array(hc_c3)
+
     #f_og = h5py.File(cfg.val_dir + str(iteration) + '.hdf5', 'r')
     #output_comp = f_og.get('output_comp')
 
+    plt.figure(figsize=(10, 6))
+
     plt.plot(hc_network, label='Network Reconstructed Heat Content')
     plt.plot(hc_gt, label='Assimilation Heat Content')
+    plt.plot(hc_c1, label='Comparison ensemble member', color='red')
+    plt.plot(hc_c2, label='Comparison ensemble member', color='red')
+    plt.plot(hc_c3, label='Comparison ensemble member', color='red')
+    plt.plot()
     plt.grid()
     plt.legend()
-    plt.xlabel('Months since January 1958')
+    plt.title('Comparison Reconstruction to Assimilation Timeseries')
+    plt.xlabel('Months since January 2004')
     plt.ylabel('Heat Content [J/m²]')
-    #plt.savefig('{:s}/images/{:s}/heat_content_timeseries_{}.pdf'.format(cfg.save_dir, cfg.save_part, len(depth_steps)))
+    plt.savefig('../Asi_maskiert/pdfs/validation_timeseries_' + str(iteration) + '.pdf')
     plt.show()
 
 
 cfg.set_train_args()
-#visualisation('../Asi_maskiert/results/validation/validation_', '1', 9)
+#visualisation('../Asi_maskiert/results/images/part_2/test_', '25000', 0)
 timeseries_plotting(25000)
 
 
