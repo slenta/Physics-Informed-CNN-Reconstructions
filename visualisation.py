@@ -213,8 +213,8 @@ def timeseries_plotting(iteration):
 
     hc_network = np.array(hc_network)
     hc_gt = np.array(hc_gt)
-    f_og = h5py.File(cfg.val_dir + str(iteration) + '.hdf5', 'r')
-    output_comp = f_og.get('output_comp')
+    #f_og = h5py.File(cfg.val_dir + str(iteration) + '.hdf5', 'r')
+    #output_comp = f_og.get('output_comp')
 
     plt.plot(hc_network, label='Network Reconstructed Heat Content')
     plt.plot(hc_gt, label='Assimilation Heat Content')
@@ -227,8 +227,8 @@ def timeseries_plotting(iteration):
 
 
 cfg.set_train_args()
-visualisation('../Asi_maskiert/results/validation/validation_', '1', 9)
-#timeseries_plotting(1)
+#visualisation('../Asi_maskiert/results/validation/validation_', '1', 9)
+timeseries_plotting(25000)
 
 
 

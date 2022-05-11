@@ -11,6 +11,7 @@ import config as cfg
 from numpy import ma
 import sys
 import os
+from preprocessing import preprocessing
 
 
 sys.path.append('./')
@@ -147,11 +148,34 @@ def heat_content_timeseries(depth_steps, iteration):
     f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
     f.close()
 
+def heat_content_timeseries_general(depth_steps, im_year):
+
+    rho = 1025  #density of seawater
+    shc = 3850  #specific heat capacity of seawater
+
+    f = h5py.File(cfg.im_dir + cfg.im_name + im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
+    gt = f.get('tos_sym')
+
+    #take spatial mean of network output and ground truth
+    gt = np.mean(np.mean(gt, axis=2), axis=2)
+    n = gt.shape
+    hc_assi = np.zeros(n[0])
+
+    for i in range(n[0]):
+        hc_assi[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * gt[i, 0] * rho * shc
+
+
+    f_final = h5py.File(cfg.val_dir + 'timeseries_' + im_year + '.hdf5', 'w')
+    f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
+    f.close()
 
 
 
-#cfg.set_train_args()
-#dataset = preprocessing(cfg.im_dir, cfg.im_name, cfg.im_year, cfg.image_size, 'image', 3, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
-#depths = dataset.depths()
-#<heat_content_timeseries('../Asi_maskiert/results/images/depth/test_550000.hdf5', depths, plotting=True)
+cfg.set_train_args()
+
+prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+prepo.save_data()
+depths = prepo.depths()
+
+heat_content_timeseries_general(depths, cfg.eval_im_year)
 
