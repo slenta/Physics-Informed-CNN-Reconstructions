@@ -143,7 +143,7 @@ def heat_content_timeseries(depth_steps, iteration, name):
         hc_assi[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * gt[i, 0] * rho * shc
 
 
-    f_final = h5py.File(cfg.val_dir + cfg.save_part + '/timeseries_' + iteration + '.hdf5', 'w')
+    f_final = h5py.File(cfg.val_dir + cfg.save_part + '/timeseries_' + name + iteration + '.hdf5', 'w')
     f_final.create_dataset(name='network_ts', shape=hc_network.shape, dtype=float, data=hc_network)
     f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
     f.close()

@@ -211,6 +211,9 @@ def timeseries_plotting(iteration):
     f1_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r12_newgrid.hdf5', 'r')
     f2_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r13_newgrid.hdf5', 'r')
     f3_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r14_newgrid.hdf5', 'r')
+    fo = h5py.File(cfg.val_dir + 'part_2/timeseries_' + str(iteration + 1) + '.hdf5', 'r')
+ 
+
 
     hc_c1 = f1_compare.get('gt_ts')
     hc_c2 = f2_compare.get('gt_ts')
@@ -225,6 +228,7 @@ def timeseries_plotting(iteration):
     hc_c2 = np.array(hc_c2)
     hc_c3 = np.array(hc_c3)
     tm = np.array(t_mean)
+    hc_obs = np.array(fo.get('network_ts'))
 
     #f_og = h5py.File(cfg.val_dir + str(iteration) + '.hdf5', 'r')
     #output_comp = f_og.get('output_comp')
@@ -237,19 +241,20 @@ def timeseries_plotting(iteration):
     #plt.plot(tm, label='Comparison ensemble member', color='red')
     plt.plot(hc_c2, label='Comparison ensemble member', color='red')
     plt.plot(hc_c3, label='Comparison ensemble member', color='red')
+    plt.plot(hc_obs, label='Observations reconstruction')
     plt.plot()
     plt.grid()
     plt.legend()
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Months since January 2004')
     plt.ylabel('Heat Content [J/m²]')
-    #plt.savefig('../Asi_maskiert/pdfs/validation_timeseries_' + str(iteration) + '.pdf')
+    plt.savefig('../Asi_maskiert/pdfs/validation_timeseries_obs' + str(iteration) + '.pdf')
     plt.show()
 
 
 cfg.set_train_args()
-visualisation('../Asi_maskiert/results/images/part_2/test_', '25000', 0)
-#timeseries_plotting(50000)
+#visualisation('../Asi_maskiert/results/images/part_2/test_', '25000', 0)
+timeseries_plotting(50000)
 
 
 
