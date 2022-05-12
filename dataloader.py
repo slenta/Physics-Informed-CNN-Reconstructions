@@ -145,7 +145,7 @@ class ValDataset(Dataset):
             mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
             masked = torch.from_numpy(masked[index, :self.in_channels, :, :])
 
-        return masked, mask, gt, masked, mask
+        return masked, mask, im_new, masked, mask
 
     def __len__(self):
         
