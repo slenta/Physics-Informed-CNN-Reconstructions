@@ -159,6 +159,7 @@ def heat_content_timeseries_general(depth_steps, im_year):
     #take spatial mean of network output and ground truth
     gt = np.mean(np.mean(gt, axis=2), axis=2)
     n = gt.shape
+    mean_temp = np.mean(gt, axis=1)
     hc_assi = np.zeros(n[0])
 
     for i in range(n[0]):
@@ -167,6 +168,7 @@ def heat_content_timeseries_general(depth_steps, im_year):
 
     f_final = h5py.File(cfg.val_dir + 'timeseries_' + im_year + '.hdf5', 'w')
     f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
+    f_final.create_dataset(name='mean_temp', shape=mean_temp.shape, dtype=float, data=mean_temp)
     f.close()
 
 

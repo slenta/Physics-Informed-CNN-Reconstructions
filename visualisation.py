@@ -231,7 +231,7 @@ def timeseries_plotting(iteration):
 
     plt.plot(hc_network, label='Network Reconstructed Heat Content')
     plt.plot(hc_gt, label='Assimilation Heat Content')
-    plt.plot(hc_c1, label='Comparison ensemble member', color='red')
+    #plt.plot(hc_c1, label='Comparison ensemble member', color='red')
     plt.plot(hc_c2, label='Comparison ensemble member', color='red')
     plt.plot(hc_c3, label='Comparison ensemble member', color='red')
     plt.plot()
@@ -240,7 +240,7 @@ def timeseries_plotting(iteration):
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Months since January 2004')
     plt.ylabel('Heat Content [J/m²]')
-    plt.savefig('../Asi_maskiert/pdfs/validation_timeseries_' + str(iteration) + '.pdf')
+    #plt.savefig('../Asi_maskiert/pdfs/validation_timeseries_' + str(iteration) + '.pdf')
     plt.show()
 
 
