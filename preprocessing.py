@@ -57,10 +57,32 @@ class preprocessing():
                                 sst[i, j, k, l] = 1
 
 
-        else:
+        elif self.mode=='image':
             
             time_var = ds.time
             ds['time'] = netCDF4.num2date(time_var[:],time_var.units)
+            if self.attributes[2] == 'argo':
+                ds = ds.sel(time=slice('2004-01', '2020-10'))
+            elif self.attribute[2] == 'preargo':
+                ds = ds.sel(time=slice('1958-01', '2004-01'))
+
+            ds_monthly = ds.groupby('time.month').mean('time')
+
+            sst_mean = ds_monthly.thetao.values
+            sst = ds.thetao.values
+
+            if self.attributes[1]=='anomalies':
+                for i in range(len(sst)):
+                    sst[i] = sst[i] - sst_mean[i%12]
+
+            x = np.isnan(sst)
+            n = sst.shape
+            sst[x] = 0
+
+        elif self.mode=='val':
+
+            time_var = ds.time
+            print(time_var)
             if self.attributes[2] == 'argo':
                 ds = ds.sel(time=slice('2004-01', '2020-10'))
             elif self.attribute[2] == 'preargo':
