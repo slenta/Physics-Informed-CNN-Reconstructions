@@ -160,6 +160,7 @@ def heat_content_timeseries_general(depth_steps, im_year):
     gt = np.mean(np.mean(gt, axis=2), axis=2)
     n = gt.shape
     mean_temp = np.mean(gt, axis=1)
+    print(mean_temp.shape)
     hc_assi = np.zeros(n[0])
 
     for i in range(n[0]):
