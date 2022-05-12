@@ -1,88 +1,50 @@
-import sys
+#Script to infill and evaluate certain model version
 
-sys.path.append('./')
 
-from model.net import PConvLSTM
-from utils.evaluation import *
-from utils.netcdfloader import NetCDFLoader
-from utils.io import load_ckpt
+import evaluation_og as evalu
+from dataloader import MaskDataset
+from dataloader import ValDataset
+from preprocessing import preprocessing
+from utils.io import load_ckpt, save_ckpt
 import config as cfg
+import torch
+from model.net import PConvLSTM
+import argparse
 
-cfg.set_evaluation_args()
-gt = None
-outputs = None
 
-if cfg.infill:
-    for snapshot in cfg.snapshot_dirs:
-        dataset_val = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, cfg.infill,
-                                   cfg.data_types, cfg.lstm_steps, cfg.prev_next_steps)
-        lstm = True
-        if cfg.lstm_steps == 0:
-            lstm = False
+cfg.set_train_args()
 
-        model = PConvLSTM(radar_img_size=cfg.image_sizes[0],
-                          radar_enc_dec_layers=cfg.encoding_layers[0],
-                          radar_pool_layers=cfg.pooling_layers[0],
-                          radar_in_channels=2 * cfg.prev_next_steps + 1,
-                          radar_out_channels=cfg.out_channels,
-                          rea_img_sizes=cfg.image_sizes[1:],
-                          rea_enc_layers=cfg.encoding_layers[1:],
-                          rea_pool_layers=cfg.pooling_layers[1:],
-                          rea_in_channels=(len(cfg.image_sizes) - 1) * [2 * cfg.prev_next_steps + 1],
-                          lstm=lstm).to(cfg.device)
+lstm = False
+depth=True
 
-        load_ckpt(snapshot, [('model', model)], cfg.device)
+model = PConvLSTM(radar_img_size=cfg.image_size,
+                  radar_enc_dec_layers=cfg.encoding_layers[0],
+                  radar_pool_layers=cfg.pooling_layers[0],
+                  radar_in_channels=cfg.in_channels,
+                  radar_out_channels=cfg.out_channels,
+                  lstm=lstm).to(cfg.device)
 
-        model.eval()
+optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=cfg.lr)
 
-        gt, output = infill(model, dataset_val, cfg.partitions)
-        outputs = {cfg.eval_names[0]: output}
 
-if cfg.create_report:
-    if cfg.eval_range:
-        r = (int(cfg.eval_range[0]), int(cfg.eval_range[1]))
-        gt = h5py.File('{}{}'.format(cfg.evaluation_dirs[0], 'gt'), 'r').get(cfg.data_types[0])[r[0]:r[1], :, :]
-        mask = h5py.File('{}{}'.format(cfg.evaluation_dirs[0], 'mask'), 'r').get(cfg.data_types[0])[r[0]:r[1], :, :]
-    else:
-        gt = h5py.File('{}{}'.format(cfg.evaluation_dirs[0], 'gt'), 'r').get(cfg.data_types[0])[:, :, :]
-        mask = h5py.File('{}{}'.format(cfg.evaluation_dirs[0], 'mask'), 'r').get(cfg.data_types[0])[:, :, :]
-    if gt.ndim == 4:
-        gt = gt[:, 0, :, :]
-    if mask.ndim == 4:
-        mask = mask[:, 0, :, :]
-    if cfg.eval_threshold:
-        mask[gt < cfg.eval_threshold] = 1
-    gt = ma.masked_array(gt, mask)[:, :, :]
-    outputs = {}
-    for i in range(len(cfg.evaluation_dirs)):
-        if cfg.eval_range:
-            r = (int(cfg.eval_range[0]), int(cfg.eval_range[1]))
-            output = h5py.File('{}{}'.format(cfg.evaluation_dirs[i], 'output'), 'r').get(cfg.data_types[0])[r[0]:r[1], :, :]
-        else:
-            output = h5py.File('{}{}'.format(cfg.evaluation_dirs[i], 'output'), 'r').get(cfg.data_types[0])[:, :, :]
-        if output.ndim == 4:
-            output = output[:, 0, :, :]
-        output[output < 0.0] = 0.0
-        output = ma.masked_array(output, mask)[:, :, :]
-        outputs[cfg.eval_names[i]] = output
-    create_evaluation_report(gt, outputs)
 
-if cfg.create_images:
-    r = (int(cfg.create_images[0]), int(cfg.create_images[1]))
-    gt = h5py.File('{}{}'.format(cfg.evaluation_dirs[0], 'gt'), 'r').get(cfg.data_types[0])[r[0]:r[1], :, :]
-    if gt.ndim == 4:
-        gt = gt[:, 0, :, :]
-    data_sets = {'gt': gt}
 
-    for i in range(len(cfg.evaluation_dirs)):
-        output = h5py.File('{}{}'.format(cfg.evaluation_dirs[i], 'output_comp'), 'r').get(cfg.data_types[0])[r[0]:r[1], :, :]
-        if output.ndim == 4:
-            output = output[:, 0, :, :]
-        output[output < 0.0] = 0.0
-        data_sets[cfg.eval_names[i]] = output
 
-    create_video = False
-    if cfg.create_video:
-        create_video = True
-    for key,value in data_sets.items():
-        create_evaluation_images(key, value, create_video)
+start_iter = load_ckpt(
+        '{}/ckpt/{}/{}.pth'.format(cfg.save_dir, cfg.save_part, cfg.val_interval), [('model', model)], cfg.device, [('optimizer', optimizer)])
+
+
+model.eval()
+prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+prepo_obs = preprocessing(cfg.mask_dir, cfg.mask_name, cfg.eval_mask_year, cfg.image_size, 'val', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+prepo_obs.save_data()
+prepo.save_data()
+depths = prepo.depths()
+
+val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
+evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1), name='_assimilation')
+evalu.heat_content_timeseries(depths, str(i+1), name='_assimilation')
+
+val_obs_dataset = ValDataset(cfg.eval_im_year, cfg.eval_mask_year, depth, cfg.in_channels, name='_observations')
+evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(cfg.val_interval), name='_observations')
+evalu.heat_content_timeseries(depths, str(cfg.val_interval))

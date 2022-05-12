@@ -76,6 +76,7 @@ attribute_argo = None
 eval_im_year = None
 val_interval = None
 val_dir = None
+eval_mask_year = None
 
 
 def set_train_args():
@@ -127,6 +128,8 @@ def set_train_args():
     arg_parser.add_argument('--lat2', type=str, default='69')
     arg_parser.add_argument('--val_interval', type=int, default=50000)
     arg_parser.add_argument('--val_dir', type=str, default='../Asi_maskiert/results/validation/')
+    arg_parser.add_argument('--eval_mask_year', type=str, default='2001_2020_newgrid')
+
 
 
 
@@ -181,6 +184,7 @@ def set_train_args():
     global attribute_depth
     global val_interval
     global val_dir
+    global eval_mask_year
 
 
     data_types = args.data_types.split(',')
@@ -240,6 +244,7 @@ def set_train_args():
     attribute_argo = args.attribute_argo
     val_interval = args.val_interval
     val_dir = args.val_dir
+    eval_mask_year = args.eval_mask_year
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()
