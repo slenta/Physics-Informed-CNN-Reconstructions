@@ -89,7 +89,7 @@ def set_train_args():
     arg_parser.add_argument('--mask_name', type=str, default='Maske_')
     arg_parser.add_argument('--mask_year', type=str, default='1970_newgrid')
     arg_parser.add_argument('--im_year', type=str, default='3d_1958_2020_newgrid')
-    arg_parser.add_argument('--resume-iter', type=int)
+    arg_parser.add_argument('--resume_iter', type=int)
     arg_parser.add_argument('--device', type=str, default='cpu')
     arg_parser.add_argument('--batch-size', type=int, default=4)
     arg_parser.add_argument('--n-threads', type=int, default=4)
