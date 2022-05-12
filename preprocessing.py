@@ -86,7 +86,6 @@ class preprocessing():
         elif self.mode=='val':
 
             time_var = ds.time
-            print(time_var)
             if self.attributes[2] == 'argo':
                 ds = ds.sel(time=slice(200400, 202012))
             elif self.attribute[2] == 'preargo':
