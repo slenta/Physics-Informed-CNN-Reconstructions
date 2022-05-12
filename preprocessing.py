@@ -57,7 +57,7 @@ class preprocessing():
                                 sst[i, j, k, l] = 1
 
 
-        elif self.mode == 'image':
+        else:
             
             time_var = ds.time
             ds['time'] = netCDF4.num2date(time_var[:],time_var.units)
@@ -115,8 +115,12 @@ class preprocessing():
 
         sst_new, n = self.__getitem__()
 
-        #create new h5 file with symmetric ssts
-        f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '.hdf5', 'w')
+        if self.mode=='val':   
+            #create new h5 file with symmetric ssts
+            f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '_observations.hdf5', 'w')
+
+        else:
+            f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '_observations.hdf5', 'w')
 
         dset1 = f.create_dataset('tos_sym', shape=n, dtype = 'float32', data = sst_new)
         #for dim in range(0, 3):

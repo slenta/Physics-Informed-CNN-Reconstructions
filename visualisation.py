@@ -217,7 +217,7 @@ def timeseries_plotting(iteration):
     hc_c3 = f3_compare.get('gt_ts')
     hc_network = f.get('network_ts')
     hc_gt = f.get('gt_ts')
-    t_mean = f.get('mean_temp')
+    t_mean = f1_compare.get('mean_temp')
 
     hc_network = np.array(hc_network)
     hc_gt = np.array(hc_gt)

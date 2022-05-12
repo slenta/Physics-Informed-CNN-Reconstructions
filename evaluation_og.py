@@ -52,7 +52,7 @@ def evaluate(model, dataset, device, filename):
     
     #save_image(grid, filename + '.jpg')
 
-def infill(model, dataset, partitions, iter):
+def infill(model, dataset, partitions, iter, name):
     if not os.path.exists(cfg.val_dir):
         os.makedirs('{:s}'.format(cfg.val_dir))
     image = []
@@ -111,7 +111,7 @@ def infill(model, dataset, partitions, iter):
     cname = ['image', 'mask', 'output', 'output_comp', 'gt']
     dname = ['time', 'lat', 'lon']
     
-    h5 = h5py.File(cfg.val_dir + iter + '.hdf5', 'w')
+    h5 = h5py.File(cfg.val_dir + cfg.save_part + '/validation_'  + iter + name + '.hdf5', 'w')
     for x in range(0, 5):
         h5.create_dataset(name=cname[x], shape=cvar[x].shape, dtype=float, data=cvar[x].to(torch.device('cpu')))
         #for dim in range(0, 3):
@@ -122,12 +122,12 @@ def infill(model, dataset, partitions, iter):
 
 
 
-def heat_content_timeseries(depth_steps, iteration):
+def heat_content_timeseries(depth_steps, iteration, name):
 
     rho = 1025  #density of seawater
     shc = 3850  #specific heat capacity of seawater
 
-    f = h5py.File(cfg.val_dir + iteration + '.hdf5', 'r')
+    f = h5py.File(cfg.val_dir + cfg.save_part + '/validation_' + iteration + name + '.hdf5', 'r')
     output = f.get('output_comp')
     gt = f.get('gt')
 

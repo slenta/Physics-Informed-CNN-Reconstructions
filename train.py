@@ -19,6 +19,7 @@ import config as cfg
 from dataloader import MaskDataset
 import evaluation_og as evalu
 from preprocessing import preprocessing
+from dataloader import ValDataset
 
 torch.cuda.empty_cache()
 
@@ -131,12 +132,20 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     if (i + 1) % cfg.val_interval == 0:
         model.eval()
         prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+        prepo_obs = preprocessing(cfg.mask_dir, cfg.mask_name, cfg.eval_mask_year, cfg.image_size, 'val', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+        prepo_obs.save_data()
         prepo.save_data()
         depths = prepo.depths()
 
         val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
-        evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1))
-        evalu.heat_content_timeseries(depths, str(i+1))
+        evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1), name='_assimilation')
+        evalu.heat_content_timeseries(depths, str(i+1), name='_assimilation')
+
+        val_obs_dataset = ValDataset(cfg.eval_im_year, cfg.eval_mask_year, depth, cfg.in_channels, name='_observations')
+        evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(i + 1), name='_observations')
+        evalu.heat_content_timeseries(depths, str(i + 1))
+
+
     #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
     #    model.eval()
     #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
