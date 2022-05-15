@@ -167,3 +167,8 @@ elif cfg.mode == 'both':
     dataset1 = preprocessing(cfg.mask_dir, cfg.mask_name, cfg.mask_year, cfg.image_size, 'mask', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
     dataset.save_data()
     dataset1.save_data()
+elif cfg.mode == 'val':
+    prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+    prepo_obs = preprocessing(cfg.mask_dir, cfg.mask_name, cfg.eval_mask_year, cfg.image_size, 'val', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+    prepo_obs.save_data()
+    prepo.save_data()
