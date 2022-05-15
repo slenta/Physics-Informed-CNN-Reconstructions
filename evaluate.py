@@ -41,11 +41,11 @@ prepo.save_data()
 depths = prepo.depths()
 
 val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
-evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(cfg.val_interval), name='_assimilation')
-evalu.heat_content_timeseries(depths, str(cfg.val_interval), name='_assimilation')
+evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(cfg.val_interval), name='_assimilation_full')
+evalu.heat_content_timeseries(depths, str(cfg.val_interval), name='_assimilation_full')
 
 print('obs')
 
 val_obs_dataset = ValDataset(cfg.eval_im_year, cfg.eval_mask_year, depth, cfg.in_channels)
-evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(cfg.val_interval), name='_observations')
-evalu.heat_content_timeseries(depths, str(cfg.val_interval), name='_observations')
+evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(cfg.val_interval), name='_observations_full')
+evalu.heat_content_timeseries(depths, str(cfg.val_interval), name='_observations_full')
