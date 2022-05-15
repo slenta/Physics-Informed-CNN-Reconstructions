@@ -96,7 +96,6 @@ class preprocessing():
             sst_mean = f.get('tos_sym')
 
             sst = ds.tho.values
-            print(sst.shape)
 
             if self.attributes[1]=='anomalies':
                 for i in range(len(sst)):
