@@ -206,12 +206,12 @@ def visualisation(path, iter, depth):
 
 
                 
-def timeseries_plotting(iteration):
-    f = h5py.File(cfg.val_dir + 'validation_timeseries_' + str(iteration) + '.hdf5', 'r')
+def timeseries_plotting(path, iteration):
+    f = h5py.File(cfg.val_dir + path + 'timeseries_' + str(iteration) + '.hdf5', 'r')
     f1_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r12_newgrid.hdf5', 'r')
     f2_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r13_newgrid.hdf5', 'r')
     f3_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r14_newgrid.hdf5', 'r')
-    fo = h5py.File(cfg.val_dir + 'part_2/timeseries_' + str(iteration + 1) + '.hdf5', 'r')
+    fo = h5py.File(cfg.val_dir + 'part_2/timeseries_50001.hdf5', 'r')
  
 
 
@@ -253,8 +253,8 @@ def timeseries_plotting(iteration):
 
 
 cfg.set_train_args()
-#visualisation('../Asi_maskiert/results/images/part_2/test_', '25000', 0)
-timeseries_plotting(50000)
+#visualisation('../Asi_maskiert/results/images/Maske_preargo_20/test_', '25000', 0)
+timeseries_plotting('../Asi_maskiert/results/validation/timeseries_', 25000)
 
 
 
