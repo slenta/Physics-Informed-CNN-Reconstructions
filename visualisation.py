@@ -129,9 +129,9 @@ def vis_variable(path_1, path_2, path_3, var_1, var_2, var_3, name):
     plt.show()
 
 
-def visualisation(path, iter, depth):
+def visualisation(path, name, iter, depth):
     
-    f = h5py.File(path + iter + '.hdf5', 'r')
+    f = h5py.File(path + iter + name + '.hdf5', 'r')
     fm = h5py.File('../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5', 'r')
     
     continent_mask = fm.get('tos_sym')
@@ -201,17 +201,17 @@ def visualisation(path, iter, depth):
     #plt.xlabel('Transformed Longitudes')
     #plt.ylabel('Transformed Latitudes')
     #plt.colorbar(label='Temperature in °C')
-    fig.savefig(path + iter + '.pdf', dpi = fig.dpi)
+    fig.savefig(path + name + iter + str(depth) + '.pdf', dpi = fig.dpi)
     plt.show()
 
 
                 
 def timeseries_plotting(path, iteration):
-    f = h5py.File(cfg.val_dir + path + 'timeseries_' + str(iteration) + '.hdf5', 'r')
+    f = h5py.File(cfg.val_dir + path + 'timeseries__assimilation' + str(iteration) + '.hdf5', 'r')
     f1_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r12_newgrid.hdf5', 'r')
     f2_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r13_newgrid.hdf5', 'r')
     f3_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r14_newgrid.hdf5', 'r')
-    fo = h5py.File(cfg.val_dir + 'part_2/timeseries_50001.hdf5', 'r')
+    fo = h5py.File(cfg.val_dir + path + 'timeseries__observations' + str(iteration) + '.hdf5', 'r')
  
 
 
@@ -253,8 +253,8 @@ def timeseries_plotting(path, iteration):
 
 
 cfg.set_train_args()
-#visualisation('../Asi_maskiert/results/images/Maske_preargo_20/test_', '25000', 0)
-timeseries_plotting('../Asi_maskiert/results/validation/timeseries_', 25000)
+#visualisation('../Asi_maskiert/results/validation/Maske_argo/validation', '_assimilation', '_125000', 0)
+#timeseries_plotting('Maske_argo/', 125000)
 
 
 
