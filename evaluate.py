@@ -40,6 +40,7 @@ depths = prepo.depths()
 #prepo_obs.save_data()
 #prepo.save_data()
 
+print('start')
 
 val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
 evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(cfg.val_interval), name='_assimilation_full')
