@@ -58,7 +58,7 @@ class preprocessing():
             #                    sst[i, j, k, l] = 1
 
             
-            sst = np.where(sst != nan, 1, sst)
+            sst = np.where(np.isnan(sst)==False, 1, sst)
             x = np.isnan(sst)
             sst[x] = 0
 
