@@ -88,7 +88,7 @@ class MaskDataset(Dataset):
 
     def __len__(self):
         
-        f_image = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '.hdf5', 'r')
+        f_image = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
         image = f_image.get('tos_sym')
         n = image.shape
         im_new = []

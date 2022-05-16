@@ -147,7 +147,7 @@ class preprocessing():
             f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '_observations.hdf5', 'w')
 
         else:
-            f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '_observations.hdf5', 'w')
+            f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '.hdf5', 'w')
 
         dset1 = f.create_dataset('tos_sym', shape=n, dtype = 'float32', data = sst_new)
         #for dim in range(0, 3):
