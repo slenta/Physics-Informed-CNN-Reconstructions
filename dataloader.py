@@ -83,6 +83,8 @@ class MaskDataset(Dataset):
             #Repeat to fit input channels
             mask = mask.repeat(3, 1, 1)
             im_new = im_new.repeat(3, 1, 1)
+
+        print(im_new.shape)
 	    		
         return mask*im_new, mask, im_new, mask*im_new, mask
 
