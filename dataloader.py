@@ -40,7 +40,6 @@ class MaskDataset(Dataset):
         #extract sst data/mask data
         image = f_image.get('tos_sym')
         mask = f_mask.get('tos_sym')
-        mask = np.repeat(mask, 5, axis=0)
         
         n = image.shape
         mask = mask[:n[0], :, :, :]
@@ -50,6 +49,8 @@ class MaskDataset(Dataset):
         if self.mode == 'train':
             for i in range(n[0]):
                 if i%5 >= 1:
+                    mask = np.repeat(mask, 5, axis=0)
+                    mask = mask[:n[0], :, :, :]
                     im_new.append(image[i])
         elif self.mode == 'test':
             mask = mask[:8]
