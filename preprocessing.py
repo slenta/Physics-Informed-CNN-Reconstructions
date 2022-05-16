@@ -88,7 +88,6 @@ class preprocessing():
                     sst[i] = sst[i] - sst_mean[i%12]
 
             x = np.isnan(sst)
-            n = sst.shape
             sst[x] = 0
 
         elif self.mode=='val':
@@ -112,9 +111,9 @@ class preprocessing():
                     sst[i] = sst[i] - sst_mean[i%12]
 
             x = np.isnan(sst)
-            n = sst.shape
             sst[x] = 0
 
+        n = sst.shape
         rest = np.zeros((n[0], n[1], self.new_im_size - n[2], n[3]))
         sst = np.concatenate((sst, rest), axis=2)
         n = sst.shape
