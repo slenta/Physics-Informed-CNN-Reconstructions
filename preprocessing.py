@@ -57,7 +57,8 @@ class preprocessing():
             #                else:
             #                    sst[i, j, k, l] = 1
 
-            sst[sst!=nan] = 1
+            
+            sst = np.where(sst != nan, 1, sst)
             x = np.isnan(sst)
             sst[x] = 0
 
@@ -86,7 +87,6 @@ class preprocessing():
             if self.attributes[1]=='anomalies':
                 for i in range(len(sst)):
                     sst[i] = sst[i] - sst_mean[i%12]
-
 
             x = np.isnan(sst)
             n = sst.shape
