@@ -63,7 +63,7 @@ class preprocessing():
             ds['time'] = netCDF4.num2date(time_var[:],time_var.units)
             if self.attributes[2] == 'argo':
                 ds = ds.sel(time=slice('2004-01', '2020-10'))
-            elif self.attribute[2] == 'preargo':
+            elif self.attributes[2] == 'preargo':
                 ds = ds.sel(time=slice('1958-01', '2004-01'))
 
             ds_monthly = ds.groupby('time.month').mean('time')
