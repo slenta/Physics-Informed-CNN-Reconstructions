@@ -52,7 +52,7 @@ class preprocessing():
             elif self.attributes[2] == 'preargo':
                 ds = ds.sel(time=slice(195800, 200400))
             elif self.attributes[2] == 'full':
-                ds = ds.sel(time=slice(195800, 202010))
+                ds = ds.sel(time=slice(195800, 202011))
 
 
             sst = ds.tho.values
@@ -98,7 +98,7 @@ class preprocessing():
             elif self.attributes[2] == 'preargo':
                 ds = ds.sel(time=slice(195800, 200400))
             elif self.attributes[2] == 'full':
-                ds = ds.sel(time=slice(195800, 202010))
+                ds = ds.sel(time=slice(195800, 202011))
 
 
             f = h5py.File('../Asi_maskiert/original_image/baseline_climatology' + self.attributes[2] + '.hdf5', 'r')
