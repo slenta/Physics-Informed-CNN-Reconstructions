@@ -65,6 +65,9 @@ class preprocessing():
                 ds = ds.sel(time=slice('2004-01', '2020-10'))
             elif self.attributes[2] == 'preargo':
                 ds = ds.sel(time=slice('1958-01', '2004-01'))
+            elif self.attributes[2] =='full':
+                ds = ds.sel(time=slice('1958-01', '2020-10'))
+
 
             ds_monthly = ds.groupby('time.month').mean('time')
 
@@ -90,6 +93,8 @@ class preprocessing():
                 ds = ds.sel(time=slice(200400, 202012))
             elif self.attributes[2] == 'preargo':
                 ds = ds.sel(time=slice(195800, 200400))
+            elif self.attributes[2] == 'full':
+                ds = ds.sel(time=slice(195800, 202010))
 
 
             f = h5py.File('../Asi_maskiert/original_image/baseline_climatology' + self.attributes[2] + '.hdf5', 'r')
