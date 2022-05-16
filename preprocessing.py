@@ -1,4 +1,5 @@
 
+from cmath import nan
 from time import time
 import numpy as np
 import matplotlib.pylab as plt
@@ -47,14 +48,19 @@ class preprocessing():
             sst = ds.tho.values
             x = np.isnan(sst)
             n = sst.shape
-            for i in range(n[0]):
-                for j in range(n[1]):
-                    for k in range(n[2]):
-                        for l in range(n[3]):
-                            if np.isnan(sst[i, j, k, l]) == True:
-                                sst[i, j, k, l] = 0
-                            else:
-                                sst[i, j, k, l] = 1
+            #for i in range(n[0]):
+            #    for j in range(n[1]):
+            #        for k in range(n[2]):
+            #            for l in range(n[3]):
+            #                if np.isnan(sst[i, j, k, l]) == True:
+            #                    sst[i, j, k, l] = 0
+            #                else:
+            #                    sst[i, j, k, l] = 1
+
+            
+            a = np.where(sst != nan, 1, sst)
+            x = np.isnan(sst)
+            sst[x] = 0
 
 
         elif self.mode=='image':
