@@ -28,7 +28,7 @@ optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters(
 
 
 start_iter = load_ckpt(
-        '{}/ckpt/{}/{}.pth'.format(cfg.save_dir, cfg.save_part, cfg.val_interval), [('model', model)], cfg.device, [('optimizer', optimizer)])
+        '{}/ckpt/{}/{}.pth'.format(cfg.save_dir, cfg.save_part, cfg.resume_iter), [('model', model)], cfg.device, [('optimizer', optimizer)])
 
 for param_group in optimizer.param_groups:
         param_group['lr'] = cfg.lr
@@ -43,11 +43,11 @@ depths = prepo.depths()
 print('start')
 
 val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
-evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(cfg.val_interval), name='assimilation_full')
-evalu.heat_content_timeseries(depths, str(cfg.val_interval), name='assimilation_full')
+evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(cfg.resume_iter), name='assimilation_full')
+evalu.heat_content_timeseries(depths, str(cfg.resume_iter), name='assimilation_full')
 
 print('obs')
 
 val_obs_dataset = ValDataset(cfg.eval_im_year, cfg.eval_mask_year, depth, cfg.in_channels)
-evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(cfg.val_interval), name='observations_full')
-evalu.heat_content_timeseries(depths, str(cfg.val_interval), name='observations_full')
+evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(cfg.resume_iter), name='observations_full')
+evalu.heat_content_timeseries(depths, str(cfg.resume_iter), name='observations_full')
