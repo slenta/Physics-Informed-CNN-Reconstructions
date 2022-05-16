@@ -11,7 +11,6 @@ import config as cfg
 from numpy import ma
 import sys
 import os
-from preprocessing import preprocessing
 
 
 sys.path.append('./')
@@ -63,6 +62,8 @@ def infill(model, dataset, partitions, iter, name):
 
     if partitions > dataset.__len__():
         partitions = dataset.__len__()
+    
+    print(dataset.__len__())
     if dataset.__len__() % partitions != 0:
         print("WARNING: The size of the dataset should be dividable by the number of partitions. The last "
               + str(dataset.__len__() % partitions) + " time steps will not be infilled.")
@@ -174,7 +175,7 @@ def heat_content_timeseries_general(depth_steps, im_year):
 
 
 
-cfg.set_train_args()
+#cfg.set_train_args()
 
 #prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
 #prepo.save_data()

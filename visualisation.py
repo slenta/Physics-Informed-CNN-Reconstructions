@@ -1,13 +1,11 @@
 from cProfile import label
 import h5py
 from isort import file
-from matplotlib import image
 from matplotlib.pyplot import title
 import numpy as np
 import pylab as plt
 import torch
 import xarray as xr
-from mpl_toolkits.mplot3d import axes3d
 import config as cfg
 
 def vis_single(timestep, path, name, argo_state, type, param, title):
@@ -207,11 +205,11 @@ def visualisation(path, name, iter, depth):
 
                 
 def timeseries_plotting(path, iteration):
-    f = h5py.File(cfg.val_dir + path + 'timeseries__assimilation' + str(iteration) + '.hdf5', 'r')
+    f = h5py.File(cfg.val_dir + path + 'timeseries__assimilation_full' + str(iteration) + '.hdf5', 'r')
     f1_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r12_newgrid.hdf5', 'r')
     f2_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r13_newgrid.hdf5', 'r')
     f3_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r14_newgrid.hdf5', 'r')
-    fo = h5py.File(cfg.val_dir + path + 'timeseries__observations' + str(iteration) + '.hdf5', 'r')
+    fo = h5py.File(cfg.val_dir + path + 'timeseries__observations_full' + str(iteration) + '.hdf5', 'r')
  
 
 
@@ -230,6 +228,7 @@ def timeseries_plotting(path, iteration):
     tm = np.array(t_mean)
     hc_obs = np.array(fo.get('network_ts'))
 
+    print(hc_network.shape)
     #f_og = h5py.File(cfg.val_dir + str(iteration) + '.hdf5', 'r')
     #output_comp = f_og.get('output_comp')
 
@@ -254,7 +253,7 @@ def timeseries_plotting(path, iteration):
 
 cfg.set_train_args()
 #visualisation('../Asi_maskiert/results/validation/Maske_argo/validation', '_assimilation', '_125000', 0)
-#timeseries_plotting('Maske_argo/', 125000)
+timeseries_plotting('Maske_argo/', 125000)
 
 
 
