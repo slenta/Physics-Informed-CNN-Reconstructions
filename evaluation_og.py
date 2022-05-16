@@ -176,9 +176,9 @@ def heat_content_timeseries_general(depth_steps, im_year):
 
 cfg.set_train_args()
 
-prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
-prepo.save_data()
-depths = prepo.depths()
+#prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
+#prepo.save_data()
+#depths = prepo.depths()
 
-heat_content_timeseries_general(depths, cfg.eval_im_year)
+#heat_content_timeseries_general(depths, cfg.eval_im_year)
 
