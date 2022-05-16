@@ -45,19 +45,18 @@ class preprocessing():
 
         #extract the variables from the file
         if self.mode == 'mask': 
-            sst = ds.tho.values
-            x = np.isnan(sst)
-            n = sst.shape
-            #for i in range(n[0]):
-            #    for j in range(n[1]):
-            #        for k in range(n[2]):
-            #            for l in range(n[3]):
-            #                if np.isnan(sst[i, j, k, l]) == True:
-            #                    sst[i, j, k, l] = 0
-            #                else:
-            #                    sst[i, j, k, l] = 1
 
-            
+            time_var = ds.time
+            ds['time'] = netCDF4.num2date(time_var[:],time_var.units)
+            if self.attributes[2] == 'argo':
+                ds = ds.sel(time=slice('2004-01', '2020-10'))
+            elif self.attributes[2] == 'preargo':
+                ds = ds.sel(time=slice('1958-01', '2004-01'))
+            elif self.attributes[2] =='full':
+                ds = ds.sel(time=slice('1958-01', '2020-10'))
+
+            sst = ds.tho.values
+
             sst = np.where(np.isnan(sst)==False, 1, sst)
             x = np.isnan(sst)
             sst[x] = 0
