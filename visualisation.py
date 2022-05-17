@@ -205,11 +205,11 @@ def visualisation(path, name, iter, depth):
 
                 
 def timeseries_plotting(path, iteration):
-    f = h5py.File(cfg.val_dir + path + 'timeseries__assimilation_full' + str(iteration) + '.hdf5', 'r')
+    f = h5py.File(cfg.val_dir + path + 'timeseries__assimilation' + str(iteration) + '.hdf5', 'r')
     f1_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r12_newgrid.hdf5', 'r')
     f2_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r13_newgrid.hdf5', 'r')
     f3_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r14_newgrid.hdf5', 'r')
-    fo = h5py.File(cfg.val_dir + path + 'timeseries__observations_full' + str(iteration) + '.hdf5', 'r')
+    fo = h5py.File(cfg.val_dir + path + 'timeseries__observations' + str(iteration) + '.hdf5', 'r')
  
 
 
