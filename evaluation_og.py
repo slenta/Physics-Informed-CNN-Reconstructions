@@ -188,7 +188,7 @@ def compare_datasets(path_1, path_2, name):
 
     n = v1.shape
 
-    std_1, std_2, std_diff, bias = np.zeros(4, v1[2], v1[3])
+    std_1, std_2, std_diff, bias = np.zeros((4, n[2], n[3]))
 
     for i in n[2]:
         for j in n[3]:
