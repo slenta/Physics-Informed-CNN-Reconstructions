@@ -190,8 +190,8 @@ def compare_datasets(path_1, path_2, name):
 
     for i in range(n[2]):
         for j in range(n[3]):
-            std_1[i, j] = np.std(v1[:, :, i, j])
-            std_2[i, j] = np.std(v2[:, :, i, j])
+            std_1[i, j] = np.nanstd(v1[:, :, i, j])
+            std_2[i, j] = np.nanstd(v2[:, :, i, j])
             bias[i, j] = np.nanmean(v1[:, :, i, j]) - np.nanmean(v2[:, :, i, j])
             std_diff[i, j] = std_1[i, j] - std_2[i, j]
 
