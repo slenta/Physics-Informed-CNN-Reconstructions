@@ -1,6 +1,7 @@
 #Script to infill and evaluate certain model version
 
 
+import matplotlib
 import evaluation_og as evalu
 from dataloader import MaskDataset
 from dataloader import ValDataset
@@ -10,6 +11,7 @@ import config as cfg
 import torch
 from model.net import PConvLSTM
 
+matplotlib.use('Agg')
 
 cfg.set_train_args()
 
