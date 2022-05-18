@@ -183,8 +183,6 @@ def compare_datasets(path_1, path_2, name):
     v2 = f2.get('tos_sym')
 
 
-    v1 = np.nan_to_num(v1, nan=0)
-    v2 = np.nan_to_num(v2, nan=0)
 
     n = v1.shape
 
@@ -194,7 +192,7 @@ def compare_datasets(path_1, path_2, name):
         for j in range(n[3]):
             std_1[i, j] = np.std(v1[:, :, i, j])
             std_2[i, j] = np.std(v2[:, :, i, j])
-            bias[i, j] = np.sum(v1[:, :, i, j]) - np.sum(v2[:, :, i, j])
+            bias[i, j] = np.nanmean(v1[:, :, i, j]) - np.nanmean(v2[:, :, i, j])
             std_diff[i, j] = std_1[i, j] - std_2[i, j]
 
     
