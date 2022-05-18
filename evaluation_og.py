@@ -199,7 +199,7 @@ def compare_datasets(path_1, path_2, name):
     std_1 = np.nanstd(np.nanstd(v1, axis=0), axis=0)
     std_2 = np.nanstd(np.nanstd(v2, axis=0), axis=0)
     bias = np.nanmean(np.nanmean(v1, axis=0), axis=0) - np.nanmean(np.nanmean(v2, axis=0), axis=0)
-    std_1 = std_1 - std_2
+    std_diff = std_1 - std_2
 
 
     
