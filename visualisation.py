@@ -236,7 +236,10 @@ def timeseries_plotting(path, iteration, argo):
     f3_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r14_newgrid.hdf5', 'r')
     fo = h5py.File(cfg.val_dir + path + 'timeseries__observations' + str(argo) + str(iteration) + '.hdf5', 'r')
  
+    f_masked = h5py.File(cfg.val_dir + 'Maske_argo/masked_timeseries_r11_newgrid.hdf5', 'r')
 
+    hc_assi_masked = f_masked.get('im_ts')
+    hc_obs_masked = f_masked.get('obs_ts')
 
     hc_c1 = f1_compare.get('gt_ts')
     hc_c2 = f2_compare.get('gt_ts')
@@ -266,14 +269,29 @@ def timeseries_plotting(path, iteration, argo):
     plt.plot(hc_c2, label='Comparison ensemble member', color='red')
     plt.plot(hc_c3, label='Comparison ensemble member', color='red')
     #plt.plot(hc_obs, label='Observations reconstruction')
-    plt.plot()
     plt.grid()
     plt.legend()
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Months since January 2004')
     plt.ylabel('Heat Content [J/m²]')
-    plt.savefig('../Asi_maskiert/pdfs/timeseries/validation_timeseries' + str(argo) + str(iteration) + '.pdf')
+    #plt.savefig('../Asi_maskiert/pdfs/timeseries/validation_timeseries' + str(argo) + str(iteration) + '.pdf')
     plt.show()
+
+    hc_assi_masked = np.array(hc_assi_masked)
+    hc_obs_masked = np.array(hc_obs_masked)
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(hc_assi_masked, label='masked assimilation')
+    plt.plot(hc_obs_masked, label='masked observations')
+    plt.grid()
+    plt.legend()
+    plt.xticks(ticks=np.arange(0, len(hc_assi_masked), 5*12), labels=np.arange(1958, 2020, 5))
+    plt.title('Comparison Reconstruction to Assimilation Timeseries')
+    plt.xlabel('Time of observations [years]')
+    plt.ylabel('Heat Content [J/m²]')
+    #plt.savefig('../Asi_maskiert/pdfs/timeseries/validation_timeseries' + str(argo) + str(iteration) + '.pdf')
+    plt.show()
+
 
 
 cfg.set_train_args()

@@ -183,7 +183,7 @@ def heat_content_timeseries_masked(depth_steps, im_year, mask_year):
 
     f_final = h5py.File(cfg.val_dir + 'masked_timeseries_' + im_year + '.hdf5', 'w')
     f_final.create_dataset(name='im_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
-    f_final.create_dataset(name='obs_ts', shape=hc_obs.shape, dtype=float, data=hc_assi)
+    f_final.create_dataset(name='obs_ts', shape=hc_obs.shape, dtype=float, data=hc_obs)
     f.close()
 
 
