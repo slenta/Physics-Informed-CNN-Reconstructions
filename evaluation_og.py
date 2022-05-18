@@ -187,17 +187,18 @@ def heat_content_timeseries_masked(depth_steps, im_year, mask_year):
     f.close()
 
 
-def compare_datasets(obs_path, mask_path, im_path, name):
+def compare_datasets(obs_path, im_path, name):
 
     f1 = h5py.File(obs_path, 'r')
-    f2 = h5py.File(mask_path, 'r')
     f3 = h5py.File(im_path, 'r')
 
     obs = f1.get('tos_sym')
-    mask = f2.get('tos_sym')
     image = f3.get('tos_sym')
 
-    masked = mask*image
+    obs_binary = np.where(np.isnan(obs)==False, 1, obs)
+    obs_binary = np.nan_to_num(obs_binary, nan=0)
+
+    masked = obs_binary*image
 
 
     n = obs.shape
