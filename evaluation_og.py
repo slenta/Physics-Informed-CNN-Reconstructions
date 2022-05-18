@@ -190,8 +190,8 @@ def compare_datasets(path_1, path_2, name):
 
     std_1, std_2, std_diff, bias = np.zeros((4, n[2], n[3]))
 
-    for i in n[2]:
-        for j in n[3]:
+    for i in range(n[2]):
+        for j in range(n[3]):
             std_1[i, j] = np.std(v1[:, :, i, j])
             std_2[i, j] = np.std(v2[:, :, i, j])
             bias[i, j] = np.sum(v1[:, :, i, j]) - np.sum(v2[:, :, i, j])

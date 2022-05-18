@@ -272,7 +272,7 @@ def timeseries_plotting(path, iteration, argo):
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Months since January 2004')
     plt.ylabel('Heat Content [J/m²]')
-    plt.savefig('../Asi_maskiert/pdfs/timeseries/validation_timeseries_obs' + str(argo) + str(iteration) + '.pdf')
+    plt.savefig('../Asi_maskiert/pdfs/timeseries/validation_timeseries' + str(argo) + str(iteration) + '.pdf')
     plt.show()
 
 
