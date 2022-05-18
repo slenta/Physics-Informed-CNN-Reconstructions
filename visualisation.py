@@ -271,8 +271,9 @@ def timeseries_plotting(path, iteration, argo):
     #plt.plot(hc_obs, label='Observations reconstruction')
     plt.grid()
     plt.legend()
+    plt.xticks(ticks=np.arange(0, len(hc_network), 2*12), labels=np.arange(2004, 2021, 2))
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
-    plt.xlabel('Months since January 2004')
+    plt.xlabel('Time in years')
     plt.ylabel('Heat Content [J/m²]')
     #plt.savefig('../Asi_maskiert/pdfs/timeseries/validation_timeseries' + str(argo) + str(iteration) + '.pdf')
     plt.show()
@@ -289,7 +290,7 @@ def timeseries_plotting(path, iteration, argo):
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Time of observations [years]')
     plt.ylabel('Heat Content [J/m²]')
-    #plt.savefig('../Asi_maskiert/pdfs/timeseries/validation_timeseries' + str(argo) + str(iteration) + '.pdf')
+    plt.savefig('../Asi_maskiert/pdfs/timeseries/masked_timeseries' + str(argo) + '.pdf')
     plt.show()
 
 

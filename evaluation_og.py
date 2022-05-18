@@ -164,8 +164,6 @@ def heat_content_timeseries_masked(depth_steps, im_year, mask_year):
     obs = fo.get('tos_sym')
 
     obs_binary = np.where(np.isnan(obs)==False, 1, obs)
-    obs_binary = np.nan_to_num(obs_binary, nan=0)
-
     image = image*obs_binary
 
     #take spatial mean of network output and ground truth
