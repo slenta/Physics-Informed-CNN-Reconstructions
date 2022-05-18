@@ -151,54 +151,60 @@ def heat_content_timeseries(depth_steps, iteration, name):
     f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
     f.close()
 
-def heat_content_timeseries_general(depth_steps, im_year):
+def heat_content_timeseries_masked(depth_steps, im_year, mask_year):
 
     rho = 1025  #density of seawater
     shc = 3850  #specific heat capacity of seawater
 
-    f = h5py.File(cfg.im_dir + cfg.im_name + im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
-    gt = f.get('tos_sym')
+    f = h5py.File(cfg.im_dir + cfg.im_name + im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_full_' + str(cfg.in_channels) + '.hdf5', 'r')
+    fo = h5py.File(cfg.mask_dir + cfg.mask_name + mask_year+ '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_full_' + str(cfg.in_channels) + '_observations.hdf5', 'r')
+    
+    
+    image = f.get('tos_sym')
+    obs = fo.get('tos_sym')
+
+    obs_binary = np.where(np.isnan(obs)==False, 1, obs)
+    obs_binary = np.nan_to_num(obs_binary, nan=0)
+
+    image = image*obs_binary
 
     #take spatial mean of network output and ground truth
-    gt = np.mean(np.mean(gt, axis=2), axis=2)
-    n = gt.shape
-    mean_temp = np.mean(gt, axis=1)
-    print(mean_temp.shape)
+    image = np.nanmean(np.nanmean(image, axis=2), axis=2)
+    obs = np.nanmean(np.nanmean(obs, axis=2), axis=2)
+    
+    n = image.shape
     hc_assi = np.zeros(n[0])
+    hc_obs = np.zeros(n[0])
 
     for i in range(n[0]):
-        hc_assi[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * gt[i, 0] * rho * shc
+        hc_assi[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*image[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * image[i, 0] * rho * shc
+        hc_obs[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*obs[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * obs[i, 0] * rho * shc
 
 
-    f_final = h5py.File(cfg.val_dir + 'timeseries_' + im_year + '.hdf5', 'w')
-    f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
-    f_final.create_dataset(name='mean_temp', shape=mean_temp.shape, dtype=float, data=mean_temp)
+    f_final = h5py.File(cfg.val_dir + 'masked_timeseries_' + im_year + '.hdf5', 'w')
+    f_final.create_dataset(name='im_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
+    f_final.create_dataset(name='obs_ts', shape=hc_obs.shape, dtype=float, data=hc_assi)
     f.close()
 
 
-def compare_datasets(path_1, path_2, name):
+def compare_datasets(obs_path, mask_path, im_path, name):
 
-    f1 = h5py.File(path_1, 'r')
-    f2 = h5py.File(path_2, 'r')
-    v1 = f1.get('tos_sym')
-    v2 = f2.get('tos_sym')
+    f1 = h5py.File(obs_path, 'r')
+    f2 = h5py.File(mask_path, 'r')
+    f3 = h5py.File(im_path, 'r')
+
+    obs = f1.get('tos_sym')
+    mask = f2.get('tos_sym')
+    image = f3.get('tos_sym')
+
+    masked = mask*image
 
 
+    n = obs.shape
 
-    n = v1.shape
-
-    #std_1, std_2, std_diff, bias = np.zeros((4, n[2], n[3]))
-
-    #for i in range(n[2]):
-    #    for j in range(n[3]):
-    #        std_1[i, j] = np.nanstd(v1[:, :, i, j])
-    #        std_2[i, j] = np.nanstd(v2[:, :, i, j])
-    #        bias[i, j] = np.nanmean(v1[:, :, i, j]) - np.nanmean(v2[:, :, i, j])
-    #        std_diff[i, j] = std_1[i, j] - std_2[i, j]
-
-    std_1 = np.nanstd(np.nanstd(v1, axis=0), axis=0)
-    std_2 = np.nanstd(np.nanstd(v2, axis=0), axis=0)
-    bias = np.nanmean(np.nanmean(v1, axis=0), axis=0) - np.nanmean(np.nanmean(v2, axis=0), axis=0)
+    std_1 = np.nanstd(np.nanstd(obs, axis=0), axis=0)
+    std_2 = np.nanstd(np.nanstd(masked, axis=0), axis=0)
+    bias = np.nanmean(np.nanmean(obs, axis=0), axis=0) - np.nanmean(np.nanmean(masked, axis=0), axis=0)
     std_diff = std_1 - std_2
 
 
