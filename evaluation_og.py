@@ -196,8 +196,6 @@ def compare_datasets(obs_path, im_path, name):
     image = f3.get('tos_sym')
 
     obs_binary = np.where(np.isnan(obs)==False, 1, obs)
-    obs_binary = np.nan_to_num(obs_binary, nan=0)
-
     masked = obs_binary*image
 
 
