@@ -7,6 +7,7 @@ import pylab as plt
 import torch
 import xarray as xr
 import config as cfg
+import netCDF4
 
 def vis_single(timestep, path, name, argo_state, type, param, title):
 
@@ -87,45 +88,69 @@ def vis_single(timestep, path, name, argo_state, type, param, title):
 
         plt.show()
 
-def vis_variable(path_1, path_2, path_3, var_1, var_2, var_3, name):
+def vis_plan(path_1, path_2, path_3):
+   
+    path_1 = '../Asi_maskiert/original_masks/Maske_2020_newgrid.hdf5'
+    path_2 = '../Asi_maskiert/original_masks/Maske_1970_newgrid.hdf5'
+    path_3 = '../Asi_maskiert/original_masks/Maske_1970_newgrid.nc'
+    path_4 = '../Asi_maskiert/original_image/Image_3d_1958_2020_newgrid.nc'
 
-    f1 = h5py.File(path_1, 'r')
-    f2 = h5py.File(path_2, 'r')
-    f3 = h5py.File(path_3, 'r')
+    da = xr.load_dataset(path_4, decode_times=False)
+    ds = xr.load_dataset(path_3, decode_times=False)
+    time_var = da.time
+    da['time'] = netCDF4.num2date(time_var[:],time_var.units)
 
-    v1 = f1.get(var_1)
-    v2 = f2.get(var_2)
-    v3 = f3.get(var_3)
+    da_monthly = da.groupby('time.month').mean('time')
+    sst_mean = da_monthly.thetao.values
+    sst = ds.tho.values
 
     fc = h5py.File('../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5', 'r')
     continent_mask = fc.get('tos_sym')
 
 
+    f1 = h5py.File(path_1, 'r')
+    f2 = h5py.File(path_2, 'r')
+    f3 = h5py.File(path_2, 'r')
+
+    v1 = f1.get('tos_sym')[0, 0, :, :] * continent_mask
+    v2 = f2.get('tos_sym')[0, 0, :, :] * continent_mask
+    sst = sst - sst_mean
+
+    n = sst.shape
+    new_im_size = 128
+
+    rest = np.zeros((n[0], n[1], new_im_size - n[2], n[3]))
+    sst = np.concatenate((sst, rest), axis=2)
+    n = sst.shape
+    rest2 = np.zeros((n[0], n[1], n[2], new_im_size - n[3]))
+    sst = np.concatenate((sst, rest2), axis=3)
+    sst = sst * continent_mask
+
+    v3 = sst[0, 0, :, :]
+
     fig = plt.figure(figsize=(12, 4), constrained_layout=True)
-    fig.suptitle('Anomaly North Atlantic SSTs')
     plt.subplot(1, 3, 1)
-    plt.title('Step 1: Binary Assimilation Mask: October 2020')
+    plt.title('Binary Mask: January 2020')
     current_cmap = plt.cm.jet
-    current_cmap.set_bad(color='gray')
-    im1 = plt.imshow(v1, cmap=current_cmap, vmin=-3, vmax=3, aspect='auto', interpolation=None)
+    current_cmap.set_bad(color='grey')
+    im1 = plt.imshow(v1, cmap=current_cmap, vmin=-1, vmax=1, aspect='auto', interpolation=None)
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     #plt.colorbar(label='Temperature in °C')
     plt.subplot(1, 3, 2)
-    plt.title('Step 2: Binary Assimilation Mask: January 1970')
-    im2 = plt.imshow(v2, cmap = 'jet', vmin=-3, vmax=3, aspect = 'auto')
+    plt.title('Binary Mask: January 1970')
+    im2 = plt.imshow(v2, cmap = 'jet', vmin=-1, vmax=1, aspect = 'auto')
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     #plt.colorbar(label='Temperature in °C')
     plt.subplot(1, 3, 3)
-    plt.title('Step 3: Observations: January 1970')
+    plt.title('Observations: January 1970')
     im3 = plt.imshow(v3, cmap='jet', vmin=-3, vmax=3, aspect='auto')
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     plt.colorbar(label='Temperature in °C')
-    fig.savefig('../Asi_maskiert/pdfs/' + name + '.pdf', dpi = fig.dpi)
+    fig.savefig('../Asi_maskiert/pdfs/plan.pdf', dpi = fig.dpi)
     plt.show()
-
 
 def visualisation(path, name, iter, depth):
     
@@ -204,12 +229,12 @@ def visualisation(path, name, iter, depth):
 
 
                 
-def timeseries_plotting(path, iteration):
-    f = h5py.File(cfg.val_dir + path + 'timeseries__assimilation' + str(iteration) + '.hdf5', 'r')
+def timeseries_plotting(path, iteration, argo):
+    f = h5py.File(cfg.val_dir + path + 'timeseries__assimilation' + str(argo) + str(iteration) + '.hdf5', 'r')
     f1_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r12_newgrid.hdf5', 'r')
     f2_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r13_newgrid.hdf5', 'r')
     f3_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r14_newgrid.hdf5', 'r')
-    fo = h5py.File(cfg.val_dir + path + 'timeseries__observations' + str(iteration) + '.hdf5', 'r')
+    fo = h5py.File(cfg.val_dir + path + 'timeseries__observations' + str(argo) + str(iteration) + '.hdf5', 'r')
  
 
 
@@ -240,20 +265,20 @@ def timeseries_plotting(path, iteration):
     #plt.plot(tm, label='Comparison ensemble member', color='red')
     plt.plot(hc_c2, label='Comparison ensemble member', color='red')
     plt.plot(hc_c3, label='Comparison ensemble member', color='red')
-    plt.plot(hc_obs, label='Observations reconstruction')
+    #plt.plot(hc_obs, label='Observations reconstruction')
     plt.plot()
     plt.grid()
     plt.legend()
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Months since January 2004')
     plt.ylabel('Heat Content [J/m²]')
-    plt.savefig('../Asi_maskiert/pdfs/validation_timeseries_obs' + str(iteration) + '.pdf')
+    plt.savefig('../Asi_maskiert/pdfs/timeseries/validation_timeseries_obs' + str(argo) + str(iteration) + '.pdf')
     plt.show()
 
 
 cfg.set_train_args()
 #visualisation('../Asi_maskiert/results/validation/Maske_argo/validation', '_assimilation', '_125000', 0)
-timeseries_plotting('Maske_argo/', 125000)
+timeseries_plotting('Maske_argo/', 125000, '')
 
 
 

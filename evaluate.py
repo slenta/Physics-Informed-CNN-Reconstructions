@@ -36,18 +36,18 @@ for param_group in optimizer.param_groups:
 model.eval()
 prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
 depths = prepo.depths()
+
+compare = evalu.compare_datasets(path_1=cfg.im_dir + cfg.im_name + cfg.eval_mask_year  + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '_observations.hdf5',
+ path_2=cfg.im_dir + cfg.im_name + cfg.im_year  + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', name='default' )
+
 #prepo_obs = preprocessing(cfg.mask_dir, cfg.mask_name, cfg.eval_mask_year, cfg.image_size, 'val', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
 #prepo_obs.save_data()
 #prepo.save_data()
 
-print('start')
+#val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
+#evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(cfg.resume_iter), name='assimilation_full')
+#evalu.heat_content_timeseries(depths, str(cfg.resume_iter), name='assimilation_full')
 
-val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
-evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(cfg.resume_iter), name='assimilation_full')
-evalu.heat_content_timeseries(depths, str(cfg.resume_iter), name='assimilation_full')
-
-print('obs')
-
-val_obs_dataset = ValDataset(cfg.eval_im_year, cfg.eval_mask_year, depth, cfg.in_channels)
-evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(cfg.resume_iter), name='observations_full')
-evalu.heat_content_timeseries(depths, str(cfg.resume_iter), name='observations_full')
+#val_obs_dataset = ValDataset(cfg.eval_im_year, cfg.eval_mask_year, depth, cfg.in_channels)
+#evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(cfg.resume_iter), name='observations_full')
+#evalu.heat_content_timeseries(depths, str(cfg.resume_iter), name='observations_full')

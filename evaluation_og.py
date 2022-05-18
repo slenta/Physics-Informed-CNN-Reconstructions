@@ -14,6 +14,7 @@ import os
 
 
 sys.path.append('./')
+cfg.set_train_args()
 
 def evaluate(model, dataset, device, filename):
     image, mask, gt, i1, m1 = zip(*[dataset[i] for i in range(8)])
@@ -172,6 +173,53 @@ def heat_content_timeseries_general(depth_steps, im_year):
     f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
     f_final.create_dataset(name='mean_temp', shape=mean_temp.shape, dtype=float, data=mean_temp)
     f.close()
+
+
+def compare_datasets(path_1, path_2, name):
+
+    f1 = h5py.File(path_1, 'r')
+    f2 = h5py.File(path_2, 'r')
+    v1 = f1.get('tos_sym')
+    v2 = f2.get('tos_sym')
+
+
+    v1 = np.nan_to_num(v1, nan=0)
+    v2 = np.nan_to_num(v2, nan=0)
+
+    n = v1.shape
+
+    std_1, std_2, std_diff, bias = np.zeros(6, v1[2], v1[3])
+
+    for i in n[2]:
+        for j in n[3]:
+            std_1[i, j] = np.std(v1[:, :, i, j])
+            std_2[i, j] = np.std(v2[:, :, i, j])
+            bias[i, j] = np.sum(v1[:, :, i, j]) - np.sum(v2[:, :, i, j])
+            std_diff[i, j] = std_1[i, j] - std_2[i, j]
+
+    
+    plt.figure(figsize=(8, 8))
+    plt.subplot(2, 2, 1)
+    plt.title('Std_1')
+    plt.imshow(std_1, vmin = -1, vmax=1, cmap='coolwarm')
+    plt.colorbar()
+    plt.subplot(2, 2, 2)
+    plt.title('Std_2')
+    plt.imshow(std_2, vmin=-1, vmax=1, cmap='coolwarm')
+    plt.colorbar()
+    plt.subplot(2, 2, 3)
+    plt.imshow(std_diff, vmin=-1, vmax=1, cmap='coolwarm')
+    plt.colorbar()
+    plt.title('Difference: std_1 - std_2')
+    plt.subplot(2, 2, 4)
+    plt.imshow(bias, vmin=-1, vmax=1, cmap='coolwarm')
+    plt.colorbar()
+    plt.title('Bias')
+    plt.savefig(cfg.save_dir + 'Dataset_diff' + name + '.pdf')
+    plt.show()
+
+
+
 
 
 
