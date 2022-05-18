@@ -186,14 +186,20 @@ def compare_datasets(path_1, path_2, name):
 
     n = v1.shape
 
-    std_1, std_2, std_diff, bias = np.zeros((4, n[2], n[3]))
+    #std_1, std_2, std_diff, bias = np.zeros((4, n[2], n[3]))
 
-    for i in range(n[2]):
-        for j in range(n[3]):
-            std_1[i, j] = np.nanstd(v1[:, :, i, j])
-            std_2[i, j] = np.nanstd(v2[:, :, i, j])
-            bias[i, j] = np.nanmean(v1[:, :, i, j]) - np.nanmean(v2[:, :, i, j])
-            std_diff[i, j] = std_1[i, j] - std_2[i, j]
+    #for i in range(n[2]):
+    #    for j in range(n[3]):
+    #        std_1[i, j] = np.nanstd(v1[:, :, i, j])
+    #        std_2[i, j] = np.nanstd(v2[:, :, i, j])
+    #        bias[i, j] = np.nanmean(v1[:, :, i, j]) - np.nanmean(v2[:, :, i, j])
+    #        std_diff[i, j] = std_1[i, j] - std_2[i, j]
+
+    std_1 = np.nanstd(np.nanstd(v1, axis=0), axis=0)
+    std_2 = np.nanstd(np.nanstd(v2, axis=0), axis=0)
+    bias = np.nanmean(np.nanmean(v1, axis=0), axis=0) - np.nanmean(np.nanmean(v2, axis=0), axis=0)
+    std_1 = std_1 - std_2
+
 
     
     plt.figure(figsize=(8, 8))
