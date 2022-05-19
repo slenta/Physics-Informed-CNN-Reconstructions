@@ -65,8 +65,7 @@ class MaskDataset(Dataset):
 
         if self.shuffle == True:
             np.random.shuffle(im_new)
-        
-        np.random.shuffle(mask)
+            np.random.shuffle(mask)
 
         #convert to pytorch tensors and adjust depth dimension
         if self.depth==True:

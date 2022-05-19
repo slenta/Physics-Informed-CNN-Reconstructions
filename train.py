@@ -20,6 +20,7 @@ from dataloader import MaskDataset
 import evaluation_og as evalu
 from preprocessing import preprocessing
 from dataloader import ValDataset
+import time
 
 torch.cuda.empty_cache()
 
@@ -62,6 +63,8 @@ if cfg.lstm_steps == 0:
     lstm = False
 
 
+before = time.time()
+
 model = PConvLSTM(radar_img_size=cfg.image_size,
                   radar_enc_dec_layers=cfg.encoding_layers[0],
                   radar_pool_layers=cfg.pooling_layers[0],
@@ -97,11 +100,16 @@ if cfg.resume_iter:
     print('Starting from iter ', start_iter)
 
 for i in tqdm(range(start_iter, cfg.max_iter)):
+
+    start = time.time()
+
+
     # train model
     model.train()
     image, mask, gt, im_rea, mask_rea = [x.to(cfg.device) for x in next(iterator_train)]
     output = model(image, mask, im_rea, mask_rea)
-    #print(image.shape, mask.shape, gt.shape, output.shape)
+
+    second = time.time()
     
     # calculate loss function and apply backpropagation
     loss_dict = criterion(mask[:, :, :, :],
@@ -116,6 +124,8 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
+
+    third = time.time()
 
     # save checkpoint
     if (i + 1) % cfg.save_model_interval == 0 or (i + 1) == cfg.max_iter:
@@ -149,5 +159,8 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
     #    model.eval()
     #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
+
+    print(f'Time: {start - before}, {second - start}, {third - second}')
+
 
 writer.close()
