@@ -164,6 +164,8 @@ def heat_content_timeseries_masked(depth_steps, im_year, mask_year):
     obs = fo.get('tos_sym')
 
     obs_binary = np.where(np.isnan(obs)==False, 1, obs)
+    
+    plt.figure()
     plt.imshow(obs_binary[0, 0, :, :])
     plt.savefig(cfg.save_dir + 'obs_binary.pdf')
     plt.show()
