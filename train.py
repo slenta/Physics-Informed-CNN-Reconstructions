@@ -63,6 +63,7 @@ if cfg.lstm_steps == 0:
     lstm = False
 
 
+
 before = time.time()
 
 model = PConvLSTM(radar_img_size=cfg.image_size,
@@ -98,6 +99,8 @@ if cfg.resume_iter:
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     print('Starting from iter ', start_iter)
+
+third = time.time()
 
 for i in tqdm(range(start_iter, cfg.max_iter)):
 
@@ -158,7 +161,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     #    model.eval()
     #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
 
-    print(f'Time: {start - before}, {second - start}, {third - second}')
+    print(f'Time: {start - before}, {start - third}, {second - start}, {third - second}')
 
 
 writer.close()
