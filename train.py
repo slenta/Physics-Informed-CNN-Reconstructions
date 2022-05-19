@@ -107,10 +107,10 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     # train model
     model.train()
     image, mask, gt, im_rea, mask_rea = [x.to(cfg.device) for x in next(iterator_train)]
-    output = model(image, mask, im_rea, mask_rea)
-
     second = time.time()
-    
+    output = model(image, mask, im_rea, mask_rea)
+    third = time.time()
+
     # calculate loss function and apply backpropagation
     loss_dict = criterion(mask[:, :, :, :],
                           output[:, :, :, :],
@@ -124,8 +124,6 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
-
-    third = time.time()
 
     # save checkpoint
     if (i + 1) % cfg.save_model_interval == 0 or (i + 1) == cfg.max_iter:
