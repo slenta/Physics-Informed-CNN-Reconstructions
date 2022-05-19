@@ -44,13 +44,13 @@ class MaskDataset(Dataset):
         n = image.shape
         mask = mask[:n[0], :, :, :]
 
+        if self.shuffle == True:
+            np.random.shuffle(np.array(image))
+            np.random.shuffle(np.array(mask))
+
         if self.mode == 'test':
             mask = mask[:8]
             image = image[:8]
-
-        if self.shuffle == True:
-            np.random.shuffle(image)
-            np.random.shuffle(mask)
 
         #convert to pytorch tensors and adjust depth dimension
         if self.depth==True:
