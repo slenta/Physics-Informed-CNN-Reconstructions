@@ -200,8 +200,12 @@ def compare_datasets(obs_path, im_path, name):
 
     obs = f1.get('tos_sym')
     image = f3.get('tos_sym')
+    obs = np.array(obs)
 
-    obs_binary = np.where(np.isnan(obs)==False, 1, obs)
+
+    obs_binary = np.where(obs==0, np.nan, obs)
+    obs_binary = np.where(np.isnan(obs_binary)==False, 1, obs_binary)
+    print(obs_binary.shape)
     masked = obs_binary*image
 
     std_1 = np.nanstd(np.nanstd(obs, axis=0), axis=0)
