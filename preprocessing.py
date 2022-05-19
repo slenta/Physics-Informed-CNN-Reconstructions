@@ -49,8 +49,12 @@ class preprocessing():
             time_var = ds.time
             if self.attributes[2] == 'argo':
                 ds = ds.sel(time=slice(200400, 202012))
+                mask = np.repeat(mask, 5, axis=0)
+                mask = mask[:210, :, :, :]
             elif self.attributes[2] == 'preargo':
                 ds = ds.sel(time=slice(195800, 200400))
+                mask = np.repeat(mask, 5, axis=0)
+                mask = mask[:600, :, :, :]
             elif self.attributes[2] == 'full':
                 ds = ds.sel(time=slice(195800, 202011))
 

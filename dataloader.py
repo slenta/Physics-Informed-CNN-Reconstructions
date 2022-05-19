@@ -44,32 +44,17 @@ class MaskDataset(Dataset):
         n = image.shape
         mask = mask[:n[0], :, :, :]
 
-        im_new = []
-
-        if self.mode == 'train':
-            for i in range(n[0]):
-                if i%5 >= 1:
-                    mask = np.repeat(mask, 5, axis=0)
-                    mask = mask[:n[0], :, :, :]
-                    im_new.append(image[i])
-        elif self.mode == 'test':
+        if self.mode == 'test':
             mask = mask[:8]
-            for i in range(n[0]):
-                if i%5 == 0:
-                    im_new.append(image[i])
-            im_new = im_new[:8]
-        elif self.mode == 'eval':
-            im_new = image
-
-        im_new = np.array(im_new)
+            image = image[:8]
 
         if self.shuffle == True:
-            np.random.shuffle(im_new)
+            np.random.shuffle(image)
             np.random.shuffle(mask)
 
         #convert to pytorch tensors and adjust depth dimension
         if self.depth==True:
-            im_new = torch.from_numpy(im_new[index, :self.in_channels, :, :])
+            im_new = torch.from_numpy(image[index, :self.in_channels, :, :])
             mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
         
         elif self.depth ==False:
