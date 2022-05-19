@@ -203,7 +203,7 @@ def compare_datasets(obs_path, im_path, name):
     obs = np.array(obs)
 
 
-    obs_binary = np.where(obs==0, np.nan, obs)
+    obs = np.where(obs==0, np.nan, obs)
     obs_binary = np.where(np.isnan(obs_binary)==False, 1, obs_binary)
     print(obs_binary.shape)
     masked = obs_binary*image
