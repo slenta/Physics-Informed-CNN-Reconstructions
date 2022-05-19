@@ -164,7 +164,7 @@ def heat_content_timeseries_masked(depth_steps, im_year, mask_year):
     obs = np.array(obs)
 
     obs = np.where(obs==0, np.nan, obs)
-    obs_binary = np.where(np.isnan(obs_binary)==False, 1, obs_binary)
+    obs_binary = np.where(np.isnan(obs)==False, 1, obs)
     print(obs_binary.shape)
     
     plt.figure()
@@ -204,9 +204,7 @@ def compare_datasets(obs_path, im_path, name):
 
 
     obs = np.where(obs==0, np.nan, obs)
-    plt.figure()
-    obs_binary = np.where(np.isnan(obs_binary)==False, 1, obs_binary)
-    print(obs_binary.shape)
+    obs_binary = np.where(np.isnan(obs)==False, 1, obs)
     masked = obs_binary*image
 
     std_1 = np.nanstd(np.nanstd(obs, axis=0), axis=0)
