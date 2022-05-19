@@ -11,7 +11,7 @@ import config as cfg
 from numpy import ma
 import sys
 import os
-import xarray as xr
+
 
 
 sys.path.append('./')
@@ -159,22 +159,12 @@ def heat_content_timeseries_masked(depth_steps, im_year, mask_year):
     f = h5py.File(cfg.im_dir + cfg.im_name + im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_full_' + str(cfg.in_channels) + '.hdf5', 'r')
     fo = h5py.File(cfg.mask_dir + cfg.mask_name + mask_year+ '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_full_' + str(cfg.in_channels) + '_observations.hdf5', 'r')
     
-    ds = xr.load_dataset(cfg.mask_dir + cfg.mask_name + mask_year + '.nc')
-    sst = ds.tho.values
-
-    n = sst.shape
-    rest = np.zeros((n[0], n[1], cfg.image_size - n[2], n[3]))
-    sst = np.concatenate((sst, rest), axis=2)
-    n = sst.shape
-    rest2 = np.zeros((n[0], n[1], n[2], cfg.image_size - n[3]))
-    sst = np.concatenate((sst, rest2), axis=3)[:, :cfg.in_channels, :, :]
-
-    sst = np.array(sst)
-    
     image = f.get('tos_sym')
     obs = fo.get('tos_sym')
+    obs = np.array(obs)
 
-    obs_binary = np.where(np.isnan(sst)==False, 1, sst)
+    obs_binary = np.where(obs==0, np.nan, obs)
+    obs_binary = np.where(np.isnan(obs_binary)==False, 1, obs_binary)
     
     plt.figure()
     plt.imshow(obs_binary[0, 0, :, :])
