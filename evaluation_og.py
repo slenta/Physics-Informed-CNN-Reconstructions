@@ -164,6 +164,10 @@ def heat_content_timeseries_masked(depth_steps, im_year, mask_year):
     obs = fo.get('tos_sym')
 
     obs_binary = np.where(np.isnan(obs)==False, 1, obs)
+    plt.imshow(obs_binary[0, 0, :, :])
+    plt.savefig(cfg.save_dir + 'obs_binary.pdf')
+    plt.show()
+
     image = image*obs_binary
 
     #take spatial mean of network output and ground truth
@@ -195,9 +199,6 @@ def compare_datasets(obs_path, im_path, name):
 
     obs_binary = np.where(np.isnan(obs)==False, 1, obs)
     masked = obs_binary*image
-
-
-    n = obs.shape
 
     std_1 = np.nanstd(np.nanstd(obs, axis=0), axis=0)
     std_2 = np.nanstd(np.nanstd(masked, axis=0), axis=0)
