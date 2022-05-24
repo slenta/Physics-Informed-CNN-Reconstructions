@@ -1,6 +1,7 @@
 
 from cmath import nan
 from time import time
+from matplotlib.pyplot import axis
 import numpy as np
 import matplotlib.pylab as plt
 from sympy import N
@@ -56,10 +57,10 @@ class preprocessing():
 
 
             sst = ds.tho.values
-
             sst = np.where(np.isnan(sst)==False, 1, sst)
-            x = np.isnan(sst)
-            sst[x] = 0
+            sst = np.where(np.isnan(sst)==True, 0, sst)
+
+            sst = sst.repeat(8, axis=0)
 
 
         elif self.mode=='image':
