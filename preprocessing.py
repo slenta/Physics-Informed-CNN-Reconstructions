@@ -60,9 +60,6 @@ class preprocessing():
             sst = np.where(np.isnan(sst)==False, 1, sst)
             sst = np.where(np.isnan(sst)==True, 0, sst)
 
-            sst = sst.repeat(8, axis=0)
-
-
         elif self.mode=='image':
             
             time_var = ds.time
