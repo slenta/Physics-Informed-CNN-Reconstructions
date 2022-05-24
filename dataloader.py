@@ -40,7 +40,7 @@ class MaskDataset(Dataset):
         #extract sst data/mask data
         image = f_image.get('tos_sym')
         mask = f_mask.get('tos_sym')
-        
+        mask = np.array(mask)        
         mask = mask.repeat(8, 1, 1, 1)
         
 
