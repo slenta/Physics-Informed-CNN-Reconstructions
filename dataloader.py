@@ -43,8 +43,9 @@ class MaskDataset(Dataset):
         #mask = np.array(mask)        
         #mask = mask.repeat(8, axis=0)
         
+
         n = image.shape
-        mask = np.resize(mask, n)
+        mask = mask[:n[0], :, :, :]
 
         if self.shuffle == True:
             np.random.shuffle(np.array(image))
