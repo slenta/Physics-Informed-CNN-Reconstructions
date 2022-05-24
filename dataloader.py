@@ -41,6 +41,9 @@ class MaskDataset(Dataset):
         image = f_image.get('tos_sym')
         mask = f_mask.get('tos_sym')
         
+        mask = mask.repeat(8, 1, 1, 1)
+        
+
         n = image.shape
         mask = mask[:n[0], :, :, :]
 
