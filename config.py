@@ -204,7 +204,6 @@ def set_train_args():
     pooling_layers = list(map(int, args.pooling_layers.split(',')))
     channel_reduction_rate = args.channel_reduction_rate
     out_channels = args.out_channels
-    save_snapshot_image = args.save_snapshot_image
     gt_channels = []
     loss_criterion = args.loss_criterion
     for i in range(out_channels):
