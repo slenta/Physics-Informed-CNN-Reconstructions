@@ -1,6 +1,4 @@
 import argparse
-from numpy import array
-
 import torch
 
 MEAN = [0.485, 0.456, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406]
@@ -42,7 +40,6 @@ lstm_steps = None
 prev_next_steps = None
 encoding_layers = None
 pooling_layers = None
-#image_sizes = None
 eval_names = None
 eval_threshold = None
 eval_range = None
@@ -128,10 +125,7 @@ def set_train_args():
     arg_parser.add_argument('--lat2', type=str, default='69')
     arg_parser.add_argument('--val_interval', type=int, default=50000)
     arg_parser.add_argument('--val_dir', type=str, default='../Asi_maskiert/results/validation/')
-    arg_parser.add_argument('--eval_mask_year', type=str, default='2001_2020_newgrid')
-
-
-
+    arg_parser.add_argument('--eval_mask_year', type=str, default='1958_2021_newgrid')
 
     args = arg_parser.parse_args()
 
@@ -186,7 +180,6 @@ def set_train_args():
     global val_dir
     global eval_mask_year
 
-
     data_types = args.data_types.split(',')
     im_name = args.im_name
     mask_name = args.mask_name
@@ -210,7 +203,6 @@ def set_train_args():
     prev_next_steps = args.prev_next_steps
     encoding_layers = list(map(int, args.encoding_layers.split(',')))
     pooling_layers = list(map(int, args.pooling_layers.split(',')))
-    #image_sizes = list(map(int, args.image_sizes.split(',')))
     channel_reduction_rate = args.channel_reduction_rate
     out_channels = args.out_channels
     save_snapshot_image = args.save_snapshot_image

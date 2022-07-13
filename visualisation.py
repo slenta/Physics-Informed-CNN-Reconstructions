@@ -296,8 +296,8 @@ def timeseries_plotting(path, iteration, argo):
 
 
 cfg.set_train_args()
-#visualisation('../Asi_maskiert/results/validation/Maske_argo/validation', '_assimilation', '_125000', 0)
-timeseries_plotting('Maske_argo/', 125000, '')
+visualisation('../Asi_maskiert/results/images/r8_16_newgrid/Maske_2020_newgrid/test', '', '_1100000', 0)
+#timeseries_plotting('Maske_argo/', 125000, '')
 
 
 

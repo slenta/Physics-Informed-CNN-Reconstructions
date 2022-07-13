@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import config as cfg
 
 
 def gram_matrix(feat):
