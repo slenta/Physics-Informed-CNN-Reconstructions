@@ -110,8 +110,7 @@ class preprocessing():
                 for i in range(len(sst)):
                     sst[i] = sst[i] - sst_mean[i%12]
 
-            x = np.isnan(sst)
-            sst[x] = 0
+            sst = np.nan_to_num(sst_mean, nan=0)
 
         n = sst.shape
         rest = np.zeros((n[0], n[1], self.new_im_size - n[2], n[3]))
@@ -125,7 +124,6 @@ class preprocessing():
         #    sst = sst[:, 0, :, :]
 
         n = sst.shape
-        print(n)
 
         return sst, n
 

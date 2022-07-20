@@ -104,7 +104,7 @@ def set_train_args():
     arg_parser.add_argument('--pooling_layers', type=str, default='2')
     arg_parser.add_argument('--out_channels', type=int, default=20)
     arg_parser.add_argument('--in_channels', type=int, default=20)
-    arg_parser.add_argument('--loss-criterion', type=int, default=0)
+    arg_parser.add_argument('--loss_criterion', type=int, default=0)
     arg_parser.add_argument('--eval-timesteps', type=str, default="0,1,2,3,4")
     arg_parser.add_argument('--channel-reduction-rate', type=int, default=1)
     arg_parser.add_argument('--save_part', type=str, default='part_1')
