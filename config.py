@@ -86,7 +86,7 @@ def set_train_args():
     arg_parser.add_argument('--im_name', type=str, default='Image_')
     arg_parser.add_argument('--mask_name', type=str, default='Maske_')
     arg_parser.add_argument('--mask_year', type=str, default='1958_2021_newgrid')
-    arg_parser.add_argument('--im_year', type=str, default='r11_newgrid')
+    arg_parser.add_argument('--im_year', type=str, default='r8_16_newgrid')
     arg_parser.add_argument('--resume_iter', type=int)
     arg_parser.add_argument('--device', type=str, default='cpu')
     arg_parser.add_argument('--batch_size', type=int, default=4)
