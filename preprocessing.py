@@ -80,8 +80,6 @@ class preprocessing():
             sst_mean = ds_monthly.thetao.values
             sst = ds.thetao.values
 
-            f = h5py.File('../Asi_maskiert/original_image/baseline_climatology' + self.attributes[2] + '.hdf5', 'r')
-            f.get('tos_sym')
 
             if self.attributes[1]=='anomalies':
                 for i in range(len(sst)):
@@ -101,9 +99,9 @@ class preprocessing():
                 ds = ds.sel(time=slice(195800, 202011))
 
 
-            f = h5py.File('../Asi_maskiert/original_image/baseline_climatology' + self.attributes[2] + '.hdf5', 'r')
-            sst_mean = f.get('tos_sym')
-
+            ds_monthly = ds.groupby('time.month').mean('time')
+            
+            sst_mean = ds_monthly.thetao.values
             sst = ds.tho.values
 
             if self.attributes[1]=='anomalies':
