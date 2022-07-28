@@ -53,14 +53,14 @@ class preprocessing():
             elif self.attributes[2] == 'preargo':
                 ds = ds.sel(time=slice(195800, 200400))
             elif self.attributes[2] == 'full':
-                ds = ds.sel(time=slice(195800, 202011))
+                ds = ds.sel(time=slice(195800, 202010))
 
 
             sst = ds.tho.values
             sst = np.where(np.isnan(sst)==False, 1, sst)
             sst = np.where(np.isnan(sst)==True, 0, sst)
 
-            sst = sst.repeat(8, axis=0)
+            sst = sst.repeat(9, axis=0)
 
 
         elif self.mode=='image':
@@ -75,18 +75,20 @@ class preprocessing():
                 ds = ds.sel(time=slice('1958-01', '2020-10'))
 
 
-            ds_monthly = ds.groupby('time.month').mean('time')
-
-            sst_mean = ds_monthly.thetao.values
             sst = ds.thetao.values
 
+<<<<<<< HEAD
+=======
+            f = h5py.File('../Asi_maskiert/original_image/baseline_climatology' + self.attributes[2] + '.hdf5', 'r')
+            sst_mean = f.get('tos_sym')
+>>>>>>> 0c4ede1b4b83ad71b3df7325b757d511adfa2a1d
 
             if self.attributes[1]=='anomalies':
                 for i in range(len(sst)):
                     sst[i] = sst[i] - sst_mean[i%12]
 
-            x = np.isnan(sst)
-            sst[x] = 0
+            sst = np.nan_to_num(sst, nan=0)
+
 
         elif self.mode=='val':
 
@@ -96,7 +98,7 @@ class preprocessing():
             elif self.attributes[2] == 'preargo':
                 ds = ds.sel(time=slice(195800, 200400))
             elif self.attributes[2] == 'full':
-                ds = ds.sel(time=slice(195800, 202011))
+                ds = ds.sel(time=slice(195800, 202010))
 
 
             ds_monthly = ds.groupby('time.month').mean('time')
@@ -108,7 +110,8 @@ class preprocessing():
                 for i in range(len(sst)):
                     sst[i] = sst[i] - sst_mean[i%12]
 
-            sst = np.nan_to_num(sst_mean, nan=0)
+            sst = np.nan_to_num(sst, nan=0)
+
 
         n = sst.shape
         rest = np.zeros((n[0], n[1], self.new_im_size - n[2], n[3]))
