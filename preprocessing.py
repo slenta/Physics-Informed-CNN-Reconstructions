@@ -77,11 +77,6 @@ class preprocessing():
 
             sst = ds.thetao.values
 
-<<<<<<< HEAD
-=======
-            f = h5py.File('../Asi_maskiert/original_image/baseline_climatology' + self.attributes[2] + '.hdf5', 'r')
-            sst_mean = f.get('tos_sym')
->>>>>>> 0c4ede1b4b83ad71b3df7325b757d511adfa2a1d
 
             if self.attributes[1]=='anomalies':
                 for i in range(len(sst)):
