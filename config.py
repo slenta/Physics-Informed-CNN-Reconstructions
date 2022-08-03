@@ -60,7 +60,7 @@ smoothing_factor = None
 weights = None
 skip_layers = None
 vis_interval = None
-mode = None
+prepro_mode = None
 lon1 = None
 lon2 = None
 lat1 = None
@@ -68,8 +68,8 @@ lat2 = None
 save_part = None
 attribute_depth = None
 attribute_anomaly = None
-depth = None
 attribute_argo = None
+mask_argo = None
 eval_im_year = None
 val_interval = None
 val_dir = None
@@ -78,7 +78,6 @@ eval_mask_year = None
 
 def set_train_args():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--data-types', type=str, default='tas')
     arg_parser.add_argument('--log_dir', type=str, default='logs/')
     arg_parser.add_argument('--save_dir', type=str, default='../Asi_maskiert/results/')
     arg_parser.add_argument('--im_dir', type=str, default='../Asi_maskiert/original_image/')
@@ -96,7 +95,6 @@ def set_train_args():
     arg_parser.add_argument('--lr-finetune', type=float, default=5e-5)
     arg_parser.add_argument('--max_iter', type=int, default=500000)
     arg_parser.add_argument('--log_interval', type=int, default=10)
-    arg_parser.add_argument('--depth', action='store_true')
     arg_parser.add_argument('--save_model_interval', type=int, default=30000)
     arg_parser.add_argument('--lstm-steps', type=int, default=0)
     arg_parser.add_argument('--prev-next-steps', type=int, default=0)
@@ -114,11 +112,12 @@ def set_train_args():
     arg_parser.add_argument('--disable_skip_layers', action='store_true')
     arg_parser.add_argument('--vis_interval', type=int, default=50000)
     arg_parser.add_argument('--eval_im_year', type=str, default='r16_newgrid')
-    arg_parser.add_argument('--mode', type=str, default='both')
+    arg_parser.add_argument('--prepro_mode', type=str, default='both')
     arg_parser.add_argument('--attribute_anomaly', type=str, default='anomalies')   
     arg_parser.add_argument('--attribute_depth', type=str, default='depth')
     arg_parser.add_argument('--attribute_argo', type=str, default='argo')
     arg_parser.add_argument('--lon1', type=str, default='-65')
+    arg_parser.add_argument('--mask_argo', type=str, default='argo')
     arg_parser.add_argument('--lon2', type=str, default='-5')
     arg_parser.add_argument('--lat1', type=str, default='20')
     arg_parser.add_argument('--lat2', type=str, default='69')
@@ -128,7 +127,6 @@ def set_train_args():
 
     args = arg_parser.parse_args()
 
-    global data_types
     global im_name
     global mask_name
     global mask_year
@@ -165,9 +163,8 @@ def set_train_args():
     global skip_layers
     global weights
     global vis_interval
-    global depth
     global eval_im_year
-    global mode
+    global prepro_mode
     global lon1
     global lon2
     global lat1
@@ -175,11 +172,11 @@ def set_train_args():
     global attribute_anomaly
     global attribute_argo
     global attribute_depth
+    global mask_argo
     global val_interval
     global val_dir
     global eval_mask_year
 
-    data_types = args.data_types.split(',')
     im_name = args.im_name
     mask_name = args.mask_name
     eval_timesteps = args.eval_timesteps.split(',')
@@ -222,9 +219,8 @@ def set_train_args():
     for i in range(out_channels):
         gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
     vis_interval = args.vis_interval
-    depth = args.depth
     eval_im_year = args.eval_im_year
-    mode = args.mode
+    prepro_mode = args.prepro_mode
     lon1 = args.lon1
     lon2 = args.lon2
     lat1 = args.lat1
@@ -232,6 +228,7 @@ def set_train_args():
     attribute_depth = args.attribute_depth
     attribute_anomaly = args.attribute_anomaly
     attribute_argo = args.attribute_argo
+    mask_argo = args.mask_argo
     val_interval = args.val_interval
     val_dir = args.val_dir
     eval_mask_year = args.eval_mask_year

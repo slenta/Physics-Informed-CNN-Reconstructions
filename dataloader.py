@@ -27,7 +27,6 @@ class MaskDataset(Dataset):
 
         self.mode = mode
         self.in_channels = in_channels
-        self.depth = depth
         self.shuffle = shuffle
         self.im_year = im_year
 
@@ -35,7 +34,7 @@ class MaskDataset(Dataset):
 
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
         f_image = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
-        f_mask = h5py.File(cfg.mask_dir + cfg.mask_name + cfg.mask_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
+        f_mask = h5py.File(cfg.mask_dir + cfg.mask_name + cfg.mask_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.mask_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
 
         #extract sst data/mask data
         image = f_image.get('tos_sym')
@@ -45,7 +44,6 @@ class MaskDataset(Dataset):
         
 
         n = image.shape
-        mask = mask[:n[0], :, :, :]
 
         if self.shuffle == True:
             np.random.shuffle(np.array(image))
@@ -56,17 +54,20 @@ class MaskDataset(Dataset):
             image = image[:8]
 
         #convert to pytorch tensors and adjust depth dimension
-        if self.depth==True:
+        if cfg.attribute_depth=='depth':
+            mask = mask[:n[0], :, :, :]
             im_new = torch.from_numpy(image[index, :self.in_channels, :, :])
             mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
         
-        elif self.depth ==False:
+        else:
             if len(mask.shape) == 4:
+                mask = mask[:n[0], :, :, :]
                 mask = torch.from_numpy(mask[index, 0, :, :])
-                im_new = torch.from_numpy(im_new[index, 0, :, :])
+                im_new = torch.from_numpy(image[index, 0, :, :])
             else:
+                mask = mask[:n[0], :, :]
                 mask = torch.from_numpy(mask[index, :, :])
-                im_new = torch.from_numpy(im_new[index, :, :])
+                im_new = torch.from_numpy(image[index, :, :])
             
             #Repeat to fit input channels
             mask = mask.repeat(3, 1, 1)
@@ -115,7 +116,7 @@ class ValDataset(Dataset):
 
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
         f_gt = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
-        f_mask = h5py.File(cfg.mask_dir + cfg.mask_name + self.mask_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
+        f_mask = h5py.File(cfg.mask_dir + cfg.mask_name + self.mask_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.mask_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
         f_masked = h5py.File(cfg.mask_dir + cfg.mask_name + self.mask_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '_observations.hdf5', 'r')
 
         #extract sst data/mask data

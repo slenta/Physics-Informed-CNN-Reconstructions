@@ -45,7 +45,7 @@ writer = SummaryWriter(log_dir=log_dir)
 #                             cfg.lstm_steps, cfg.prev_next_steps)
 #dataset_val = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'val', cfg.data_types,
 #                           cfg.lstm_steps, cfg.prev_next_steps)
-if cfg.depth:
+if cfg.attribute_depth == 'depth':
     depth = True
 else:
     depth = False
@@ -148,9 +148,9 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
         evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1), name='_assimilation')
         evalu.heat_content_timeseries(depths, str(i+1), name='_assimilation')
 
-        val_obs_dataset = ValDataset(cfg.eval_im_year, cfg.eval_mask_year, depth, cfg.in_channels)
-        evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(i + 1), name='_observations')
-        evalu.heat_content_timeseries(depths, str(i + 1), name='_observations')
+        #val_obs_dataset = ValDataset(cfg.eval_im_year, cfg.eval_mask_year, depth, cfg.in_channels)
+        #evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(i + 1), name='_observations')
+        #evalu.heat_content_timeseries(depths, str(i + 1), name='_observations')
 
 
     #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
