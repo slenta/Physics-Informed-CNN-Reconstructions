@@ -178,7 +178,7 @@ class preprocessing():
 
     def depths(self):
 
-        ofile = self.path + self.name + self.year + '.nc'  
+        ofile = cfg.im_dir + 'Image_' + cfg.im_year + '.nc'  
         ds = xr.load_dataset(ofile, decode_times=False)
         depth = ds.depth.values
 

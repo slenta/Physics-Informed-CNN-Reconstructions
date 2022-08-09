@@ -116,24 +116,32 @@ class ValDataset(Dataset):
 
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
         f_gt = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
-        f_mask = h5py.File(cfg.mask_dir + cfg.mask_name + self.mask_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.mask_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
         f_masked = h5py.File(cfg.mask_dir + cfg.mask_name + self.mask_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '_observations.hdf5', 'r')
 
         #extract sst data/mask data
-        gt = f_gt.get('tos_sym')
-        mask = f_mask.get('tos_sym')
-        masked = f_masked.get('tos_sym')
+        gt = np.array(f_gt.get('tos_sym'))
+        masked = np.array(f_masked.get('tos_sym'))
+        mask = np.array(np.where(np.isnan(masked)==False, 1, 0))
 
-        mask = np.repeat(mask, 5, axis=0)
         n = gt.shape
-        mask = mask[:n[0], :, :, :]
 
         #convert to pytorch tensors and adjust depth dimension
-        if self.depth==True:
-            im_new = torch.from_numpy(gt[index, :self.in_channels, :, :])
-            mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
-            masked = torch.from_numpy(masked[index, :self.in_channels, :, :])
+        if cfg.attribute_depth=='depth':
+            mask = mask[:n[0], :, :, :]
+            im_new = torch.tensor(gt[index, :self.in_channels, :, :], dtype=torch.float)
+            mask = torch.tensor(mask[index, :self.in_channels, :, :], dtype=torch.float)
+            masked = torch.tensor(masked[index, :self.in_channels, :, :], dtype=torch.float)
 
+        else:
+            mask = mask[:n[0], :, :]
+            im_new = torch.tensor(gt[index, :, :], dtype=torch.float)
+            mask = torch.tensor(mask[index, :, :], dtype=torch.float)
+            masked = torch.tensor(masked[index, :, :], dtype=torch.float)
+
+            mask = mask.repeat(3, 1, 1)
+            im_new = im_new.repeat(3, 1, 1)
+            masked = masked.repeat(3, 1, 1)
+        
         return masked, mask, im_new, masked, mask
 
     def __len__(self):

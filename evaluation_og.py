@@ -114,7 +114,7 @@ def infill(model, dataset, partitions, iter, name):
     cname = ['image', 'mask', 'output', 'output_comp', 'gt']
     dname = ['time', 'lat', 'lon']
     
-    h5 = h5py.File(cfg.val_dir + cfg.save_part + '/validation_'  + iter + name + '.hdf5', 'w')
+    h5 = h5py.File(cfg.val_dir + cfg.save_part + '/validation_'  + iter + '_' + name + '.hdf5', 'w')
     for x in range(0, 5):
         h5.create_dataset(name=cname[x], shape=cvar[x].shape, dtype=float, data=cvar[x].to(torch.device('cpu')))
         #for dim in range(0, 3):
@@ -130,7 +130,7 @@ def heat_content_timeseries(depth_steps, iteration, name):
     rho = 1025  #density of seawater
     shc = 3850  #specific heat capacity of seawater
 
-    f = h5py.File(cfg.val_dir + cfg.save_part + '/validation_' + iteration + name + '.hdf5', 'r')
+    f = h5py.File(cfg.val_dir + cfg.save_part + '/validation_' + iteration + '_' + name + '.hdf5', 'r')
     output = f.get('output_comp')
     gt = f.get('gt')
 
@@ -146,7 +146,7 @@ def heat_content_timeseries(depth_steps, iteration, name):
         hc_assi[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * gt[i, 0] * rho * shc
 
 
-    f_final = h5py.File(cfg.val_dir + cfg.save_part + '/timeseries_' + name + iteration + '.hdf5', 'w')
+    f_final = h5py.File(cfg.val_dir + cfg.save_part + '/timeseries_' + iteration + '_' + name + '.hdf5', 'w')
     f_final.create_dataset(name='network_ts', shape=hc_network.shape, dtype=float, data=hc_network)
     f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
     f.close()

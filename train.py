@@ -145,8 +145,8 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
         depths = prepo.depths()
 
         val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
-        evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1), name='_assimilation')
-        evalu.heat_content_timeseries(depths, str(i+1), name='_assimilation')
+        evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1), name='assimilation')
+        evalu.heat_content_timeseries(depths, str(i+1), name='assimilation')
 
         #val_obs_dataset = ValDataset(cfg.eval_im_year, cfg.eval_mask_year, depth, cfg.in_channels)
         #evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(i + 1), name='_observations')
