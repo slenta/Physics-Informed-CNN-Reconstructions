@@ -230,13 +230,13 @@ def visualisation(path, name, iter, depth):
 
                 
 def timeseries_plotting(path, iteration, argo):
-    f = h5py.File(cfg.val_dir + path + 'timeseries__assimilation' + str(argo) + str(iteration) + '.hdf5', 'r')
+    f = h5py.File(cfg.val_dir + path + 'timeseries_assimilation' + str(argo) + str(iteration) + '.hdf5', 'r')
     f1_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r12_newgrid.hdf5', 'r')
     f2_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r13_newgrid.hdf5', 'r')
     f3_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r14_newgrid.hdf5', 'r')
-    fo = h5py.File(cfg.val_dir + path + 'timeseries__observations' + str(argo) + str(iteration) + '.hdf5', 'r')
+    fo = h5py.File(cfg.val_dir + path + 'timeseries_observations' + str(argo) + str(iteration) + '.hdf5', 'r')
  
-    f_masked = h5py.File(cfg.val_dir + 'Maske_argo/masked_timeseries_r11_newgrid.hdf5', 'r')
+    f_masked = h5py.File(cfg.val_dir + 'Maske_argo_20/masked_timeseries_r11_newgrid.hdf5', 'r')
 
     hc_assi_masked = f_masked.get('im_ts')
     hc_obs_masked = f_masked.get('obs_ts')
@@ -266,12 +266,12 @@ def timeseries_plotting(path, iteration, argo):
     plt.plot(hc_gt, label='Assimilation Heat Content')
     #plt.plot(hc_c1, label='Comparison ensemble member', color='red')
     #plt.plot(tm, label='Comparison ensemble member', color='red')
-    plt.plot(hc_c2, label='Comparison ensemble member', color='red')
-    plt.plot(hc_c3, label='Comparison ensemble member', color='red')
-    #plt.plot(hc_obs, label='Observations reconstruction')
+    #plt.plot(hc_c2, label='Comparison ensemble member', color='red')
+    #plt.plot(hc_c3, label='Comparison ensemble member', color='red')
+    plt.plot(hc_obs, label='Observations reconstruction')
     plt.grid()
     plt.legend()
-    plt.xticks(ticks=np.arange(0, len(hc_network), 2*12), labels=np.arange(2004, 2021, 2))
+    plt.xticks(ticks=np.arange(0, len(hc_network), 5*12), labels=np.arange(1958, 2021, 5))
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Time in years')
     plt.ylabel('Heat Content [J/m²]')
@@ -296,8 +296,8 @@ def timeseries_plotting(path, iteration, argo):
 
 
 cfg.set_train_args()
-visualisation('../Asi_maskiert/results/images/r8_16_newgrid/Maske_2020_newgrid/test', '', '_1100000', 0)
-#timeseries_plotting('Maske_argo/', 125000, '')
+#visualisation('../Asi_maskiert/results/images/Maske_argo_20/test', '', '_200000', 0)
+timeseries_plotting('Maske_preargo_20/', 200000, '_full')
 
 
 
