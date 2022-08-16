@@ -72,6 +72,12 @@ class MaskDataset(Dataset):
             #Repeat to fit input channels
             mask = mask.repeat(3, 1, 1)
             im_new = im_new.repeat(3, 1, 1)
+
+        if cfg.lstm_steps!=0:
+            im_new = im_new.unsqueeze(dim=0)
+            im_new = im_new.repeat(cfg.lstm_steps)
+            for i in range(cfg.lstm_steps):
+                im_new[i, :, :, :] = im_new[index + 1, :, :, :]
 	    		
         return mask*im_new, mask, im_new, mask*im_new, mask
 
