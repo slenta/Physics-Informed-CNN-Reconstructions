@@ -230,11 +230,11 @@ def visualisation(path, name, iter, depth):
 
                 
 def timeseries_plotting(path, iteration, argo):
-    f = h5py.File(cfg.val_dir + path + 'timeseries_assimilation' + str(argo) + str(iteration) + '.hdf5', 'r')
+    f = h5py.File(cfg.val_dir + path + 'timeseries_' + str(iteration) + '_assimilation' + str(argo) + '.hdf5', 'r')
     f1_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r12_newgrid.hdf5', 'r')
     f2_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r13_newgrid.hdf5', 'r')
     f3_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r14_newgrid.hdf5', 'r')
-    fo = h5py.File(cfg.val_dir + path + 'timeseries_observations' + str(argo) + str(iteration) + '.hdf5', 'r')
+    fo = h5py.File(cfg.val_dir + path + 'timeseries_' + str(iteration) + '_observations' + str(argo)  + '.hdf5', 'r')
  
     f_masked = h5py.File(cfg.val_dir + 'Maske_argo_20/masked_timeseries_r11_newgrid.hdf5', 'r')
 
@@ -275,7 +275,7 @@ def timeseries_plotting(path, iteration, argo):
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Time in years')
     plt.ylabel('Heat Content [J/m²]')
-    #plt.savefig('../Asi_maskiert/pdfs/timeseries/validation_timeseries' + str(argo) + str(iteration) + '.pdf')
+    plt.savefig('../Asi_maskiert/pdfs/timeseries/' + path + 'validation_timeseries' + str(argo) + str(iteration) + '.pdf')
     plt.show()
 
     hc_assi_masked = np.array(hc_assi_masked)
@@ -296,8 +296,8 @@ def timeseries_plotting(path, iteration, argo):
 
 
 cfg.set_train_args()
-#visualisation('../Asi_maskiert/results/images/Maske_argo_20/test', '', '_200000', 0)
-timeseries_plotting('Maske_preargo_20/', 200000, '_full')
+visualisation('../Asi_maskiert/results/images/Maske_argo_mixed/test', '', '_200000', 0)
+#timeseries_plotting('Maske_preargo_20/', 200000, '_full')
 
 
 

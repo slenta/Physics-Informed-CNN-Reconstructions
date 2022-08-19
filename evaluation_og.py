@@ -131,7 +131,7 @@ def heat_content_timeseries(depth_steps, iteration, name):
     shc = 3850  #specific heat capacity of seawater
 
     f = h5py.File(cfg.val_dir + cfg.save_part + '/validation_' + iteration + '_' + name + '.hdf5', 'r')
-    output = f.get('output_comp')
+    output = f.get('output')
     gt = f.get('gt')
 
     #take spatial mean of network output and ground truth
