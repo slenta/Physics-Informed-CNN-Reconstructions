@@ -110,12 +110,12 @@ def infill(model, dataset, partitions, iter, name):
 
     # create output_comp
     output_comp = mask * image + (1 - mask) * output
-    cvar = [image, mask, output, output_comp, gt]
-    cname = ['image', 'mask', 'output', 'output_comp', 'gt']
+    cvar = [gt, output, output_comp, image, mask]
+    cname = ['gt', 'output', 'output_comp', 'image', 'mask']
     dname = ['time', 'lat', 'lon']
     
     h5 = h5py.File(cfg.val_dir + cfg.save_part + '/validation_'  + iter + '_' + name + '.hdf5', 'w')
-    for x in range(0, 5):
+    for x in range(0, 2):
         h5.create_dataset(name=cname[x], shape=cvar[x].shape, dtype=float, data=cvar[x].to(torch.device('cpu')))
         #for dim in range(0, 3):
         #    h5[cfg.data_type].dims[dim].label = dname[dim]
