@@ -10,13 +10,15 @@ from model.partial_conv_module import PConvBlock
 
 
 def lstm_to_batch(input):
-    #return torch.reshape(input, (-1, input.shape[2], input.shape[3], input.shape[4]))
-    return input
+    print(input.shape)
+    return torch.reshape(input, (-1, input.shape[2], input.shape[3], input.shape[4]))
+    #return input
 
 def batch_to_lstm(input, batch_size):
-    #return torch.reshape(input,
-    #                     (batch_size, 2 * cfg.lstm_steps + 1, input.shape[1], input.shape[2], input.shape[3]))
-    return input
+    pring(input.shape)
+    return torch.reshape(input,
+                         (batch_size, 2 * cfg.lstm_steps + 1, input.shape[1], input.shape[2], input.shape[3]))
+    #return input
 
 class EncoderBlock(nn.Module):
     def __init__(self, conv_config, kernel, stride, activation, dilation=(1, 1), groups=1,
@@ -33,14 +35,16 @@ class EncoderBlock(nn.Module):
     def forward(self, input, mask, lstm_state=None):
         batch_size = input.shape[0]
 
-        input = lstm_to_batch(input)
-        mask = lstm_to_batch(mask)
+        if cfg.lstm_steps != 0:
+            input = lstm_to_batch(input)
+            mask = lstm_to_batch(mask)
 
         # apply partial convolution
         output, mask = self.partial_conv(input, mask)
-
-        output = batch_to_lstm(output, batch_size)
-        mask = batch_to_lstm(mask, batch_size)
+        
+        if cfg.lstm_steps != 0:    
+            output = batch_to_lstm(output, batch_size)
+            mask = batch_to_lstm(mask, batch_size)
 
         # apply LSTM convolution
         if hasattr(self, 'lstm_conv'):
@@ -68,10 +72,11 @@ class DecoderBlock(nn.Module):
 
         batch_size = input.shape[0]
 
-        input = lstm_to_batch(input)
-        mask = lstm_to_batch(mask)
-        skip_input = lstm_to_batch(skip_input)
-        skip_mask = lstm_to_batch(skip_mask)
+        if hasattr(self, 'lstm_conv'):
+            input = lstm_to_batch(input)
+            mask = lstm_to_batch(mask)
+            skip_input = lstm_to_batch(skip_input)
+            skip_mask = lstm_to_batch(skip_mask)
 
         # interpolate input and mask
         h = F.interpolate(input, scale_factor=2, mode='nearest')
@@ -85,7 +90,8 @@ class DecoderBlock(nn.Module):
         # apply partial convolution
         output, mask = self.partial_conv(h, h_mask)
 
-        output = batch_to_lstm(output, batch_size)
-        mask = batch_to_lstm(mask, batch_size)
+        if hasattr(self, 'lstm_conv'):
+            output = batch_to_lstm(output, batch_size)
+            mask = batch_to_lstm(mask, batch_size)
 
         return output, mask, lstm_state
