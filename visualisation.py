@@ -275,7 +275,7 @@ def timeseries_plotting(path, iteration, argo):
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Time in years')
     plt.ylabel('Heat Content [J/m²]')
-    plt.savefig('../Asi_maskiert/pdfs/timeseries/' + path + 'validation_timeseries' + str(argo) + str(iteration) + '.pdf')
+    plt.savefig('../Asi_maskiert/pdfs/timeseries/' + path + 'validation_timeseries' + str(argo)+ '_' + str(iteration) + '.pdf')
     plt.show()
 
     hc_assi_masked = np.array(hc_assi_masked)
@@ -296,8 +296,8 @@ def timeseries_plotting(path, iteration, argo):
 
 
 cfg.set_train_args()
-visualisation('../Asi_maskiert/results/images/Maske_argo_mixed/test', '', '_200000', 0)
-#timeseries_plotting('Maske_preargo_20/', 200000, '_full')
+#visualisation('../Asi_maskiert/results/images/Maske_argo_mixed/test', '', '_200000', 0)
+timeseries_plotting('Maske_argo_mixed/', 200000, '_full')
 
 
 
