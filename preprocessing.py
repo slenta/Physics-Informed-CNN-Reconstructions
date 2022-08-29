@@ -60,7 +60,7 @@ class preprocessing():
             tos = np.where(np.isnan(tos)==False, 1, tos)
             tos = np.where(np.isnan(tos)==True, 0, tos)
 
-            tos = tos.repeat(9, axis=0)
+            tos = tos.repeat(cfg.ensemble_member, axis=0)
 
 
         elif self.mode=='image':
@@ -194,6 +194,9 @@ class preprocessing():
 
         elif self.mode == 'mixed':
             f = h5py.File(self.path + 'Mixed_' + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '.hdf5', 'w')
+        
+        elif self.mode == 'mask':
+            f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '_' + str(cfg.ensemble_member) + '.hdf5', 'w')
 
         else:
             f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '.hdf5', 'w')

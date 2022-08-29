@@ -74,7 +74,7 @@ eval_im_year = None
 val_interval = None
 val_dir = None
 eval_mask_year = None
-
+ensemble_member = None
 
 def set_train_args():
     arg_parser = argparse.ArgumentParser()
@@ -86,6 +86,7 @@ def set_train_args():
     arg_parser.add_argument('--mask_name', type=str, default='Maske_')
     arg_parser.add_argument('--mask_year', type=str, default='1958_2021_newgrid')
     arg_parser.add_argument('--im_year', type=str, default='r8_16_newgrid')
+    arg_parser.add_argument('--ensemble_member', type=int, default=9)
     arg_parser.add_argument('--resume_iter', type=int)
     arg_parser.add_argument('--device', type=str, default='cpu')
     arg_parser.add_argument('--batch_size', type=int, default=4)
@@ -176,6 +177,7 @@ def set_train_args():
     global val_interval
     global val_dir
     global eval_mask_year
+    global ensemble_member
 
     im_name = args.im_name
     mask_name = args.mask_name
@@ -232,6 +234,7 @@ def set_train_args():
     val_interval = args.val_interval
     val_dir = args.val_dir
     eval_mask_year = args.eval_mask_year
+    ensemble_member = args.ensemble_member
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()
