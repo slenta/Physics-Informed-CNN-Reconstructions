@@ -71,7 +71,7 @@ class MaskDataset(Dataset):
             
             #Repeat to fit input channels
             mask = mask.repeat(3, 1, 1)
-            gt = im_new.repeat(3, 1, 1)
+            gt = gt.repeat(3, 1, 1)
 
         if cfg.lstm_steps!=0:
             masked = mask[:, cfg.lstm_steps, :, :, :] * gt[:, cfg.lstm_steps, :, :, :]
@@ -98,11 +98,11 @@ class MaskDataset(Dataset):
             for i in range(n[0]):
                 if i%5 == 0:
                     gt.append(image[i])
-            gt = im_new[:8]
+            gt = gt[:8]
         elif self.mode == 'eval':
             gt = image
 
-        gt = np.array(im_new)
+        gt = np.array(gt)
         length = gt.shape[0]
 
         return length
@@ -135,29 +135,29 @@ class ValDataset(Dataset):
         #convert to pytorch tensors and adjust depth dimension
         if cfg.attribute_depth=='depth':
             mask = mask[:n[0], :, :, :]
-            im_new = torch.tensor(gt[index, :self.in_channels, :, :], dtype=torch.float)
+            gt = torch.tensor(gt[index, :self.in_channels, :, :], dtype=torch.float)
             mask = torch.tensor(mask[index, :self.in_channels, :, :], dtype=torch.float)
             masked = torch.tensor(masked[index, :self.in_channels, :, :], dtype=torch.float)
 
         else:
             mask = mask[:n[0], :, :]
-            im_new = torch.tensor(gt[index, :, :], dtype=torch.float)
+            gt = torch.tensor(gt[index, :, :], dtype=torch.float)
             mask = torch.tensor(mask[index, :, :], dtype=torch.float)
             masked = torch.tensor(masked[index, :, :], dtype=torch.float)
 
             mask = mask.repeat(3, 1, 1)
-            im_new = im_new.repeat(3, 1, 1)
+            gt = gt.repeat(3, 1, 1)
             masked = masked.repeat(3, 1, 1)
         
-        return masked, mask, im_new, masked, mask
+        return masked, mask, gt, masked, mask
 
     def __len__(self):
         
         f_image = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
         image = f_image.get('tos_sym')
-        im_new = np.array(image)
+        gt = np.array(image)
         
-        length = im_new.shape[0]
+        length = gt.shape[0]
 
         return length
         
