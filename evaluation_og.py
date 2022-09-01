@@ -110,13 +110,13 @@ def infill(model, dataset, partitions, iter, name):
 
     # create output_comp
     output_comp = mask * image + (1 - mask) * output
-    cvar = [image, mask, output, output_comp, gt]
-    cname = ['image', 'mask', 'output', 'output_comp', 'gt']
+    cvar = [gt, output, output_comp, image, mask]
+    cname = ['gt', 'output', 'output_comp', 'image', 'mask']
     dname = ['time', 'lat', 'lon']
     
     h5 = h5py.File(cfg.val_dir + cfg.save_part + '/validation_'  + iter + '_' + name + '.hdf5', 'w')
-    for x in range(0, 5):
-        h5.create_dataset(name=cname[x], shape=cvar[x].shape, dtype=float, data=cvar[x].to(torch.device('cpu')))
+    for var, name in zip(cvar, cname):
+        h5.create_dataset(name=name, shape=var.shape, dtype=float, data=var.to(torch.device('cpu')))
         #for dim in range(0, 3):
         #    h5[cfg.data_type].dims[dim].label = dname[dim]
     h5.close()
@@ -133,10 +133,14 @@ def heat_content_timeseries(depth_steps, iteration, name):
     f = h5py.File(cfg.val_dir + cfg.save_part + '/validation_' + iteration + '_' + name + '.hdf5', 'r')
     output = f.get('output')
     gt = f.get('gt')
+    image = f.get('image')
 
     #take spatial mean of network output and ground truth
     output = np.mean(np.mean(output, axis=2), axis=2)
     gt = np.mean(np.mean(gt, axis=2), axis=2)
+    T_mean_net = np.mean(output, axis=1)
+    T_mean_gt = np.mean(gt, axis=1)
+    T_mean_image = np.nanmean(np.nanmean(np.nanmean(np.array(image), axis=2), axis=2), axis=1)
     n = output.shape
     hc_network = np.zeros(n[0])
     hc_assi = np.zeros(n[0])
@@ -149,6 +153,9 @@ def heat_content_timeseries(depth_steps, iteration, name):
     f_final = h5py.File(cfg.val_dir + cfg.save_part + '/timeseries_' + iteration + '_' + name + '.hdf5', 'w')
     f_final.create_dataset(name='network_ts', shape=hc_network.shape, dtype=float, data=hc_network)
     f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
+    f_final.create_dataset(name='T_mean_net', shape=T_mean_net.shape, dtype=float, data=T_mean_net)
+    f_final.create_dataset(name='T_mean_gt', shape=T_mean_gt.shape, dtype=float, data=T_mean_gt)
+    f_final.create_dataset(name='T_mean_image', shape=T_mean_image.shape, dtype=float, data=T_mean_image)
     f.close()
 
 def heat_content_timeseries_masked(depth_steps, im_year, mask_year):

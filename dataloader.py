@@ -56,53 +56,54 @@ class MaskDataset(Dataset):
         #convert to pytorch tensors and adjust depth dimension
         if cfg.attribute_depth=='depth':
             mask = mask[:n[0], :, :, :]
-            im_new = torch.from_numpy(image[index, :self.in_channels, :, :])
+            gt = torch.from_numpy(image[index, :self.in_channels, :, :])
             mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
         
         else:
             if len(mask.shape) == 4:
                 mask = mask[:n[0], :, :, :]
                 mask = torch.from_numpy(mask[index, 0, :, :])
-                im_new = torch.from_numpy(image[index, 0, :, :])
+                gt = torch.from_numpy(image[index, 0, :, :])
             else:
                 mask = mask[:n[0], :, :]
                 mask = torch.from_numpy(mask[index, :, :])
-                im_new = torch.from_numpy(image[index, :, :])
+                gt = torch.from_numpy(image[index, :, :])
             
             #Repeat to fit input channels
             mask = mask.repeat(3, 1, 1)
-            im_new = im_new.repeat(3, 1, 1)
+            gt = im_new.repeat(3, 1, 1)
 
-        # if cfg.lstm_steps!=0:
-        #     im_new = im_new.unsqueeze(dim=0)
-        #     im_new = im_new.repeat(cfg.lstm_steps)
-        #     for i in range(cfg.lstm_steps):
-        #         im_new[i, :, :, :] = im_new[index + 1, :, :, :]
-	    		
-        return mask*im_new, mask, im_new, mask*im_new, mask
+        if cfg.lstm_steps!=0:
+            masked = mask[:, cfg.lstm_steps, :, :, :] * gt[:, cfg.lstm_steps, :, :, :]
+        else:
+            masked = mask * gt
+
+
+
+        return masked, mask, gt, masked, mask
 
     def __len__(self):
         
         f_image = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
         image = f_image.get('tos_sym')
         n = image.shape
-        im_new = []
+        gt = []
 
         if self.mode == 'train':
             for i in range(n[0]):
                 if i%5 >= 1:
-                    im_new.append(image[i])
+                    gt.append(image[i])
         elif self.mode == 'test':
             mask = mask[:8]
             for i in range(n[0]):
                 if i%5 == 0:
-                    im_new.append(image[i])
-            im_new = im_new[:8]
+                    gt.append(image[i])
+            gt = im_new[:8]
         elif self.mode == 'eval':
-            im_new = image
+            gt = image
 
-        im_new = np.array(im_new)
-        length = im_new.shape[0]
+        gt = np.array(im_new)
+        length = gt.shape[0]
 
         return length
         
@@ -127,7 +128,7 @@ class ValDataset(Dataset):
         #extract sst data/mask data
         gt = np.array(f_gt.get('tos_sym'))
         masked = np.array(f_masked.get('tos_sym'))
-        mask = np.array(np.where(np.isnan(masked)==False, 1, 0))
+        mask = np.array(np.where(masked!=0, 1, 0))
 
         n = gt.shape
 

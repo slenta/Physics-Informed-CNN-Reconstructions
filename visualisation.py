@@ -230,44 +230,25 @@ def visualisation(path, name, iter, depth):
 
                 
 def timeseries_plotting(path, iteration, argo):
-    f = h5py.File(cfg.val_dir + path + 'timeseries_' + str(iteration) + '_assimilation' + str(argo) + '.hdf5', 'r')
-    f1_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r12_newgrid.hdf5', 'r')
-    f2_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r13_newgrid.hdf5', 'r')
-    f3_compare = h5py.File(cfg.val_dir + 'validation_timeseries_r14_newgrid.hdf5', 'r')
-    fo = h5py.File(cfg.val_dir + path + 'timeseries_' + str(iteration) + '_observations' + str(argo)  + '.hdf5', 'r')
+    f = h5py.File(f'{cfg.val_dir}{path}timeseries_{str(iteration)}_assimilation_{argo}.hdf5', 'r')
+    fo = h5py.File(f'{cfg.val_dir}{path}timeseries_{str(iteration)}_observations_{argo}.hdf5', 'r')
  
-    f_masked = h5py.File(cfg.val_dir + 'Maske_argo_20/masked_timeseries_r11_newgrid.hdf5', 'r')
-
-    hc_assi_masked = f_masked.get('im_ts')
-    hc_obs_masked = f_masked.get('obs_ts')
-
-    hc_c1 = f1_compare.get('gt_ts')
-    hc_c2 = f2_compare.get('gt_ts')
-    hc_c3 = f3_compare.get('gt_ts')
     hc_network = f.get('network_ts')
     hc_gt = f.get('gt_ts')
-    t_mean = f1_compare.get('mean_temp')
+    T_mean_net = np.array(f.get('T_mean_net'))
+    T_mean_gt = np.array(f.get('T_mean_gt'))
+    T_mean_obs = np.array(fo.get('T_mean_net'))
+    T_mean_mask_obs = np.array(fo.get('T_mean_mask'))
+    T_mean_mask_assi = np.array(f.get('T_mean_mask'))
 
     hc_network = np.array(hc_network)
     hc_gt = np.array(hc_gt)
-    hc_c1 = np.array(hc_c1)
-    hc_c2 = np.array(hc_c2)
-    hc_c3 = np.array(hc_c3)
-    tm = np.array(t_mean)
     hc_obs = np.array(fo.get('network_ts'))
-
-    print(hc_network.shape)
-    #f_og = h5py.File(cfg.val_dir + str(iteration) + '.hdf5', 'r')
-    #output_comp = f_og.get('output_comp')
-
+    
     plt.figure(figsize=(10, 6))
 
     plt.plot(hc_network, label='Network Reconstructed Heat Content')
     plt.plot(hc_gt, label='Assimilation Heat Content')
-    #plt.plot(hc_c1, label='Comparison ensemble member', color='red')
-    #plt.plot(tm, label='Comparison ensemble member', color='red')
-    #plt.plot(hc_c2, label='Comparison ensemble member', color='red')
-    #plt.plot(hc_c3, label='Comparison ensemble member', color='red')
     plt.plot(hc_obs, label='Observations reconstruction')
     plt.grid()
     plt.legend()
@@ -275,29 +256,30 @@ def timeseries_plotting(path, iteration, argo):
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Time in years')
     plt.ylabel('Heat Content [J/m²]')
-    plt.savefig('../Asi_maskiert/pdfs/timeseries/' + path + 'validation_timeseries' + str(argo) + str(iteration) + '.pdf')
+    plt.savefig(f'../Asi_maskiert/pdfs/timeseries/{path}validation_timeseries{argo}_{str(iteration)}.pdf')
     plt.show()
 
-    hc_assi_masked = np.array(hc_assi_masked)
-    hc_obs_masked = np.array(hc_obs_masked)
     
     plt.figure(figsize=(10, 6))
-    plt.plot(hc_assi_masked, label='masked assimilation')
-    plt.plot(hc_obs_masked, label='masked observations')
+    #plt.plot(T_mean_gt, label='Mean Temp GT')
+    #plt.plot(T_mean_net, label='Mean Temp Output')
+    #plt.plot(T_mean_obs, label='Mean Temp Observations')
+    plt.plot(T_mean_mask_obs, label='Mean Temp Observation Mask')
+    plt.plot(T_mean_mask_assi, label='Mean Temp Assimilation Mask')
     plt.grid()
     plt.legend()
-    plt.xticks(ticks=np.arange(0, len(hc_assi_masked), 5*12), labels=np.arange(1958, 2020, 5))
+    plt.xticks(ticks=np.arange(0, len(T_mean_gt), 5*12), labels=np.arange(1958, 2020, 5))
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Time of observations [years]')
     plt.ylabel('Heat Content [J/m²]')
-    plt.savefig('../Asi_maskiert/pdfs/timeseries/masked_timeseries' + str(argo) + '.pdf')
+    plt.savefig(f'../Asi_maskiert/pdfs/timeseries/masked_timeseries_{argo}_{str(iteration)}.pdf')
     plt.show()
 
 
 
 cfg.set_train_args()
-visualisation('../Asi_maskiert/results/images/Maske_argo_mixed/test', '', '_200000', 0)
-#timeseries_plotting('Maske_preargo_20/', 200000, '_full')
+#visualisation('../Asi_maskiert/results/images/part_3/test', '', '_200000', 0)
+timeseries_plotting('part_1/', 200000, 'full')
 
 
 

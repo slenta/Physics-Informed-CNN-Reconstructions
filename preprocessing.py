@@ -154,16 +154,16 @@ class preprocessing():
 
         if self.attributes[0] == 'depth':
             tos = tos[:, :self.depth, :, :]
-
         else:
             tos = tos[:, 0, :, :]
 
-
-        #if self.attributes[1]=='depth':
-        #    tos = tos[:, 0, :, :]
+        if cfg.lstm_steps != 0:
+            tos = np.unsqueeze(tos, axis=1)
+            tos.repeat(cfg.lstm_steps, axis=1)
+            for j in range(1, cfg.lstm_steps + 1):
+                [tos[i, cfg.lstm_steps - j, :, :, :] = tos[i - j, cfg.lstm_steps, :, :, :] for i in range(cfg.lstm_steps, tos.shape[0])]
 
         n = tos.shape
-        print(n)
         return tos, n
 
 
