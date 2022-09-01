@@ -161,7 +161,8 @@ class preprocessing():
             tos = np.unsqueeze(tos, axis=1)
             tos.repeat(cfg.lstm_steps, axis=1)
             for j in range(1, cfg.lstm_steps + 1):
-                [tos[i, cfg.lstm_steps - j, :, :, :] = tos[i - j, cfg.lstm_steps, :, :, :] for i in range(cfg.lstm_steps, tos.shape[0])]
+                for j in range(cfg.lstm_steps, tos.shape[0]):
+                    tos[i, cfg.lstm_steps - j, :, :, :] = tos[i - j, cfg.lstm_steps, :, :, :] 
 
         n = tos.shape
         return tos, n
