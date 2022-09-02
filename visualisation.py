@@ -259,7 +259,9 @@ def timeseries_plotting(path, iteration, argo):
     plt.savefig(f'../Asi_maskiert/pdfs/timeseries/{path}validation_timeseries{argo}_{str(iteration)}.pdf')
     plt.show()
 
-    
+    print(T_mean_mask_obs, T_mean_mask_assi)
+
+     
     plt.figure(figsize=(10, 6))
     #plt.plot(T_mean_gt, label='Mean Temp GT')
     #plt.plot(T_mean_net, label='Mean Temp Output')

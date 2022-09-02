@@ -158,10 +158,10 @@ class preprocessing():
             tos = tos[:, 0, :, :]
 
         if cfg.lstm_steps != 0:
-            tos = np.unsqueeze(tos, axis=1)
-            tos.repeat(cfg.lstm_steps, axis=1)
-            for j in range(1, cfg.lstm_steps + 1):
-                for j in range(cfg.lstm_steps, tos.shape[0]):
+            tos = np.expand_dims(tos, axis=1)
+            tos = tos.repeat(cfg.lstm_steps + 1, axis=1)
+            for j in range(0, cfg.lstm_steps + 1):
+                for i in range(cfg.lstm_steps, tos.shape[0]):
                     tos[i, cfg.lstm_steps - j, :, :, :] = tos[i - j, cfg.lstm_steps, :, :, :] 
 
         n = tos.shape
@@ -191,16 +191,16 @@ class preprocessing():
 
         if self.mode=='val':   
             #create new h5 file with symmetric toss
-            f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '_observations.hdf5', 'w')
+            f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_observations.hdf5', 'w')
 
         elif self.mode == 'mixed':
-            f = h5py.File(self.path + 'Mixed_' + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '.hdf5', 'w')
+            f = h5py.File(f'{self.path}Mixed_{self.year}_{self.attributes[0]}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'w')
         
         elif self.mode == 'mask':
-            f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '_' + str(cfg.ensemble_member) + '.hdf5', 'w')
+            f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_{str(cfg.ensemble_member)}.hdf5', 'w')
 
         else:
-            f = h5py.File(self.path + self.name + self.year + '_' +  self.attributes[0] + '_' + self.attributes[1] + '_' + self.attributes[2] + '_' + str(cfg.in_channels) + '.hdf5', 'w')
+            f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'w')
 
         dset1 = f.create_dataset('tos_sym', shape=n, dtype = 'float32', data = tos_new)
         #for dim in range(0, 3):

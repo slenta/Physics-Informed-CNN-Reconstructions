@@ -13,7 +13,7 @@ from model.net import PConvLSTM
 from utils.featurizer import VGG16FeatureExtractor
 from utils.io import load_ckpt, save_ckpt
 from utils.netcdfloader import InfiniteSampler
-#from utils.evaluation import create_snapshot_image
+from utils.evaluation import create_snapshot_image
 from model.loss import InpaintingLoss, HoleLoss
 import config as cfg
 from dataloader import MaskDataset
@@ -25,8 +25,6 @@ import time
 torch.cuda.empty_cache()
 
 matplotlib.use('Agg')
-
-
 
 cfg.set_train_args()
 
@@ -40,16 +38,17 @@ if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 writer = SummaryWriter(log_dir=log_dir)
 
-# create data sets
-#dataset_train = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'train', cfg.data_types,
-#                             cfg.lstm_steps, cfg.prev_next_steps)
-#dataset_val = NetCDFLoader(cfg.data_root_dir, cfg.img_names, cfg.mask_dir, cfg.mask_names, 'val', cfg.data_types,
-#                           cfg.lstm_steps, cfg.prev_next_steps)
+# define lstm, depth variables
 if cfg.attribute_depth == 'depth':
     depth = True
 else:
     depth = False
 
+lstm = True
+if cfg.lstm_steps == 0:
+    lstm = False
+
+# define datasets
 dataset_train = MaskDataset(cfg.im_year, depth, cfg.in_channels, mode='train')
 dataset_test = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, mode='test')
 
@@ -57,15 +56,7 @@ iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
                                  num_workers=cfg.n_threads))
 
-# define network model
-lstm = True
-if cfg.lstm_steps == 0:
-    lstm = False
-
-
-
-before = time.time()
-
+#define network model
 model = PConvLSTM(radar_img_size=cfg.image_size,
                   radar_enc_dec_layers=cfg.encoding_layers[0],
                   radar_pool_layers=cfg.pooling_layers[0],
@@ -102,13 +93,10 @@ if cfg.resume_iter:
 
 for i in tqdm(range(start_iter, cfg.max_iter)):
 
-    start = time.time()
-
-
     # train model
     model.train()
-    image, mask, gt, im_rea, mask_rea = [x.to(cfg.device) for x in next(iterator_train)]
-    output = model(image, mask, im_rea, mask_rea)
+    image, mask, gt = [x.to(cfg.device) for x in next(iterator_train)]
+    output = model(image, mask)
 
     # calculate loss function and apply backpropagation
     loss_dict = criterion(mask[:, :, :, :],
@@ -132,32 +120,12 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     # create snapshot image
     if (i + 1) % cfg.vis_interval == 0:
         model.eval()
-        evalu.evaluate(model, dataset_test, cfg.device,
-                 '{:s}/images/{:s}/test_{:d}'.format(cfg.save_dir, cfg.save_part, i + 1))
+        create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
 
-    #validate using validation ensemble member and create ohc timeseries
+    #validate using test dataset 
     if (i + 1) % cfg.val_interval == 0:
         model.eval()
-        prepo = preprocessing(cfg.im_dir, cfg.im_name, cfg.eval_im_year, cfg.image_size, 'image', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
-        #prepo_obs = preprocessing(cfg.mask_dir, cfg.mask_name, cfg.eval_mask_year, cfg.image_size, 'val', cfg.in_channels, cfg.attribute_depth, cfg.attribute_anomaly, cfg.attribute_argo, cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2)
-        #prepo_obs.save_data()
-        #prepo.save_data()
-        depths = prepo.depths()
-
-        val_dataset = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, 'eval', shuffle=False)
-        evalu.infill(model, val_dataset, partitions = cfg.batch_size, iter= str(i+1), name='assimilation')
-        evalu.heat_content_timeseries(depths, str(i+1), name='assimilation')
-
-        #val_obs_dataset = ValDataset(cfg.eval_im_year, cfg.eval_mask_year, depth, cfg.in_channels)
-        #evalu.infill(model, val_obs_dataset, partitions=cfg.batch_size, iter=str(i + 1), name='_observations')
-        #evalu.heat_content_timeseries(depths, str(i + 1), name='_observations')
-
-
-    #if cfg.save_snapshot_image and (i + 1) % cfg.log_interval == 0:
-    #    model.eval()
-    #    create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
-
-    #print(f'Time: {start - before}, {start - third}, {second - start}, {third - second}')
-
+        evalu.evaluate(model, dataset_test, cfg.device,
+                 '{:s}/images/{:s}/test_{:d}'.format(cfg.save_dir, cfg.save_part, i + 1))
 
 writer.close()

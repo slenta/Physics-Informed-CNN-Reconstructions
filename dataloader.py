@@ -33,16 +33,14 @@ class MaskDataset(Dataset):
     def __getitem__(self, index):
 
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
-        f_image = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
-        f_mask = h5py.File(cfg.mask_dir + cfg.mask_name + cfg.mask_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.mask_argo + '_' + str(cfg.in_channels) + '_' + str(cfg.ensemble_member) + '.hdf5', 'r')
+        f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'r')
+        f_mask = h5py.File(f'{cfg.mask_dir}{cfg.mask_name}{cfg.mask_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_{str(cfg.ensemble_member)}.hdf5', 'r')
+
 
         #extract sst data/mask data
         image = f_image.get('tos_sym')
         mask = f_mask.get('tos_sym')
-        #mask = np.array(mask)        
-        #mask = mask.repeat(8, axis=0)
         
-
         n = image.shape
 
         if self.shuffle == True:
@@ -78,13 +76,11 @@ class MaskDataset(Dataset):
         else:
             masked = mask * gt
 
-
-
-        return masked, mask, gt, masked, mask
+        return masked, mask, gt
 
     def __len__(self):
         
-        f_image = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
+        f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'r')
         image = f_image.get('tos_sym')
         n = image.shape
         gt = []
@@ -122,8 +118,8 @@ class ValDataset(Dataset):
     def __getitem__(self, index):
 
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
-        f_gt = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
-        f_masked = h5py.File(cfg.mask_dir + cfg.mask_name + self.mask_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '_observations.hdf5', 'r')
+        f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'r')
+        f_masked = h5py.File(f'{cfg.mask_dir}{cfg.mask_name}{self.mask_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_observations.hdf5', 'r')
 
         #extract sst data/mask data
         gt = np.array(f_gt.get('tos_sym'))
@@ -149,11 +145,11 @@ class ValDataset(Dataset):
             gt = gt.repeat(3, 1, 1)
             masked = masked.repeat(3, 1, 1)
         
-        return masked, mask, gt, masked, mask
+        return masked, mask, gt
 
     def __len__(self):
         
-        f_image = h5py.File(cfg.im_dir + cfg.im_name + self.im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_' + cfg.attribute_argo + '_' + str(cfg.in_channels) + '.hdf5', 'r')
+        f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'r')
         image = f_image.get('tos_sym')
         gt = np.array(image)
         
