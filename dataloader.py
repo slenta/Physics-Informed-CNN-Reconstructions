@@ -51,29 +51,57 @@ class MaskDataset(Dataset):
             mask = mask[:8]
             image = image[:8]
 
-        #convert to pytorch tensors and adjust depth dimension
-        if cfg.attribute_depth=='depth':
-            mask = mask[:n[0], :, :, :]
-            gt = torch.from_numpy(image[index, :self.in_channels, :, :])
-            mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
-        
-        else:
-            if len(mask.shape) == 4:
-                mask = mask[:n[0], :, :, :]
-                mask = torch.from_numpy(mask[index, 0, :, :])
-                gt = torch.from_numpy(image[index, 0, :, :])
-            else:
-                mask = mask[:n[0], :, :]
-                mask = torch.from_numpy(mask[index, :, :])
-                gt = torch.from_numpy(image[index, :, :])
-            
-            #Repeat to fit input channels
-            mask = mask.repeat(3, 1, 1)
-            gt = gt.repeat(3, 1, 1)
-
         if cfg.lstm_steps!=0:
-            masked = mask[:, cfg.lstm_steps, :, :, :] * gt[:, cfg.lstm_steps, :, :, :]
+            #convert to pytorch tensors and adjust depth dimension
+            if cfg.attribute_depth=='depth':
+                mask = mask[:n[0], :, :, :]
+                gt = torch.from_numpy(image[index, :self.in_channels, :, :])
+                mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
+                
+                print(gt.shape, mask.shape)
+
+                masked = gt
+                masked[cfg.lstm_steps, :, :, :] = mask[cfg.lstm_steps, :, :, :] * gt[cfg.lstm_steps, :, :, :]
+                print(gt.shape, mask.shape)
+        
+            else:
+                if len(mask.shape) == 4:
+                    mask = mask[:n[0], :, :, :]
+                    mask = torch.from_numpy(mask[index, 0, :, :])
+                    gt = torch.from_numpy(image[index, 0, :, :])
+                else:
+                    mask = mask[:n[0], :, :]
+                    mask = torch.from_numpy(mask[index, :, :])
+                    gt = torch.from_numpy(image[index, :, :])
+            
+                #Repeat to fit input channels
+                mask = mask.repeat(3, 1, 1)
+                gt = gt.repeat(3, 1, 1)
+                masked = gt
+                masked[cfg.lstm_steps, :, :] = mask[cfg.lstm_steps, :, :] * gt[cfg.lstm_steps, :, :, :]
+
         else:
+
+            #convert to pytorch tensors and adjust depth dimension
+            if cfg.attribute_depth=='depth':
+                mask = mask[:n[0], :, :, :]
+                gt = torch.from_numpy(image[index, :self.in_channels, :, :])
+                mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
+        
+            else:
+                if len(mask.shape) == 4:
+                    mask = mask[:n[0], :, :, :]
+                    mask = torch.from_numpy(mask[index, 0, :, :])
+                    gt = torch.from_numpy(image[index, 0, :, :])
+                else:
+                    mask = mask[:n[0], :, :]
+                    mask = torch.from_numpy(mask[index, :, :])
+                    gt = torch.from_numpy(image[index, :, :])
+            
+                #Repeat to fit input channels
+                mask = mask.repeat(3, 1, 1)
+                gt = gt.repeat(3, 1, 1)
+
             masked = mask * gt
 
         return masked, mask, gt
