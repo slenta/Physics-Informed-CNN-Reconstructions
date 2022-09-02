@@ -122,7 +122,7 @@ class ValDataset(Dataset):
         f_masked = h5py.File(f'{cfg.mask_dir}{cfg.mask_name}{self.mask_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_observations.hdf5', 'r')
 
         #extract sst data/mask data
-        gt = np.array(f_gt.get('tos_sym'))
+        gt = np.array(f_image.get('tos_sym'))
         masked = np.array(f_masked.get('tos_sym'))
         mask = np.array(np.where(masked!=0, 1, 0))
 
