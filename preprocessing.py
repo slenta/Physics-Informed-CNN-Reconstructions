@@ -159,10 +159,10 @@ class preprocessing():
 
         if cfg.lstm_steps != 0:
             tos = np.expand_dims(tos, axis=1)
-            tos = tos.repeat(cfg.lstm_steps + 1, axis=1)
-            for j in range(0, cfg.lstm_steps + 1):
+            tos = tos.repeat(cfg.lstm_steps, axis=1)
+            for j in range(1, cfg.lstm_steps + 1):
                 for i in range(cfg.lstm_steps, tos.shape[0]):
-                    tos[i, cfg.lstm_steps - j, :, :, :] = tos[i - j, cfg.lstm_steps, :, :, :] 
+                    tos[i, cfg.lstm_steps - j, :, :, :] = tos[i - j, cfg.lstm_steps - 1, :, :, :] 
 
         n = tos.shape
         return tos, n

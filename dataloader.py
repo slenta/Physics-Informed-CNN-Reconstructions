@@ -58,11 +58,8 @@ class MaskDataset(Dataset):
                 gt = torch.from_numpy(image[index, :self.in_channels, :, :])
                 mask = torch.from_numpy(mask[index, :self.in_channels, :, :])
                 
-                print(gt.shape, mask.shape)
-
                 masked = gt
-                masked[cfg.lstm_steps, :, :, :] = mask[cfg.lstm_steps, :, :, :] * gt[cfg.lstm_steps, :, :, :]
-                print(gt.shape, mask.shape)
+                masked[cfg.lstm_steps - 1, :, :, :] = mask[cfg.lstm_steps - 1, :, :, :] * gt[cfg.lstm_steps - 1, :, :, :]
         
             else:
                 if len(mask.shape) == 4:
@@ -78,7 +75,7 @@ class MaskDataset(Dataset):
                 mask = mask.repeat(3, 1, 1)
                 gt = gt.repeat(3, 1, 1)
                 masked = gt
-                masked[cfg.lstm_steps, :, :] = mask[cfg.lstm_steps, :, :] * gt[cfg.lstm_steps, :, :, :]
+                masked[cfg.lstm_steps - 1, :, :] = mask[cfg.lstm_steps - 1, :, :] * gt[cfg.lstm_steps - 1, :, :, :]
 
         else:
 

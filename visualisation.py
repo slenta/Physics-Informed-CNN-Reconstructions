@@ -8,280 +8,226 @@ import torch
 import xarray as xr
 import config as cfg
 import netCDF4
-
-def vis_single(timestep, path, name, argo_state, type, param, title):
-
-    if type=='output':
-        f = h5py.File(path + name + '.hdf5', 'r')
-
-        output = f.get('output')[timestep, 0, :, :]
-        image = f.get('image')[timestep, 0, :, :]
-        mask = f.get('mask')[timestep, 0, :, :]
-        masked = mask * image
-        outputcomp = mask*image + (1 - mask)*output
-        if param == 'mask':
-                
-            plt.figure(figsize=(6, 6))
-            plt.title(title)
-            #plt.imshow(sst, vmin=-5, vmax=30, cmap='jet')
-            plt.imshow(masked, vmin = -5, vmax = 30, cmap='jet')
-            plt.colorbar(label='Temperature in °C')
-            plt.savefig('../Asi_maskiert/pdfs/' + name + param + argo_state + '.pdf')
-            plt.show()
-        elif param == 'image':
-                           
-            plt.figure(figsize=(6, 6))
-            plt.title(title)
-            #plt.imshow(sst, vmin=-5, vmax=30, cmap='jet')
-            plt.imshow(outputcomp, vmin = -5, vmax = 30, cmap='jet')
-            plt.colorbar(label='Temperature in °C')
-            plt.savefig('../Asi_maskiert/pdfs/' + name + param + argo_state + '.pdf')
-            plt.show()
-
-    elif type=='image':
-        df = xr.load_dataset(path + name + '.nc', decode_times=False)
-
-        sst = df.thetao.values
-        sst = sst[0, 10, :, :]
-        x = np.isnan(sst)
-        sst[x] = -15
-        
-        plt.figure(figsize=(6, 4))
-        plt.title(title)
-        #plt.imshow(sst, vmin=-5, vmax=30, cmap='jet')
-        plt.imshow(sst, vmin = -5, vmax = 30)
-        plt.colorbar(label='Temperature in °C')
-        plt.savefig('../Asi_maskiert/pdfs/' + name + argo_state + '.pdf')
-        plt.show()
-    
-    elif type=='mask':
-        df = xr.load_dataset(path + name + '.nc', decode_times=False)
-        sst = df.tho.values
-        sst = sst[timestep, 10, :, :]
-
-        x = np.isnan(sst)
-        sst[x] = -15
-
-        plt.figure(figsize=(8, 6))
-        plt.title(title)
-        plt.imshow(sst, vmin=-5, vmax=30, cmap='jet')
-        plt.colorbar(label='Temperatur in °C')
-        plt.savefig('../Asi_maskiert/pdfs/' + name + type + argo_state + '.pdf')
-        plt.show()
-
-    elif type=='3d':
-        df = xr.load_dataset(path + name + '.nc', decode_times=False)
-
-        sst = df.thetao.values[timestep, :, :, :]
-        plt.figure()
-        plt.title(title)
-        ax = plt.subplot(111, projection='3d')
-
-        z = sst[0, :, :]
-        x = df.x.values
-        y = df.y.values
-
-        x = np.concatenate((np.zeros(17), x))
-        print(x.shape, y.shape)
-        scatter = ax.scatter(x, y, z, c=z, alpha=1)
-        plt.colorbar(scatter, label='Temperatur in °C')
-
-        plt.show()
-
-def vis_plan(path_1, path_2, path_3):
-   
-    path_1 = '../Asi_maskiert/original_masks/Maske_2020_newgrid.hdf5'
-    path_2 = '../Asi_maskiert/original_masks/Maske_1970_newgrid.hdf5'
-    path_3 = '../Asi_maskiert/original_masks/Maske_1970_newgrid.nc'
-    path_4 = '../Asi_maskiert/original_image/Image_3d_1958_2020_newgrid.nc'
-
-    da = xr.load_dataset(path_4, decode_times=False)
-    ds = xr.load_dataset(path_3, decode_times=False)
-    time_var = da.time
-    da['time'] = netCDF4.num2date(time_var[:],time_var.units)
-
-    da_monthly = da.groupby('time.month').mean('time')
-    sst_mean = da_monthly.thetao.values
-    sst = ds.tho.values
-
-    fc = h5py.File('../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5', 'r')
-    continent_mask = fc.get('tos_sym')
+import evaluation_og as evalu
 
 
-    f1 = h5py.File(path_1, 'r')
-    f2 = h5py.File(path_2, 'r')
-    f3 = h5py.File(path_2, 'r')
 
-    v1 = f1.get('tos_sym')[0, 0, :, :] * continent_mask
-    v2 = f2.get('tos_sym')[0, 0, :, :] * continent_mask
-    sst = sst - sst_mean
+def masked_output_vis(part, iter, time, depth):
 
-    n = sst.shape
-    new_im_size = 128
-
-    rest = np.zeros((n[0], n[1], new_im_size - n[2], n[3]))
-    sst = np.concatenate((sst, rest), axis=2)
-    n = sst.shape
-    rest2 = np.zeros((n[0], n[1], n[2], new_im_size - n[3]))
-    sst = np.concatenate((sst, rest2), axis=3)
-    sst = sst * continent_mask
-
-    v3 = sst[0, 0, :, :]
-
-    fig = plt.figure(figsize=(12, 4), constrained_layout=True)
-    plt.subplot(1, 3, 1)
-    plt.title('Binary Mask: January 2020')
-    current_cmap = plt.cm.jet
-    current_cmap.set_bad(color='grey')
-    im1 = plt.imshow(v1, cmap=current_cmap, vmin=-1, vmax=1, aspect='auto', interpolation=None)
-    plt.xlabel('Transformed Longitudes')
-    plt.ylabel('Transformed Latitudes')
-    #plt.colorbar(label='Temperature in °C')
-    plt.subplot(1, 3, 2)
-    plt.title('Binary Mask: January 1970')
-    im2 = plt.imshow(v2, cmap = 'jet', vmin=-1, vmax=1, aspect = 'auto')
-    plt.xlabel('Transformed Longitudes')
-    plt.ylabel('Transformed Latitudes')
-    #plt.colorbar(label='Temperature in °C')
-    plt.subplot(1, 3, 3)
-    plt.title('Observations: January 1970')
-    im3 = plt.imshow(v3, cmap='jet', vmin=-3, vmax=3, aspect='auto')
-    plt.xlabel('Transformed Longitudes')
-    plt.ylabel('Transformed Latitudes')
-    plt.colorbar(label='Temperature in °C')
-    fig.savefig('../Asi_maskiert/pdfs/plan.pdf', dpi = fig.dpi)
-    plt.show()
-
-def visualisation(path, name, iter, depth):
-    
-    f = h5py.File(path + iter + name + '.hdf5', 'r')
+    fa = h5py.File(f'../Asi_maskiert/results/validation/{part}/validation_{iter}_assimilation_full.hdf5', 'r')
+    fo = h5py.File(f'../Asi_maskiert/results/validation/{part}/validation_{iter}_observations_full.hdf5', 'r')
     fm = h5py.File('../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5', 'r')
     
-    continent_mask = fm.get('tos_sym')
-    image_data = f.get('gt')[0, depth, :, :]
-    mask_data = f.get('mask')[0, depth,:, :]
-    output_data = f.get('output')[0, depth,:, :]
-    continent_mask = np.array(continent_mask)
+    continent_mask = np.array(fm.get('continent_mask'))[0, :, :]
 
+    mask = np.array(fo.get('mask')[time, depth,:, :]) * continent_mask
+    output_a = np.array(fa.get('output')[time, depth,:, :]) * continent_mask
+    image_a = np.array(fa.get('image')[time, depth,:, :]) * continent_mask
+    output_o = np.array(fo.get('output')[time, depth,:, :]) * continent_mask
+    image_o = np.array(fo.get('image')[time, depth,:, :]) * continent_mask
 
+    mask_grey = np.where(mask==0, np.NaN, mask) * continent_mask
 
-    error = np.zeros((8, depth))
-    for i in range(8):
-        for j in range(depth):
-            image = f.get('image')[i, j, :, :]
-            output = f.get('output')[i, j, :, :]
-            mask = f.get('mask')[i, j, :, :]
-            outputcomp = mask*image + (1 - mask)*output
-
-            error[i, j] = np.mean((np.array(outputcomp) - np.array(image))**2)
-
-
-    print(error)
-
-    n = mask_data.shape
-    mask_grey = np.zeros(n)
-
-    for i in range(n[0]):
-        for j in range(n[1]):
-            if mask_data[i, j] == 0:
-                mask_grey[i, j] = np.NaN
-            else:
-                mask_grey[i, j] = mask_data[i, j]
-
-    continent_mask = torch.from_numpy(continent_mask)
-    mask_grey = torch.from_numpy(mask_grey) * continent_mask
-    mask = torch.from_numpy(mask_data) * continent_mask
-    output = torch.from_numpy(output_data) * continent_mask
-    image = torch.from_numpy(image_data) * continent_mask
-    outputcomp = mask*image + (1 - mask)*output
-    print(np.mean(error))
-
-    fig = plt.figure(figsize=(12, 4), constrained_layout=True)
+    fig = plt.figure(figsize=(12, 10), constrained_layout=True)
     fig.suptitle('Anomaly North Atlantic SSTs')
-    plt.subplot(1, 3, 1)
-    plt.title('Masked Image')
+    plt.subplot(2, 2, 1)
+    plt.title(f'Masked Assimilations')
     current_cmap = plt.cm.jet
     current_cmap.set_bad(color='gray')
-    im1 = plt.imshow(image * mask_grey, cmap=current_cmap, vmin=-3, vmax=3, aspect='auto', interpolation=None)
+    plt.imshow(image_a * mask_grey, cmap=current_cmap, vmin=-3, vmax=3, aspect='auto', interpolation=None)
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     #plt.colorbar(label='Temperature in °C')
-    plt.subplot(1, 3, 2)
-    plt.title('NN Output')
-    im2 = plt.imshow(outputcomp, cmap = 'jet', vmin=-3, vmax=3, aspect = 'auto')
+    plt.subplot(2, 2, 2)
+    plt.title(f'Observation Mask')
+    im2 = plt.imshow(image_o * mask_grey, cmap = 'jet', vmin=-3, vmax=3, aspect = 'auto', interpolation=None)
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     #plt.colorbar(label='Temperature in °C')
-    plt.subplot(1, 3, 3)
-    plt.title('Original Assimilation Image')
-    im3 = plt.imshow(image, cmap='jet', vmin=-3, vmax=3, aspect='auto')
+    plt.subplot(2, 2, 3)
+    plt.title('Masked Assimilation Reconstructions')
+    plt.imshow(output_a * mask_grey, vmin=-3, vmax=3, cmap='jet', aspect='auto')
+    plt.xlabel('Transformed Longitudes')
+    plt.ylabel('Transformed Latitudes')
+    #plt.colorbar(label='Temperature in °C')
+    plt.subplot(2, 2, 4)
+    plt.title('Masked Observations Reconstructions')
+    plt.imshow(output_o * mask_grey, cmap='jet', vmin=-3, vmax=3, aspect='auto')
+    plt.xlabel('Transformed Longitudes')
+    plt.ylabel('Transformed Latitudes')
+    plt.colorbar(label='Annomaly Correlation')
+    fig.savefig(f'../Asi_maskiert/results/validation/{part}/validation_masked_{iter}_timestep_{str(time)}_depth_{str(depth)}.pdf', dpi = fig.dpi)
+    plt.show()
+
+
+def output_vis(part, iter, time, depth, mode):
+
+    if mode == 'Assimilation':    
+        f = h5py.File(f'../Asi_maskiert/results/validation/{part}/validation_{iter}_assimilation_full.hdf5', 'r')
+    elif mode == 'Observations':
+        f = h5py.File(f'../Asi_maskiert/results/validation/{part}/validation_{iter}_observations_full.hdf5', 'r')
+    
+    fm = h5py.File('../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5', 'r')
+    continent_mask = np.array(fm.get('continent_mask'))
+
+    gt = np.array(f.get('gt')[:, depth, :, :]) * continent_mask
+    mask = np.array(f.get('mask')[:, depth,:, :]) * continent_mask
+    output = np.array(f.get('output')[:, depth,:, :]) * continent_mask
+    image = np.array(f.get('image')[:, depth,:, :]) * continent_mask
+
+    mask_grey = np.where(mask==0, np.NaN, mask) * continent_mask
+
+    correlation, sig = evalu.correlation(output, gt) 
+
+
+    #error = np.zeros((8, depth))
+    #for i in range(8):
+    #    for j in range(depth):
+    #        image = f.get('image')[i, j, :, :]
+    #        output = f.get('output')[i, j, :, :]
+    #        mask = f.get('mask')[i, j, :, :]
+    #        outputcomp = mask*image + (1 - mask)*output
+    #
+    #        error[i, j] = np.mean((np.array(outputcomp) - np.array(image))**2)
+
+
+    fig = plt.figure(figsize=(12, 10), constrained_layout=True)
+    fig.suptitle('Anomaly North Atlantic SSTs')
+    plt.subplot(2, 2, 1)
+    plt.title(f'Masked Image {mode}')
+    current_cmap = plt.cm.jet
+    current_cmap.set_bad(color='gray')
+    im1 = plt.imshow(image[time, :, :] * mask_grey[time, :, :], cmap=current_cmap, vmin=-3, vmax=3, aspect='auto', interpolation=None)
+    plt.xlabel('Transformed Longitudes')
+    plt.ylabel('Transformed Latitudes')
+    #plt.colorbar(label='Temperature in °C')
+    plt.subplot(2, 2, 2)
+    plt.title(f'Reconstructed {mode} Output')
+    im2 = plt.imshow(output[time, :, :], cmap = 'jet', vmin=-3, vmax=3, aspect = 'auto', interpolation=None)
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     plt.colorbar(label='Temperature in °C')
-    #plt.subplot(2, 2, 4)
-    #plt.title('Error')
-    #im5 = plt.imshow(image - output, vmin=-1.5, vmax=1.5, cmap='jet', aspect='auto')
-    #plt.xlabel('Transformed Longitudes')
-    #plt.ylabel('Transformed Latitudes')
+    plt.subplot(2, 2, 3)
+    plt.title('Original Assimilation Image')
+    im4 = plt.imshow(gt[time, :, :], vmin=-3, vmax=3, cmap='jet', aspect='auto')
+    plt.xlabel('Transformed Longitudes')
+    plt.ylabel('Transformed Latitudes')
     #plt.colorbar(label='Temperature in °C')
-    fig.savefig(path + name + iter + str(depth) + '.pdf', dpi = fig.dpi)
+    plt.subplot(2, 2, 4)
+    current_cmap = plt.cm.coolwarm
+    current_cmap.set_bad(color='gray')
+    plt.scatter(sig[1], sig[0], c='black', s=0.7, marker='.', alpha=0.2)
+    im3 = plt.imshow(correlation, cmap='coolwarm', vmin=-1, vmax=1, aspect='auto')
+    plt.xlabel('Transformed Longitudes')
+    plt.ylabel('Transformed Latitudes')
+    plt.colorbar(label='Annomaly Correlation')
+    fig.savefig(f'../Asi_maskiert/results/validation/{part}/validation_{mode}_{iter}_timestep_{str(time)}_depth_{str(depth)}.pdf', dpi = fig.dpi)
     plt.show()
 
 
                 
-def timeseries_plotting(path, iteration, argo):
-    f = h5py.File(f'{cfg.val_dir}{path}timeseries_{str(iteration)}_assimilation_{argo}.hdf5', 'r')
-    fo = h5py.File(f'{cfg.val_dir}{path}timeseries_{str(iteration)}_observations_{argo}.hdf5', 'r')
- 
-    hc_network = f.get('network_ts')
-    hc_gt = f.get('gt_ts')
-    T_mean_net = np.array(f.get('T_mean_net'))
-    T_mean_gt = np.array(f.get('T_mean_gt'))
-    T_mean_obs = np.array(fo.get('T_mean_net'))
-    T_mean_mask_obs = np.array(fo.get('T_mean_mask'))
-    T_mean_mask_assi = np.array(f.get('T_mean_mask'))
+def timeseries_plotting(path, iteration, argo, mean='monthly'):
 
-    hc_network = np.array(hc_network)
-    hc_gt = np.array(hc_gt)
-    hc_obs = np.array(fo.get('network_ts'))
+    f = h5py.File(f'{cfg.val_dir}{path}/timeseries_{str(iteration)}_assimilation_{argo}.hdf5', 'r')
+    fo = h5py.File(f'{cfg.val_dir}{path}/timeseries_{str(iteration)}_observations_{argo}.hdf5', 'r')
+ 
+    hc_assi = np.array(f.get('net_ts'))
+    hc_gt = np.array(f.get('gt_ts'))
+    hc_assi_masked = np.array(f.get('net_ts_masked'))
+    hc_gt_masked = np.array(f.get('gt_ts_masked'))
+    hc_obs = np.array(fo.get('net_ts'))
+    hc_obs_masked = np.array(fo.get('net_ts_masked'))
     
+    #define running mean timesteps
+    if mean=='annual':
+        del_t = 12
+    elif mean=='5_year':
+        del_t = 12*5
+    else:
+        del_t = 1
+
+    #calculate running mean, if necessary
+    if del_t != 1:
+        hc_assi = evalu.running_mean_std(hc_assi, mode='mean', del_t=del_t) 
+        hc_gt = evalu.running_mean_std(hc_gt, mode='mean', del_t=del_t) 
+        hc_obs = evalu.running_mean_std(hc_obs, mode='mean', del_t=del_t)
+        hc_assi_masked = evalu.running_mean_std(hc_assi_masked, mode='mean', del_t=del_t) 
+        hc_gt_masked = evalu.running_mean_std(hc_gt_masked, mode='mean', del_t=del_t) 
+        hc_obs_masked = evalu.running_mean_std(hc_obs_masked, mode='mean', del_t=del_t)
+
+        ticks = np.arange(0, len(hc_network), 12*5)
+        labels = np.arange(1958 + (del_t/12)%2+1, 2021 - (del_t/12)%2, 5) 
+
     plt.figure(figsize=(10, 6))
 
-    plt.plot(hc_network, label='Network Reconstructed Heat Content')
+    plt.plot(hc_assi, label='Network Reconstructed Heat Content')
     plt.plot(hc_gt, label='Assimilation Heat Content')
     plt.plot(hc_obs, label='Observations reconstruction')
     plt.grid()
     plt.legend()
-    plt.xticks(ticks=np.arange(0, len(hc_network), 5*12), labels=np.arange(1958, 2021, 5))
+    plt.xticks(ticks=ticks, labels=labels)
     plt.title('Comparison Reconstruction to Assimilation Timeseries')
     plt.xlabel('Time in years')
     plt.ylabel('Heat Content [J/m²]')
-    plt.savefig(f'../Asi_maskiert/pdfs/timeseries/{path}validation_timeseries{argo}_{str(iteration)}.pdf')
+    plt.savefig(f'../Asi_maskiert/pdfs/timeseries/{path}/validation_timeseries_{argo}_{str(iteration)}_{mean}_mean.pdf')
     plt.show()
 
-    print(T_mean_mask_obs, T_mean_mask_assi)
-
-     
-    plt.figure(figsize=(10, 6))
-    #plt.plot(T_mean_gt, label='Mean Temp GT')
-    #plt.plot(T_mean_net, label='Mean Temp Output')
-    #plt.plot(T_mean_obs, label='Mean Temp Observations')
-    plt.plot(T_mean_mask_obs, label='Mean Temp Observation Mask')
-    plt.plot(T_mean_mask_assi, label='Mean Temp Assimilation Mask')
+    plt.plot(hc_assi_masked, label='Network Reconstructed Heat Content')
+    plt.plot(hc_gt_masked, label='Assimilation Heat Content')
+    plt.plot(hc_obs_masked, label='Observations reconstruction')
     plt.grid()
     plt.legend()
-    plt.xticks(ticks=np.arange(0, len(T_mean_gt), 5*12), labels=np.arange(1958, 2020, 5))
-    plt.title('Comparison Reconstruction to Assimilation Timeseries')
-    plt.xlabel('Time of observations [years]')
+    plt.xticks(ticks=ticks, labels=labels)
+    plt.title('Comparison Reconstruction to Assimilation Timeseries at Observation Points')
+    plt.xlabel('Time in years')
     plt.ylabel('Heat Content [J/m²]')
-    plt.savefig(f'../Asi_maskiert/pdfs/timeseries/masked_timeseries_{argo}_{str(iteration)}.pdf')
+    plt.savefig(f'../Asi_maskiert/pdfs/timeseries/{path}/validation_timeseries_masked_{argo}_{str(iteration)}_{mean}_mean.pdf')
     plt.show()
 
+
+
+def std_plotting(path, iteration, argo, del_t):
+   
+    f = h5py.File(f'{cfg.val_dir}{path}/timeseries_{str(iteration)}_assimilation_{argo}.hdf5', 'r')
+    fo = h5py.File(f'{cfg.val_dir}{path}/timeseries_{str(iteration)}_observations_{argo}.hdf5', 'r')
+ 
+    hc_network = f.get('network_ts')
+    hc_gt = f.get('gt_ts')
+
+    hc_network = np.array(hc_network)
+    hc_gt = np.array(hc_gt)
+    hc_obs = np.array(fo.get('network_ts'))
+
+    #plot running std
+    hc_net_std = evalu.running_mean_std(hc_network, mode='std', del_t=del_t) 
+    hc_gt_std = evalu.running_mean_std(hc_gt, mode='std', del_t=del_t) 
+    hc_obs_std = evalu.running_mean_std(hc_obs, mode='std', del_t=del_t) 
+
+    ticks = np.arange(0, len(hc_net_std), 12*5)
+    labels = np.arange(1958 + (del_t/12)%2, 2021 - (del_t/12)%2, 5) 
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(hc_net_std, label='Standard Deviation Assimilation Reconstruction')
+    plt.plot(hc_gt_std, label='Standard Deviation Original Assimilation')
+    plt.plot(hc_obs_std, label='Standard Deviation Observations Reconstruction')
+    plt.grid()
+    plt.legend()
+    plt.xticks(ticks=ticks, labels=labels)
+    plt.title('Comparison Standard Devation of Reconstructions to Original Assimilation')
+    plt.xlabel('Time in years')
+    plt.ylabel(f'Standard Deviation of Heat Content ({str(del_t/12)} years)')
+    plt.savefig(f'../Asi_maskiert/pdfs/timeseries/{path}/validation_std_timeseries_{argo}_{str(iteration)}_{str(del_t)}.pdf')
+    plt.show()
+
+
+     
 
 
 cfg.set_train_args()
-#visualisation('../Asi_maskiert/results/images/part_3/test', '', '_200000', 0)
-timeseries_plotting('part_1/', 200000, 'full')
+masked_output_vis('part_1', '200000', time=700, depth=0)
+output_vis('part_1', '200000', time=700, depth=0, mode='Observations')
+#timeseries_plotting('part_1', 200000, argo='full', mean='5_year')
+#std_plotting('part_1', 200000, 'full', del_t=2*12)
 
 
 

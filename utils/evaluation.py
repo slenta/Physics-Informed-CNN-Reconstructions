@@ -21,24 +21,27 @@ import utils.metrics as metrics
 
 
 def create_snapshot_image(model, dataset, filename):
-    image, mask, gt, rea_images, rea_masks, rea_gts = zip(*[dataset[int(i)] for i in cfg.eval_timesteps])
+    image, mask, gt = zip(*[dataset[int(i)] for i in cfg.eval_timesteps])
 
     image = torch.stack(image).to(cfg.device)
     mask = torch.stack(mask).to(cfg.device)
     gt = torch.stack(gt).to(cfg.device)
-    if rea_images:
-        rea_images = torch.stack(rea_images).to(cfg.device)
-        rea_masks = torch.stack(rea_masks).to(cfg.device)
-        rea_gts = torch.stack(rea_gts).to(cfg.device)
 
     with torch.no_grad():
-        output = model(image, mask, rea_images, rea_masks)
+        output = model(image, mask)
 
-    # select last element of lstm sequence as evaluation element
-    image = image[:, cfg.lstm_steps, cfg.gt_channels, :, :].to(torch.device('cpu'))
-    gt = gt[:, cfg.lstm_steps, cfg.gt_channels, :, :].to(torch.device('cpu'))
-    mask = mask[:, cfg.lstm_steps, cfg.gt_channels, :, :].to(torch.device('cpu'))
-    output = output[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
+    if cfg.lstm_steps == 0:
+        image = image[:, :, :, :].to(torch.device('cpu'))
+        gt = gt[:,  :, :, :].to(torch.device('cpu'))
+        mask = mask[:,  :, :, :].to(torch.device('cpu'))
+        output = output[:,  :, :, :].to(torch.device('cpu'))
+
+    else:
+        # select last element of lstm sequence as evaluation element
+        image = image[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
+        gt = gt[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
+        mask = mask[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
+        output = output[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
 
     output_comp = mask * image + (1 - mask) * output
 
@@ -49,9 +52,9 @@ def create_snapshot_image(model, dataset, filename):
     mask = ma.masked_array(mask, mask)
 
     for c in range(output.shape[1]):
-        if cfg.data_types[c] == 'pr':
-            vmin, vmax = (0, 5)
-        elif cfg.data_types[c] == 'tas':
+        if cfg.attribute_anomaly == 'anomalies':
+            vmin, vmax = (-5, 5)
+        else:
             vmin, vmax = (-10, 35)
         data_list = [image[:, c, :, :], mask[:, c, :, :], output[:, c, :, :], output_comp[:, c, :, :], gt[:, c, :, :]]
 
@@ -63,7 +66,7 @@ def create_snapshot_image(model, dataset, filename):
                 axes[i, j].axis("off")
                 axes[i, j].imshow(np.squeeze(data_list[i][j]), vmin=vmin, vmax=vmax)
         plt.subplots_adjust(wspace=0.012, hspace=0.012)
-        plt.savefig(filename + '_' + str(c) + '.jpg', bbox_inches='tight', pad_inches=0)
+        plt.savefig(f'{filename}_{str(c)}.jpg', bbox_inches='tight', pad_inches=0)
     plt.clf()
     plt.close('all')
 
@@ -145,66 +148,6 @@ def infill(model, dataset, partitions):
         h5.close()
 
     return ma.masked_array(gt, mask)[:, 0, :, :], ma.masked_array(output_comp, mask)[:, 0, :, :]
-
-
-class HeatContent():
-
-    def __init__(self, image_dir, image_year, mask_dir, mask_year, image_size, depth, attribute_depth, attribute_anomaly, attribute_argo, lon1, lon2, lat1, lat2, preprocessing, depth_steps):
-        self.im_dir = image_dir
-        self.im_year = image_year
-        self.mask_dir = mask_dir
-        self.mask_year = mask_year
-        self.image_path = '../Asi_maskiert/pdfs/'
-        self.im_size = image_size
-        self.mode = preprocessing
-        self.depth = depth
-        self.attributes = [attribute_depth, attribute_anomaly, attribute_argo]
-        self.lon1 = int(lon1)
-        self.lon2 = int(lon2)
-        self.lat1 = int(lat1)
-        self.lat2 = int(lat2)
-        self.im_name = 'Image_' + str(image_year) + attribute_depth + attribute_anomaly + attribute_argo
-        self.mask_name = 'Maske_' + str(mask_year) + attribute_depth + attribute_anomaly + attribute_argo
-        self.shc_sw = 3850
-        self.depth_steps = depth_steps
-
-    def seawater_density(z):
-        return 1025
-
-    def creat_hc_timeseries(self, model, partitions):
-
-        if preprocessing == true:
-            dset_im = preprocessing(self.im_dir, self.im_name, self.im_size, 'image', self.depth, self.attributes[0], self.attributes[1], self.attributes[2], self.lon1, self.lon2, self.lat1, self.lat2)
-            dset_im.save_data()
-            dset_mask = preprocessing(self.mask_dir, self.mask_name, self.im_size, 'mask', self.depth, self.attributes[0], self.attributes[1], self.attributes[2], self.lon1, self.lon2, self.lat1, self.lat2)
-            dset_mask.save_data()
-
-        depth = True
-        if self.depth != 1:
-            depth = True
-        
-        dataset = MaskDataset(depth, self.depth, self.mask_year, self.im_year)
-
-        gt, output_comp = infill(model, dataset, partitions)
-        network = np.mean(np.mean(output_comp, axis=2), axis=2)
-        assi = np.mean(np.mean(gt, axis=2), axis=2)
-        n = output_comp.shape
-        hc_network = np.zeros(n[0])
-        hc_assi = np.zeros(n[0])
-
-        for i in range(n[0]):
-            hc_network[i] = np.sum([(self.depth_steps[k] - self.depth_steps[k-1])*network[i, k]*self.seawater_density(self.depth_steps(k))*self.shc_sw for k in range(1, n[1])])
-            hc_assi[i] = np.sum([(self.depth_steps[k] - self.depth_steps[k-1])*assi[i, k]*self.seawater_density(self.depth_steps(k))*self.shc_sw for k in range(1, n[1])])
-
-        plt.plot(range(n[0]), hc_network, label='Network Reconstructed Heat Content')
-        plt.plot(range(n[0]), hc_assi, label='Assimilation Heat Content')
-        plt.grid()
-        plt.legend()
-        plt.xlabel('Months since January 1958')
-        plt.ylabel('Heat Content [J/m²]')
-        plt.savefig('heat_content_timeseries.pdf')
-        plt.show()
-            
 
 
 

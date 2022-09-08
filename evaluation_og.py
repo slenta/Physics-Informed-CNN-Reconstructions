@@ -11,29 +11,26 @@ import config as cfg
 from numpy import ma
 import sys
 import os
-
+from utils.corr_2d_ttest import corr_2d_ttest
+from collections import namedtuple
 
 
 sys.path.append('./')
 cfg.set_train_args()
 
 def evaluate(model, dataset, device, filename):
-    image, mask, gt, i1, m1 = zip(*[dataset[i] for i in range(8)])
+    image, mask, gt = zip(*[dataset[i] for i in range(8)])
 
     image = torch.stack(image)
     mask = torch.stack(mask)
     gt = torch.stack(gt)
-    i1 = torch.stack(i1)
-    m1 = torch.stack(m1)
 
     image = torch.as_tensor(image)
     mask = torch.as_tensor(mask)
     gt = torch.as_tensor(gt)
-    i1 = torch.as_tensor(i1)
-    m1 = torch.as_tensor(m1)
 
     with torch.no_grad():
-        output = model(image.to(device), mask.to(device), i1.to(device), m1.to(device))
+        output = model(image.to(device), mask.to(device))
     output = output.to(torch.device('cpu'))
     output_comp = mask*image + (1 - mask)*output
 
@@ -44,11 +41,11 @@ def evaluate(model, dataset, device, filename):
     n = image.shape
 
     f = h5py.File(filename + '.hdf5', 'w')
-    dset1 = f.create_dataset('image', (n[0], n[1], n[2], n[3]), dtype = 'float32',data = image)
-    dset2 = f.create_dataset('output', (n[0], n[1], n[2], n[3]), dtype = 'float32',data = output)
-    dset3 = f.create_dataset('output_comp', (n[0], n[1], n[2], n[3]), dtype = 'float32',data = output_comp)
-    dset4 = f.create_dataset('mask', shape=(n[0], n[1], n[2], n[3]), dtype='float32', data=mask)
-    dset5 = f.create_dataset('gt', (n[0], n[1], n[2], n[3]), dtype = 'float32',data = gt)
+    dset1 = f.create_dataset('image', shape=image.shape, dtype = 'float32',data = image)
+    dset2 = f.create_dataset('output', shape=output.shape, dtype = 'float32',data = output)
+    dset3 = f.create_dataset('output_comp', shape=output_comp.shape, dtype = 'float32',data = output_comp)
+    dset4 = f.create_dataset('mask', shape=mask.shape, dtype='float32', data=mask)
+    dset5 = f.create_dataset('gt', shape=gt.shape, dtype = 'float32',data = gt)
     f.close()
     
     #save_image(grid, filename + '.jpg')
@@ -70,19 +67,16 @@ def infill(model, dataset, partitions, iter, name):
         print("WARNING: The size of the dataset should be dividable by the number of partitions. The last "
               + str(dataset.__len__() % partitions) + " time steps will not be infilled.")
     for split in range(partitions):
-        image_part, mask_part, gt_part, rea_images_part, rea_masks_part = zip(
+        image_part, mask_part, gt_part = zip(
             *[dataset[i + split * (dataset.__len__() // partitions)] for i in
               range(dataset.__len__() // partitions)])
         image_part = torch.stack(image_part)
         mask_part = torch.stack(mask_part)
         gt_part = torch.stack(gt_part)
-        rea_images_part = torch.stack(rea_images_part)
-        rea_masks_part = torch.stack(rea_masks_part)
         # get results from trained network
         with torch.no_grad():
-            output_part = model(image_part.to(cfg.device), mask_part.to(cfg.device),
-                                rea_images_part.to(cfg.device), rea_masks_part.to(cfg.device))
-
+            output_part = model(image_part.to(cfg.device), mask_part.to(cfg.device))
+                                
         if cfg.lstm_steps == 0:
 
             image_part = image_part[:, :, :, :].to(torch.device('cpu'))
@@ -92,10 +86,10 @@ def infill(model, dataset, partitions, iter, name):
 
         else:
 
-            image_part = image_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
-            mask_part = mask_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
-            gt_part = gt_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))
-            output_part = output_part[:, cfg.lstm_steps, :, :, :].to(torch.device('cpu'))            
+            image_part = image_part[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
+            mask_part = mask_part[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
+            gt_part = gt_part[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
+            output_part = output_part[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))            
 
 
         image.append(image_part)
@@ -130,74 +124,65 @@ def heat_content_timeseries(depth_steps, iteration, name):
     rho = 1025  #density of seawater
     shc = 3850  #specific heat capacity of seawater
 
-    f = h5py.File(cfg.val_dir + cfg.save_part + '/validation_' + iteration + '_' + name + '.hdf5', 'r')
+    f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}.hdf5', 'r')
     output = f.get('output')
     gt = f.get('gt')
     image = f.get('image')
+    mask = f.get('mask')
+
+    continent_mask = np.where(gt==0, np.NaN, 1)
+    mask = np.where(mask==0, np.NaN, 1)
 
     #take spatial mean of network output and ground truth
-    output = np.mean(np.mean(output, axis=2), axis=2)
-    gt = np.mean(np.mean(gt, axis=2), axis=2)
-    T_mean_net = np.mean(output, axis=1)
-    T_mean_gt = np.mean(gt, axis=1)
-    T_mean_image = np.nanmean(np.nanmean(np.nanmean(np.array(image), axis=2), axis=2), axis=1)
+    output = np.nanmean(np.nanmean(output * continent_mask, axis=2), axis=2)
+    gt = np.nanmean(np.nanmean(gt * continent_mask, axis=2), axis=2)
+    masked_output = np.nanmean(np.nanmean(output * mask, axis=2), axis=2)
+    masked_gt = np.nanmean(np.nanmean(gt * mask, axis=2), axis=2)
+
+
     n = output.shape
-    hc_network = np.zeros(n[0])
-    hc_assi = np.zeros(n[0])
+    hc_net = np.zeros(n[0])
+    hc_gt = np.zeros(n[0])
+    hc_net_masked = np.zeros(n[0])
+    hc_gt_masked = np.zeros(n[0])
 
     for i in range(n[0]):
-        hc_network[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*output[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * output[i, 0] * rho * shc
-        hc_assi[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * gt[i, 0] * rho * shc
+        hc_net[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*output[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * output[i, 0] * rho * shc
+        hc_gt[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * gt[i, 0] * rho * shc
+        hc_net_masked[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*masked_output[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * masked_output[i, 0] * rho * shc
+        hc_gt_masked[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*masked_gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * masked_gt[i, 0] * rho * shc
 
 
     f_final = h5py.File(cfg.val_dir + cfg.save_part + '/timeseries_' + iteration + '_' + name + '.hdf5', 'w')
-    f_final.create_dataset(name='network_ts', shape=hc_network.shape, dtype=float, data=hc_network)
-    f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
-    f_final.create_dataset(name='T_mean_net', shape=T_mean_net.shape, dtype=float, data=T_mean_net)
-    f_final.create_dataset(name='T_mean_gt', shape=T_mean_gt.shape, dtype=float, data=T_mean_gt)
-    f_final.create_dataset(name='T_mean_image', shape=T_mean_image.shape, dtype=float, data=T_mean_image)
+    f_final.create_dataset(name='net_ts', shape=hc_network.shape, dtype=float, data=hc_network)
+    f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_gt)
+    f_final.create_dataset(name='net_ts_masked', shape=hc_network.shape, dtype=float, data=hc_output_masked)
+    f_final.create_dataset(name='gt_ts_masked', shape=hc_assi.shape, dtype=float, data=hc_gt_masked)
     f.close()
 
-def heat_content_timeseries_masked(depth_steps, im_year, mask_year):
-
-    rho = 1025  #density of seawater
-    shc = 3850  #specific heat capacity of seawater
-
-    f = h5py.File(cfg.im_dir + cfg.im_name + im_year + '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_full_' + str(cfg.in_channels) + '.hdf5', 'r')
-    fo = h5py.File(cfg.mask_dir + cfg.mask_name + mask_year+ '_' +  cfg.attribute_depth + '_' + cfg.attribute_anomaly + '_full_' + str(cfg.in_channels) + '_observations.hdf5', 'r')
+#simple function to plot correlations between two variables
+def correlation(var_1, var_2):
     
-    image = f.get('tos_sym')
-    obs = fo.get('tos_sym')
-    obs = np.array(obs)
+    SET = namedtuple("SET", "nsim method alpha")
+    corr, significance = corr_2d_ttest(var_1, var_2, options = SET(nsim=1000, method='ttest', alpha=0.01), nd=3)
+    sig = np.where(significance==True)
 
-    obs = np.where(obs==0, np.nan, obs)
-    obs_binary = np.where(np.isnan(obs)==False, 1, obs)
-    
-    plt.figure()
-    plt.imshow(obs[0, 0, :, :])
-    plt.savefig(cfg.save_dir + 'obs_binary.pdf')
-    plt.show()
+    return corr, significance
 
-    image = image*obs_binary
+#function to calculate running standard deviation or mean
+def running_mean_std(var, mode, del_t):
 
-    #take spatial mean of network output and ground truth
-    image = np.nanmean(np.nanmean(image, axis=2), axis=2)
-    obs = np.nanmean(np.nanmean(obs, axis=2), axis=2)
-    
-    n = image.shape
-    hc_assi = np.zeros(n[0])
-    hc_obs = np.zeros(n[0])
+    n = var.shape
+    var_out = np.zeros(n[0] - (del_t - 1))
 
-    for i in range(n[0]):
-        hc_assi[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*image[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * image[i, 0] * rho * shc
-        hc_obs[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*obs[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * obs[i, 0] * rho * shc
+    if mode=='mean':
+        for k in range(len(var_out)):
+            var_out[k] = np.nanmean(var[k:k + del_t], axis=0)
+    elif mode=='std':
+        for k in range(len(var_out)):
+            var_out[k] = np.nanstd(var[k:k + del_t], axis=0)
 
-
-    f_final = h5py.File(cfg.val_dir + 'masked_timeseries_' + im_year + '.hdf5', 'w')
-    f_final.create_dataset(name='im_ts', shape=hc_assi.shape, dtype=float, data=hc_assi)
-    f_final.create_dataset(name='obs_ts', shape=hc_obs.shape, dtype=float, data=hc_obs)
-    f.close()
-
+    return np.array(var_out)
 
 def compare_datasets(obs_path, im_path, name):
 
@@ -241,6 +226,56 @@ def compare_datasets(obs_path, im_path, name):
     plt.show()
 
 
+
+def create_snapshot_image(model, dataset, filename):
+    image, mask, gt = zip(*[dataset[int(i)] for i in cfg.eval_timesteps])
+
+    image = torch.stack(image).to(cfg.device)
+    mask = torch.stack(mask).to(cfg.device)
+    gt = torch.stack(gt).to(cfg.device)
+
+    with torch.no_grad():
+        output = model(image, mask)
+
+    if cfg.lstm_steps == 0:
+        image = image[:, :, :, :].to(torch.device('cpu'))
+        gt = gt[:,  :, :, :].to(torch.device('cpu'))
+        mask = mask[:,  :, :, :].to(torch.device('cpu'))
+        output = output[:,  :, :, :].to(torch.device('cpu'))
+
+    else:
+        # select last element of lstm sequence as evaluation element
+        image = image[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
+        gt = gt[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
+        mask = mask[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
+        output = output[:, cfg.lstm_steps - 1, :, :, :].to(torch.device('cpu'))
+
+    output_comp = mask * image + (1 - mask) * output
+
+    # set mask
+    mask = 1 - mask
+    image = ma.masked_array(image, mask)
+
+    mask = ma.masked_array(mask, mask)
+
+    for c in range(output.shape[1]):
+        if cfg.attribute_anomaly == 'anomalies':
+            vmin, vmax = (-5, 5)
+        else:
+            vmin, vmax = (-10, 35)
+        data_list = [image[:, c, :, :], mask[:, c, :, :], output[:, c, :, :], output_comp[:, c, :, :], gt[:, c, :, :]]
+
+        # plot and save data
+        fig, axes = plt.subplots(nrows=len(data_list), ncols=image.shape[0], figsize=(20, 20))
+        fig.patch.set_facecolor('black')
+        for i in range(len(data_list)):
+            for j in range(image.shape[0]):
+                axes[i, j].axis("off")
+                axes[i, j].imshow(np.squeeze(data_list[i][j]), vmin=vmin, vmax=vmax)
+        plt.subplots_adjust(wspace=0.012, hspace=0.012)
+        plt.savefig(f'{filename}_{str(c)}.jpg', bbox_inches='tight', pad_inches=0)
+    plt.clf()
+    plt.close('all')
 
 
 

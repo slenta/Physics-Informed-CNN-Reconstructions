@@ -13,11 +13,10 @@ from model.net import PConvLSTM
 from utils.featurizer import VGG16FeatureExtractor
 from utils.io import load_ckpt, save_ckpt
 from utils.netcdfloader import InfiniteSampler
-from utils.evaluation import create_snapshot_image
 from model.loss import InpaintingLoss, HoleLoss
 import config as cfg
 from dataloader import MaskDataset
-import evaluation_og as evalu
+import evaluation_og as evalu, create_snapshot_image
 from preprocessing import preprocessing
 from dataloader import ValDataset
 import time
@@ -99,9 +98,14 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     output = model(image, mask)
 
     # calculate loss function and apply backpropagation
-    loss_dict = criterion(mask[:, :, :, :],
-                          output[:, :, :, :],
-                          gt[:, :, :, :])
+    if cfg.lstm_steps != 0:
+        loss_dict = criterion(mask[:, cfg.lstm_steps - 1, :, :, :],
+                              output[:, cfg.lstm_steps - 1, :, :, :],
+                              gt[:, cfg.lstm_steps - 1, :, :, :])
+    else:
+        loss_dict = criterion(mask, output, gt)    
+
+    
     loss = 0.0
     for key, factor in lambda_dict.items():
         value = factor * loss_dict[key]
@@ -120,7 +124,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     # create snapshot image
     if (i + 1) % cfg.vis_interval == 0:
         model.eval()
-        create_snapshot_image(model, dataset_val, '{:s}/images/Maske_{:d}/iter_{:f}'.format(cfg.snapshot_dir, cfg.mask_year, i + 1))
+        create_snapshot_image(model, dataset_test, f'{cfg.save_dir}/images/{cfg.save_part}/iter_{str(i + 1)}')
 
     #validate using test dataset 
     if (i + 1) % cfg.val_interval == 0:

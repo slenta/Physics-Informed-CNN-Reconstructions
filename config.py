@@ -4,8 +4,11 @@ import torch
 MEAN = [0.485, 0.456, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406]
 STD = [0.229, 0.224, 0.225, 0.225, 0.225, 0.225, 0.225, 0.225, 0.225, 0.225]
 
+#LAMBDA_DICT_IMG_INPAINTING = {
+#    'hole': 6.0, 'tv': 0.1, 'valid': 1.0, 'prc': 0.05, 'style': 120.0
+#}
 LAMBDA_DICT_IMG_INPAINTING = {
-    'hole': 6.0, 'tv': 0.1, 'valid': 1.0, 'prc': 0.05, 'style': 120.0
+    'hole': 60.0, 'tv': 0.1, 'valid': 60.0, 'prc': 0.05, 'style': 10.0
 }
 LAMBDA_DICT_HOLE = {
     'hole': 1.0
