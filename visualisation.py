@@ -224,9 +224,9 @@ def std_plotting(path, iteration, argo, del_t):
 
 
 cfg.set_train_args()
-masked_output_vis('part_1', '200000', time=700, depth=0)
-output_vis('part_1', '200000', time=700, depth=0, mode='Observations')
-#timeseries_plotting('part_1', 200000, argo='full', mean='5_year')
+#masked_output_vis('part_2', '200000', time=700, depth=0)
+#output_vis('part_2', '200000', time=700, depth=0, mode='Observations')
+timeseries_plotting('part_2', 200000, argo='full', mean='monthly')
 #std_plotting('part_1', 200000, 'full', del_t=2*12)
 
 

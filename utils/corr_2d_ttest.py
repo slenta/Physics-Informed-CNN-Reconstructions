@@ -1,5 +1,5 @@
 import numpy as np
-from corr_sig import *
+from utils.corr_sig import *
 
 #from rpy2.robjects import FloatVector
 #import rpy2.robjects as robjects

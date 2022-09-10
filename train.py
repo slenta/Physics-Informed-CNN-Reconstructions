@@ -16,7 +16,7 @@ from utils.netcdfloader import InfiniteSampler
 from model.loss import InpaintingLoss, HoleLoss
 import config as cfg
 from dataloader import MaskDataset
-import evaluation_og as evalu, create_snapshot_image
+import evaluation_og as evalu
 from preprocessing import preprocessing
 from dataloader import ValDataset
 import time
@@ -124,7 +124,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     # create snapshot image
     if (i + 1) % cfg.vis_interval == 0:
         model.eval()
-        create_snapshot_image(model, dataset_test, f'{cfg.save_dir}/images/{cfg.save_part}/iter_{str(i + 1)}')
+        evalu.create_snapshot_image(model, dataset_test, f'{cfg.save_dir}/images/{cfg.save_part}/iter_{str(i + 1)}')
 
     #validate using test dataset 
     if (i + 1) % cfg.val_interval == 0:

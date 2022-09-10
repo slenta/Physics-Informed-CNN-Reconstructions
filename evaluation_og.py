@@ -125,19 +125,19 @@ def heat_content_timeseries(depth_steps, iteration, name):
     shc = 3850  #specific heat capacity of seawater
 
     f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}.hdf5', 'r')
-    output = f.get('output')
-    gt = f.get('gt')
-    image = f.get('image')
-    mask = f.get('mask')
+    output = np.array(f.get('output'))
+    gt = np.array(f.get('gt'))
+    image = np.array(f.get('image'))
+    mask = np.array(f.get('mask'))
 
-    continent_mask = np.where(gt==0, np.NaN, 1)
+    continent_mask = np.where(gt[0, 0, :, :]==0, np.NaN, 1)
     mask = np.where(mask==0, np.NaN, 1)
 
     #take spatial mean of network output and ground truth
-    output = np.nanmean(np.nanmean(output * continent_mask, axis=2), axis=2)
-    gt = np.nanmean(np.nanmean(gt * continent_mask, axis=2), axis=2)
     masked_output = np.nanmean(np.nanmean(output * mask, axis=2), axis=2)
     masked_gt = np.nanmean(np.nanmean(gt * mask, axis=2), axis=2)
+    output = np.nanmean(np.nanmean(output * continent_mask, axis=2), axis=2)
+    gt = np.nanmean(np.nanmean(gt * continent_mask, axis=2), axis=2)
 
 
     n = output.shape
@@ -153,11 +153,11 @@ def heat_content_timeseries(depth_steps, iteration, name):
         hc_gt_masked[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*masked_gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * masked_gt[i, 0] * rho * shc
 
 
-    f_final = h5py.File(cfg.val_dir + cfg.save_part + '/timeseries_' + iteration + '_' + name + '.hdf5', 'w')
-    f_final.create_dataset(name='net_ts', shape=hc_network.shape, dtype=float, data=hc_network)
-    f_final.create_dataset(name='gt_ts', shape=hc_assi.shape, dtype=float, data=hc_gt)
-    f_final.create_dataset(name='net_ts_masked', shape=hc_network.shape, dtype=float, data=hc_output_masked)
-    f_final.create_dataset(name='gt_ts_masked', shape=hc_assi.shape, dtype=float, data=hc_gt_masked)
+    f_final = h5py.File(f'{cfg.val_dir}{cfg.save_part}/timeseries_{iteration}_{name}.hdf5', 'w')
+    f_final.create_dataset(name='net_ts', shape=hc_net.shape, dtype=float, data=hc_net)
+    f_final.create_dataset(name='gt_ts', shape=hc_gt.shape, dtype=float, data=hc_gt)
+    f_final.create_dataset(name='net_ts_masked', shape=hc_net_masked.shape, dtype=float, data=hc_net_masked)
+    f_final.create_dataset(name='gt_ts_masked', shape=hc_gt_masked.shape, dtype=float, data=hc_gt_masked)
     f.close()
 
 #simple function to plot correlations between two variables
@@ -222,7 +222,7 @@ def compare_datasets(obs_path, im_path, name):
     plt.imshow(bias, vmin=-1, vmax=1, cmap='coolwarm')
     plt.colorbar()
     plt.title('Bias: Obs - Assimilation')
-    plt.savefig(cfg.save_dir + 'Dataset_diff' + name + '.pdf')
+    plt.savefig(f'{cfg.save_dir}pdfs/dataset_diff{name}.pdf')
     plt.show()
 
 
