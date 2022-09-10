@@ -10,14 +10,14 @@ from model.partial_conv_module import PConvBlock
 
 
 def lstm_to_batch(input):
-    print(input.shape)
+    #print(input.shape)
     return torch.reshape(input, (-1, input.shape[2], input.shape[3], input.shape[4]))
     #return input
 
 def batch_to_lstm(input, batch_size):
-    pring(input.shape)
+    #print(input.shape)
     return torch.reshape(input,
-                         (batch_size, 2 * cfg.lstm_steps + 1, input.shape[1], input.shape[2], input.shape[3]))
+                         (batch_size,  cfg.lstm_steps, input.shape[1], input.shape[2], input.shape[3]))
     #return input
 
 class EncoderBlock(nn.Module):
