@@ -158,6 +158,9 @@ def timeseries_plotting(path, iteration, argo, mean='monthly'):
         ticks = np.arange(0, len(hc_assi), 12*5)
         labels = np.arange(1958 + (del_t/12)%2+1, 2021 - (del_t/12)%2, 5) 
 
+    ticks = np.arange(0, len(hc_assi), 12*5)
+    labels = np.arange(1958, 2021, 5) 
+
     plt.figure(figsize=(10, 6))
 
     plt.plot(hc_assi, label='Network Reconstructed Heat Content')
