@@ -155,7 +155,7 @@ def timeseries_plotting(path, iteration, argo, mean='monthly'):
         hc_gt_masked = evalu.running_mean_std(hc_gt_masked, mode='mean', del_t=del_t) 
         hc_obs_masked = evalu.running_mean_std(hc_obs_masked, mode='mean', del_t=del_t)
 
-        ticks = np.arange(0, len(hc_network), 12*5)
+        ticks = np.arange(0, len(hc_assi), 12*5)
         labels = np.arange(1958 + (del_t/12)%2+1, 2021 - (del_t/12)%2, 5) 
 
     plt.figure(figsize=(10, 6))
