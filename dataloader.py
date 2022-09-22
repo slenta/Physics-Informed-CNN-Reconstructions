@@ -33,8 +33,13 @@ class MaskDataset(Dataset):
     def __getitem__(self, index):
 
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
-        f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'r')
-        f_mask = h5py.File(f'{cfg.mask_dir}{cfg.mask_name}{cfg.mask_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_{str(cfg.ensemble_member)}.hdf5', 'r')
+        if cfg.lstm_steps:
+            f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'r')
+            f_mask = h5py.File(f'{cfg.mask_dir}{cfg.mask_name}{cfg.mask_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_{str(cfg.ensemble_member)}.hdf5', 'r')
+        else:
+            f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}.hdf5', 'r')
+            f_mask = h5py.File(f'{cfg.mask_dir}{cfg.mask_name}{cfg.mask_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}_{str(cfg.ensemble_member)}.hdf5', 'r')
+
 
 
         #extract sst data/mask data
@@ -146,8 +151,12 @@ class ValDataset(Dataset):
     def __getitem__(self, index):
 
         #get h5 file for image, mask, image plus mask and define relevant variables (tos)
-        f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'r')
-        f_masked = h5py.File(f'{cfg.mask_dir}{cfg.mask_name}{self.mask_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_observations.hdf5', 'r')
+        if cfg.lstm_steps:
+            f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'r')
+            f_mask = h5py.File(f'{cfg.mask_dir}{cfg.mask_name}{cfg.mask_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_observations.hdf5', 'r')
+        else:
+            f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}.hdf5', 'r')
+            f_mask = h5py.File(f'{cfg.mask_dir}{cfg.mask_name}{cfg.mask_year}_{cfg.attribute_depth}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}_observations.hdf5', 'r')
 
         #extract sst data/mask data
         gt = np.array(f_image.get('tos_sym'))
