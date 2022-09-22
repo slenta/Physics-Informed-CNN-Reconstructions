@@ -46,6 +46,10 @@ if cfg.attribute_depth == 'depth':
 else:
     depth = False
 
+lstm = True
+if cfg.lstm_steps == 0:
+    lstm = False
+
 # define datasets
 dataset_train = MaskDataset(cfg.im_year, depth, cfg.in_channels, mode='train')
 dataset_test = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, mode='test')
@@ -55,11 +59,12 @@ iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  num_workers=cfg.n_threads))
 
 #define network model
-model = PConvLSTM(img_size=cfg.image_size,
-                  enc_dec_layers=cfg.encoding_layers[0],
-                  pool_layers=cfg.pooling_layers[0],
-                  in_channels=cfg.in_channels,
-                  out_channels=cfg.out_channels).to(cfg.device)
+model = PConvLSTM(radar_img_size=cfg.image_size,
+                  radar_enc_dec_layers=cfg.encoding_layers[0],
+                  radar_pool_layers=cfg.pooling_layers[0],
+                  radar_in_channels=cfg.in_channels,
+                  radar_out_channels=cfg.out_channels,
+                  lstm=lstm).to(cfg.device)
 
 # define learning rate
 if cfg.finetune:
