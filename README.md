@@ -1,5 +1,7 @@
 # Infilling spatial precipitation recordings with a memory assisted CNN
 
+##At this stage, Observations and Assimilation reconstructions work but with significant differences still
+
 ## Requirements
 - Python 3.7+
 
