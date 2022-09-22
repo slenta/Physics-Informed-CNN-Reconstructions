@@ -1,4 +1,5 @@
 from cProfile import label
+import os
 import h5py
 from isort import file
 from matplotlib.pyplot import title
@@ -27,6 +28,10 @@ def masked_output_vis(part, iter, time, depth):
     image_o = np.array(fo.get('image')[time, depth,:, :]) * continent_mask
 
     mask_grey = np.where(mask==0, np.NaN, mask) * continent_mask
+    save_dir = f'../Asi_maskiert/pdfs/validation/{part}/'
+
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
 
     fig = plt.figure(figsize=(12, 10), constrained_layout=True)
     fig.suptitle('Anomaly North Atlantic SSTs')
@@ -56,7 +61,7 @@ def masked_output_vis(part, iter, time, depth):
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     plt.colorbar(label='Annomaly Correlation')
-    fig.savefig(f'../Asi_maskiert/results/validation/{part}/validation_masked_{iter}_timestep_{str(time)}_depth_{str(depth)}.pdf', dpi = fig.dpi)
+    fig.savefig(f'../Asi_maskiert/pdfs/validation/{part}/validation_masked_{iter}_timestep_{str(time)}_depth_{str(depth)}.pdf', dpi = fig.dpi)
     plt.show()
 
 
@@ -114,6 +119,7 @@ def output_vis(part, iter, time, depth, mode):
     plt.ylabel('Transformed Latitudes')
     #plt.colorbar(label='Temperature in °C')
     plt.subplot(2, 2, 4)
+    plt.title(f'Correlation Reconstruction Assimilation: {np.nanmean(correlation):.2f}')
     current_cmap = plt.cm.coolwarm
     current_cmap.set_bad(color='gray')
     plt.scatter(sig[1], sig[0], c='black', s=0.7, marker='.', alpha=0.2)
@@ -121,7 +127,7 @@ def output_vis(part, iter, time, depth, mode):
     plt.xlabel('Transformed Longitudes')
     plt.ylabel('Transformed Latitudes')
     plt.colorbar(label='Annomaly Correlation')
-    fig.savefig(f'../Asi_maskiert/results/validation/{part}/validation_{mode}_{iter}_timestep_{str(time)}_depth_{str(depth)}.pdf', dpi = fig.dpi)
+    fig.savefig(f'../Asi_maskiert/pdfs/validation/{part}/validation_{mode}_{iter}_timestep_{str(time)}_depth_{str(depth)}.pdf', dpi = fig.dpi)
     plt.show()
 
 
@@ -137,6 +143,8 @@ def timeseries_plotting(path, iteration, argo, mean='monthly'):
     hc_gt_masked = np.array(f.get('gt_ts_masked'))
     hc_obs = np.array(fo.get('net_ts'))
     hc_obs_masked = np.array(fo.get('net_ts_masked'))
+    hc_obs_gt_masked = np.array(fo.get('gt_ts_masked'))
+
     
     #define running mean timesteps
     if mean=='annual':
@@ -154,6 +162,7 @@ def timeseries_plotting(path, iteration, argo, mean='monthly'):
         hc_assi_masked = evalu.running_mean_std(hc_assi_masked, mode='mean', del_t=del_t) 
         hc_gt_masked = evalu.running_mean_std(hc_gt_masked, mode='mean', del_t=del_t) 
         hc_obs_masked = evalu.running_mean_std(hc_obs_masked, mode='mean', del_t=del_t)
+        hc_obs_gt_masked = evalu.running_mean_std(hc_obs_gt_masked, mode='mean', del_t=del_t)
 
         ticks = np.arange(0, len(hc_assi), 12*5)
         labels = np.arange(1958 + (del_t/12)%2+1, 2021 - (del_t/12)%2, 5) 
@@ -175,9 +184,12 @@ def timeseries_plotting(path, iteration, argo, mean='monthly'):
     plt.savefig(f'../Asi_maskiert/pdfs/timeseries/{path}/validation_timeseries_{argo}_{str(iteration)}_{mean}_mean.pdf')
     plt.show()
 
-    plt.plot(hc_assi_masked, label='Network Reconstructed Heat Content')
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(hc_assi_masked, label='Assimilation reconstruction')
     plt.plot(hc_gt_masked, label='Assimilation Heat Content')
     plt.plot(hc_obs_masked, label='Observations reconstruction')
+    plt.plot(hc_obs_gt_masked, label='Observations Heat Content')
     plt.grid()
     plt.legend()
     plt.xticks(ticks=ticks, labels=labels)
@@ -227,9 +239,10 @@ def std_plotting(path, iteration, argo, del_t):
 
 
 cfg.set_train_args()
-#masked_output_vis('part_2', '200000', time=700, depth=0)
-#output_vis('part_2', '200000', time=700, depth=0, mode='Observations')
-timeseries_plotting('part_2', 200000, argo='full', mean='monthly')
+masked_output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=0)
+output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=0, mode='Observations')
+output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=0, mode='Assimilation')
+timeseries_plotting(cfg.save_part, cfg.resume_iter, argo='full', mean='annual')
 #std_plotting('part_1', 200000, 'full', del_t=2*12)
 
 

@@ -135,7 +135,7 @@ def heat_content_timeseries(depth_steps, iteration, name):
 
     #take spatial mean of network output and ground truth
     masked_output = np.nanmean(np.nanmean(output * mask, axis=2), axis=2)
-    masked_gt = np.nanmean(np.nanmean(gt * mask, axis=2), axis=2)
+    masked_gt = np.nanmean(np.nanmean(image * mask, axis=2), axis=2)
     output = np.nanmean(np.nanmean(output * continent_mask, axis=2), axis=2)
     gt = np.nanmean(np.nanmean(gt * continent_mask, axis=2), axis=2)
 

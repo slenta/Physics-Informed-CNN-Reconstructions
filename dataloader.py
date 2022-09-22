@@ -62,20 +62,23 @@ class MaskDataset(Dataset):
                 masked[cfg.lstm_steps - 1, :, :, :] = mask[cfg.lstm_steps - 1, :, :, :] * gt[cfg.lstm_steps - 1, :, :, :]
         
             else:
-                if len(mask.shape) == 4:
-                    mask = mask[:n[0], :, :, :]
-                    mask = torch.from_numpy(mask[index, 0, :, :])
-                    gt = torch.from_numpy(image[index, 0, :, :])
+                if len(mask.shape) == 5:
+                    mask = mask[:n[0], 0, :, :]
+                    mask = torch.from_numpy(mask[index, :, 0, :, :])
+                    gt = torch.from_numpy(image[index, :, 0, :, :])
                 else:
-                    mask = mask[:n[0], :, :]
-                    mask = torch.from_numpy(mask[index, :, :])
-                    gt = torch.from_numpy(image[index, :, :])
+                    mask = mask[:n[0], :, :, :]
+                    mask = torch.from_numpy(mask[index, :, :, :])
+                    gt = torch.from_numpy(image[index, :, :, :])
             
                 #Repeat to fit input channels
-                mask = mask.repeat(3, 1, 1)
-                gt = gt.repeat(3, 1, 1)
+                mask = mask.unsqueeze(axis=1)
+                gt = gt.unsqueeze(axis=1)
+
+                mask = mask.repeat(1, 3, 1, 1)
+                gt = gt.repeat(1, 3, 1, 1)
                 masked = gt
-                masked[cfg.lstm_steps - 1, :, :] = mask[cfg.lstm_steps - 1, :, :] * gt[cfg.lstm_steps - 1, :, :, :]
+                masked[cfg.lstm_steps - 1, :, :, :] = mask[cfg.lstm_steps - 1, :, :, :] * gt[cfg.lstm_steps - 1, :, :, :]
 
         else:
 
@@ -87,7 +90,7 @@ class MaskDataset(Dataset):
         
             else:
                 if len(mask.shape) == 4:
-                    mask = mask[:n[0], :, :, :]
+                    mask = mask[:n[0], 0, :, :]
                     mask = torch.from_numpy(mask[index, 0, :, :])
                     gt = torch.from_numpy(image[index, 0, :, :])
                 else:

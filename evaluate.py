@@ -15,8 +15,15 @@ matplotlib.use('Agg')
 
 cfg.set_train_args()
 
-lstm = False
-depth=True
+if cfg.lstm_steps == 0:
+        lstm = False
+else:
+        lstm = True
+
+if cfg.attribute_depth == 'depth':
+        depth = True
+else:
+        depth = False
 
 model = PConvLSTM(radar_img_size=cfg.image_size,
                   radar_enc_dec_layers=cfg.encoding_layers[0],

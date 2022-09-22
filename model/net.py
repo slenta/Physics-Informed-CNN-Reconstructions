@@ -37,10 +37,12 @@ class PConvLSTM(nn.Module):
         for i in range(0, self.net_depth):
             if i == 0:
                 kernel = (7, 7)
-            elif i < radar_enc_dec_layers - 1:
+            elif i < 3:
                 kernel = (5, 5)
+            elif 3 <= i < radar_enc_dec_layers - 1:
+                kernel = (3, 3)
             else:
-                kernel = (5, 5)
+                kernel = (3, 3)
             encoding_layers.append(EncoderBlock(
                 conv_config=enc_conv_configs[i],
                 kernel=kernel, stride=(2, 2), activation=nn.ReLU(), lstm=lstm))

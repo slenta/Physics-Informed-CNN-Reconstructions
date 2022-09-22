@@ -27,12 +27,15 @@ matplotlib.use('Agg')
 
 cfg.set_train_args()
 
-if not os.path.exists(cfg.save_dir):
-    os.makedirs('{:s}/{:s}/images'.format(cfg.save_dir, cfg.save_part))
-    os.makedirs('{:s}/{:s}/ckpt'.format(cfg.save_dir, cfg.save_part))
+if not os.path.exists(f'{cfg.save_dir}/images/{cfg.save_part}/'):
+    os.makedirs(f'{cfg.save_dir}/images/{cfg.save_part}/')
+if not os.path.exists(f'{cfg.save_dir}/ckpt/{cfg.save_part}/'):
+    os.makedirs(f'{cfg.save_dir}/ckpt/{cfg.save_part}/')
+if not os.path.exists(f'{cfg.save_dir}/validation/{cfg.save_part}/'):
+    os.makedirs(f'{cfg.save_dir}/validation/{cfg.save_part}/') 
 
 
-log_dir = '{}{}/'.format(cfg.log_dir, cfg.save_part)
+log_dir = f'{cfg.log_dir}{cfg.save_part}/'
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 writer = SummaryWriter(log_dir=log_dir)
