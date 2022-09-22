@@ -1,4 +1,4 @@
-from .. import config as cfg
+import config as cfg
 
 
 # define configurations for convolutions

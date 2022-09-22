@@ -4,7 +4,7 @@ import torch.nn as nn
 from .conv_configs import init_enc_conv_configs, init_dec_conv_configs, \
     init_enc_conv_configs_orig, init_dec_conv_configs_orig
 from .encoder_decoder import EncoderBlock, DecoderBlock
-from .. import config as cfg
+import config as cfg
 
 
 def progstat(index, numel):
@@ -12,7 +12,7 @@ def progstat(index, numel):
         cfg.progress_fwd('Infilling...', int(100 * (index + 1) / numel))
 
 
-class PConvNet(nn.Module):
+class PConvLSTM(nn.Module):
     def __init__(self, img_size=128, enc_dec_layers=4, pool_layers=4, in_channels=1, out_channels=1):
         super().__init__()
 
