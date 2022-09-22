@@ -78,6 +78,7 @@ val_interval = None
 val_dir = None
 eval_mask_year = None
 ensemble_member = None
+n_filters = None
 
 def set_train_args():
     arg_parser = argparse.ArgumentParser()
@@ -128,6 +129,7 @@ def set_train_args():
     arg_parser.add_argument('--val_interval', type=int, default=50000)
     arg_parser.add_argument('--val_dir', type=str, default='../Asi_maskiert/results/validation/')
     arg_parser.add_argument('--eval_mask_year', type=str, default='1958_2021_newgrid')
+    arg_parser.add_argument('--n_filters', type=int, default=64)
 
     args = arg_parser.parse_args()
 
@@ -181,6 +183,7 @@ def set_train_args():
     global val_dir
     global eval_mask_year
     global ensemble_member
+    global n_filters
 
     im_name = args.im_name
     mask_name = args.mask_name
@@ -238,6 +241,7 @@ def set_train_args():
     val_dir = args.val_dir
     eval_mask_year = args.eval_mask_year
     ensemble_member = args.ensemble_member
+    n_filters = args.n_filters
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()
