@@ -1,6 +1,6 @@
 h5py==3.2.1
 numpy>=1.22
-protobuf==3.15.0
+protobuf==3.18.3
 six==1.16.0
 tensorboardX~=2.4
 torch==1.8.1
