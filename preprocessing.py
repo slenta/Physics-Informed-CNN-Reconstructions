@@ -155,7 +155,7 @@ class preprocessing():
         if self.attributes[0] == 'depth':
             tos = tos[:, :self.depth, :, :]
         else:
-            tos = tos[:, 0, :, :]
+            tos = tos[:, cfg.depth, :, :]
 
         if cfg.lstm_steps != 0:
             tos = np.expand_dims(tos, axis=1)
@@ -194,18 +194,27 @@ class preprocessing():
 
         tos_new, n = self.__getitem__()
 
-        if self.mode=='val':   
-            #create new h5 file with symmetric toss
-            f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_observations.hdf5', 'w')
-
-        elif self.mode == 'mixed':
-            f = h5py.File(f'{self.path}Mixed_{self.year}_{self.attributes[0]}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'w')
-        
-        elif self.mode == 'mask':
-            f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_{str(cfg.ensemble_member)}.hdf5', 'w')
-
+        if cfg.lstm_steps!=0:
+            if self.mode=='val':   
+                #create new h5 file with symmetric toss
+                f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{str(cfg.depth)}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_observations.hdf5', 'w') 
+            elif self.mode == 'mixed':
+                f = h5py.File(f'{self.path}Mixed_{self.year}_{self.attributes[0]}_{str(cfg.depth)}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'w')
+            elif self.mode == 'mask':
+                f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{str(cfg.depth)}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_{str(cfg.ensemble_member)}.hdf5', 'w')
+            else:
+                f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{str(cfg.depth)}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'w')
         else:
-            f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'w')
+            if self.mode=='val':   
+                #create new h5 file with symmetric toss
+                f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{str(cfg.depth)}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_observations.hdf5', 'w') 
+            elif self.mode == 'mixed':
+                f = h5py.File(f'{self.path}Mixed_{self.year}_{self.attributes[0]}_{str(cfg.depth)}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}.hdf5', 'w')
+            elif self.mode == 'mask':
+                f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{str(cfg.depth)}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}_{str(cfg.ensemble_member)}.hdf5', 'w')
+            else:
+                f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{str(cfg.depth)}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}.hdf5', 'w')
+
 
         dset1 = f.create_dataset('tos_sym', shape=n, dtype = 'float32', data = tos_new)
         #for dim in range(0, 3):

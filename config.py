@@ -1,5 +1,6 @@
 import argparse
 import torch
+import os
 
 MEAN = [0.485, 0.456, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406]
 STD = [0.229, 0.224, 0.225, 0.225, 0.225, 0.225, 0.225, 0.225, 0.225, 0.225]
@@ -15,6 +16,80 @@ LAMBDA_DICT_HOLE = {
 }
 
 PDF_BINS = [0, 0.01, 0.02, 0.1, 1, 2, 10, 100]
+
+
+
+
+def get_format(dataset_name):
+    json_data = pkgutil.get_data(__name__, "static/dataset_format.json")
+    dataset_format = json.loads(json_data)
+
+    return dataset_format[str(dataset_name)]
+
+
+class LoadFromFile(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.parse_args(open(values).read().split(), namespace)
+
+
+def str_list(arg):
+    return arg.split(',')
+
+
+def int_list(arg):
+    return list(map(int, arg.split(',')))
+
+
+def lim_list(arg):
+    lim = list(map(float, arg.split(',')))
+    assert len(lim) == 2
+    return lim
+
+
+def global_args(parser, arg_file=None, prog_func=None):
+    import torch
+
+    if arg_file is None:
+        import sys
+        argv = sys.argv[1:]
+    else:
+        argv = ["--load-from-file", arg_file]
+
+    global progress_fwd
+    progress_fwd = prog_func
+
+    args = parser.parse_args(argv)
+
+    args_dict = vars(args)
+    for arg in args_dict:
+        globals()[arg] = args_dict[arg]
+
+    torch.backends.cudnn.benchmark = True
+    globals()[device] = torch.device(device)
+
+    #globals()["dataset_format"] = get_format(args.dataset_name)
+
+    global skip_layers
+    global gt_channels
+    global recurrent_steps
+
+    if disable_skip_layers:
+        skip_layers = 0
+    else:
+        skip_layers = 1
+
+    #gt_channels = []
+    #for i in range(out_channels):
+    #    gt_channels.append((i + 1) * channel_steps + i * (channel_steps + 1))
+    gt_channels = out_channels
+
+    if lstm_steps:
+        recurrent_steps = lstm_steps
+    #elif gru_steps:
+    #    recurrent_steps = gru_steps
+    else:
+        recurrent_steps = 0
+
 
 data_types = None
 mask_name = None
@@ -79,8 +154,10 @@ val_dir = None
 eval_mask_year = None
 ensemble_member = None
 n_filters = None
+disable_first_bn = None
+depth = None
 
-def set_train_args():
+def set_train_args(arg_file=None):
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--log_dir', type=str, default='logs/')
     arg_parser.add_argument('--save_dir', type=str, default='../Asi_maskiert/results/')
@@ -103,8 +180,8 @@ def set_train_args():
     arg_parser.add_argument('--save_model_interval', type=int, default=30000)
     arg_parser.add_argument('--lstm_steps', type=int, default=0)
     arg_parser.add_argument('--prev-next-steps', type=int, default=0)
-    arg_parser.add_argument('--encoding_layers', type=str, default='4')
-    arg_parser.add_argument('--pooling_layers', type=str, default='2')
+    arg_parser.add_argument('--encoding_layers', type=int, default=4)
+    arg_parser.add_argument('--pooling_layers', type=int, default=2)
     arg_parser.add_argument('--out_channels', type=int, default=20)
     arg_parser.add_argument('--in_channels', type=int, default=20)
     arg_parser.add_argument('--loss_criterion', type=int, default=0)
@@ -121,16 +198,18 @@ def set_train_args():
     arg_parser.add_argument('--attribute_anomaly', type=str, default='anomalies')   
     arg_parser.add_argument('--attribute_depth', type=str, default='depth')
     arg_parser.add_argument('--attribute_argo', type=str, default='argo')
-    arg_parser.add_argument('--lon1', type=str, default='-65')
     arg_parser.add_argument('--mask_argo', type=str, default='argo')
-    arg_parser.add_argument('--lon2', type=str, default='-5')
-    arg_parser.add_argument('--lat1', type=str, default='20')
-    arg_parser.add_argument('--lat2', type=str, default='69')
+    arg_parser.add_argument('--lon1', type=int, default=-60)
+    arg_parser.add_argument('--lon2', type=int, default=-10)
+    arg_parser.add_argument('--lat1', type=int, default=50)
+    arg_parser.add_argument('--lat2', type=int, default=65)
     arg_parser.add_argument('--val_interval', type=int, default=50000)
     arg_parser.add_argument('--val_dir', type=str, default='../Asi_maskiert/results/validation/')
     arg_parser.add_argument('--eval_mask_year', type=str, default='1958_2021_newgrid')
-    arg_parser.add_argument('--n_filters', type=int, default=64)
-
+    arg_parser.add_argument('--n_filters', type=int, default=None)
+    arg_parser.add_argument('--disable_first_bn', action='store_true')
+    arg_parser.add_argument('--depth', type=int, default=0)
+    global_args(arg_parser, arg_file)
     args = arg_parser.parse_args()
 
     global im_name
@@ -184,6 +263,8 @@ def set_train_args():
     global eval_mask_year
     global ensemble_member
     global n_filters
+    global disable_first_bn
+    global depth
 
     im_name = args.im_name
     mask_name = args.mask_name
@@ -205,8 +286,8 @@ def set_train_args():
     save_model_interval = args.save_model_interval
     lstm_steps = args.lstm_steps
     prev_next_steps = args.prev_next_steps
-    encoding_layers = list(map(int, args.encoding_layers.split(',')))
-    pooling_layers = list(map(int, args.pooling_layers.split(',')))
+    encoding_layers = args.encoding_layers 
+    pooling_layers = args.pooling_layers
     channel_reduction_rate = args.channel_reduction_rate
     out_channels = args.out_channels
     gt_channels = []
@@ -242,6 +323,8 @@ def set_train_args():
     eval_mask_year = args.eval_mask_year
     ensemble_member = args.ensemble_member
     n_filters = args.n_filters
+    disable_first_bn = args.disable_first_bn
+    depth = args.depth
 
 def set_evaluation_args():
     arg_parser = argparse.ArgumentParser()

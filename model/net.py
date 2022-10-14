@@ -34,7 +34,7 @@ class PConvLSTM(nn.Module):
 
         # define encoding layers
         encoding_layers = []
-        for i in range(0, self.net_depth):
+        for i in range(self.net_depth):
             encoding_layers.append(EncoderBlock(
                 conv_config=enc_conv_configs[i],
                 kernel=enc_conv_configs[i]['kernel'], stride=(2, 2), activation=nn.ReLU()))

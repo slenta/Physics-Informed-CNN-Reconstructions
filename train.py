@@ -46,25 +46,22 @@ if cfg.attribute_depth == 'depth':
 else:
     depth = False
 
-lstm = True
-if cfg.lstm_steps == 0:
-    lstm = False
+print(cfg.save_part)
 
 # define datasets
-dataset_train = MaskDataset(cfg.im_year, depth, cfg.in_channels, mode='train')
-dataset_test = MaskDataset(cfg.eval_im_year, depth, cfg.in_channels, mode='test')
+dataset_train = MaskDataset(cfg.im_year, cfg.in_channels, mode='train')
+dataset_val = MaskDataset(cfg.eval_im_year, cfg.in_channels, mode='test')
 
 iterator_train = iter(DataLoader(dataset_train, batch_size=cfg.batch_size,
                                  sampler=InfiniteSampler(len(dataset_train)),
                                  num_workers=cfg.n_threads))
 
 #define network model
-model = PConvLSTM(radar_img_size=cfg.image_size,
-                  radar_enc_dec_layers=cfg.encoding_layers[0],
-                  radar_pool_layers=cfg.pooling_layers[0],
-                  radar_in_channels=cfg.in_channels,
-                  radar_out_channels=cfg.out_channels,
-                  lstm=lstm).to(cfg.device)
+model = PConvLSTM(img_size=cfg.image_size,
+                  enc_dec_layers=cfg.encoding_layers,
+                  pool_layers=cfg.pooling_layers,
+                  in_channels=cfg.in_channels,
+                  out_channels=cfg.out_channels).to(cfg.device)
 
 # define learning rate
 if cfg.finetune:
@@ -115,9 +112,16 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
         loss += value
         if cfg.log_interval and (i + 1) % cfg.log_interval == 0:
             writer.add_scalar('loss_{:s}'.format(key), value.item(), i + 1)
+
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
+
+    #validate using val dataset 
+    if (i + 1) % cfg.val_interval == 0:
+        model.eval()
+        evalu.evaluate(model, dataset_val, cfg.device,
+                 '{:s}/images/{:s}/test_{:d}'.format(cfg.save_dir, cfg.save_part, i + 1), lambda_dict, criterion, writer, i + 1)
 
     # save checkpoint
     if (i + 1) % cfg.save_model_interval == 0 or (i + 1) == cfg.max_iter:
@@ -127,12 +131,7 @@ for i in tqdm(range(start_iter, cfg.max_iter)):
     # create snapshot image
     if (i + 1) % cfg.vis_interval == 0:
         model.eval()
-        evalu.create_snapshot_image(model, dataset_test, f'{cfg.save_dir}/images/{cfg.save_part}/iter_{str(i + 1)}')
+        evalu.create_snapshot_image(model, dataset_val, f'{cfg.save_dir}/images/{cfg.save_part}/iter_{str(i + 1)}')
 
-    #validate using test dataset 
-    if (i + 1) % cfg.val_interval == 0:
-        model.eval()
-        evalu.evaluate(model, dataset_test, cfg.device,
-                 '{:s}/images/{:s}/test_{:d}'.format(cfg.save_dir, cfg.save_part, i + 1))
 
 writer.close()

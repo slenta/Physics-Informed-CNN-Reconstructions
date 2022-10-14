@@ -27,6 +27,5 @@ def load_ckpt(ckpt_name, models, device, optimizers=None):
         model.load_state_dict(ckpt_dict[prefix], strict=False)
     if optimizers is not None:
         for prefix, optimizer in optimizers:
-            print(ckpt_dict[prefix])
             optimizer.load_state_dict(ckpt_dict[prefix])
     return ckpt_dict['n_iter']
