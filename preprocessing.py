@@ -9,8 +9,8 @@ import xarray as xr
 import config as cfg
 import h5py
 import netCDF4
-#import cdo 
-#cdo = cdo.Cdo()
+import cdo 
+cdo = cdo.Cdo()
 
 
 class preprocessing():
@@ -34,19 +34,19 @@ class preprocessing():
     def __getitem__(self):
         
         ofile = self.path + self.name + self.year + '.nc'
+        
+        #if necessary: cut desired lon lat box from original image
+        #ifile = ofile
         #ofile = self.path + self.name + self.year + '_newgrid.nc'
-
         #cdo.sellonlatbox(self.lon1, self.lon2, self.lat1, self.lat2, input = ifile, output = ofile)
 
         ds = xr.load_dataset(ofile, decode_times=False)
         
-        #ds = ds.sel(lat = slice(self.lat1, self.lat2))
-        #ds = ds.sel(lon = slice(self.lon1, self.lon2))
-
-
         #extract the variables from the file
+        #create binary mask for training
         if self.mode == 'mask': 
 
+            #adjust time dimension for training purposes
             time_var = ds.time
             if self.attributes[2] == 'argo':
                 ds = ds.sel(time=slice(200400, 202011))
@@ -57,14 +57,13 @@ class preprocessing():
 
 
             tos = ds.tho.values
-            tos = np.where(np.isnan(tos)==False, 1, tos)
-            tos = np.where(np.isnan(tos)==True, 0, tos)
-
+            tos = np.where(np.isnan(tos)==False, 1, 0)
             tos = tos.repeat(cfg.ensemble_member, axis=0)
 
-
+        #adjust assimilation data to fit training framework
         elif self.mode=='image':
             
+            #adjust time dimension for training purposes
             time_var = ds.time
             ds['time'] = netCDF4.num2date(time_var[:],time_var.units)
             if self.attributes[2] == 'argo':
@@ -75,7 +74,7 @@ class preprocessing():
                 ds = ds.sel(time=slice('1958-01', '2020-10'))
 
 
-
+            #change total values to anomalies using calculated baseline climatology (taken from ensemble mean of all assimilation data)
             f = h5py.File('../Asi_maskiert/original_image/baseline_climatology' + self.attributes[2] + '.hdf5', 'r')
             tos_mean = f.get('sst_mean')
             
@@ -85,9 +84,10 @@ class preprocessing():
                 for i in range(len(tos)):
                     tos[i] = tos[i] - tos_mean[i%12]
 
+            #eliminate nan values
             tos = np.nan_to_num(tos, nan=0)
 
-
+        #adjust observation data for validation purposes
         elif self.mode=='val':
 
             time_var = ds.time
@@ -98,8 +98,7 @@ class preprocessing():
             elif self.attributes[2] == 'full':
                 ds = ds.sel(time=slice(195800, 202011))
 
-
-
+            #change total values to anomalies using calculated baseline climatology (taken from ensemble mean of all assimilation data)
             f = h5py.File('../Asi_maskiert/original_image/baseline_climatology' + self.attributes[2] + '.hdf5', 'r')
             tos_mean = f.get('sst_mean')
             tos = ds.tho.values
@@ -110,6 +109,7 @@ class preprocessing():
 
             tos = np.nan_to_num(tos, nan=0)
 
+        #create mixed dataset from observations and assimilation data to better reconstruct observational values
         elif self.mode == 'mixed':
             
             obs_path = cfg.mask_dir + cfg.mask_name + cfg.mask_year + '.nc'
@@ -145,6 +145,7 @@ class preprocessing():
 
             tos = np.nan_to_num(tos, nan=0)
 
+        #adjust shape of variables to fit quadratic input
         n = tos.shape
         rest = np.zeros((n[0], n[1], self.new_im_size - n[2], n[3]))
         tos = np.concatenate((tos, rest), axis=2)
@@ -152,11 +153,13 @@ class preprocessing():
         rest2 = np.zeros((n[0], n[1], n[2], self.new_im_size - n[3]))
         tos = np.concatenate((tos, rest2), axis=3)
 
+        #choose depth steps for multi or single layer training
         if self.attributes[0] == 'depth':
             tos = tos[:, :self.depth, :, :]
         else:
             tos = tos[:, cfg.depth, :, :]
 
+        #adjust shape for additional timesteps in lstm training
         if cfg.lstm_steps != 0:
             tos = np.expand_dims(tos, axis=1)
             tos = tos.repeat(cfg.lstm_steps, axis=1)
@@ -169,21 +172,21 @@ class preprocessing():
                     for i in range(cfg.lstm_steps, tos.shape[0]):
                         tos[i, cfg.lstm_steps - j, :, :] = tos[i - j, cfg.lstm_steps - 1, :, :] 
 
-        n = tos.shape
-        return tos, n
+        return tos
 
 
     def plot(self):
         
-        tos_new, n = self.__getitem__()
+        #plot variable for quick check 
+        tos_new = self.__getitem__()
         pixel_plot = plt.figure()
         pixel_plot = plt.imshow(tos_new[0, 0, :, :], vmin = -5, vmax = 5)
         plt.colorbar(pixel_plot)
-        #plt.savefig(self.image_path + self.name + '.pdf')
         plt.show()
 
     def depths(self):
 
+        #get depth steps for later heat content calculations
         ofile = cfg.im_dir + 'Image_' + cfg.im_year + '.nc'  
         ds = xr.load_dataset(ofile, decode_times=False)
         depth = ds.depth.values
@@ -192,7 +195,8 @@ class preprocessing():
 
     def save_data(self):
 
-        tos_new, n = self.__getitem__()
+        #save variable data in hdf5 format
+        tos_new = self.__getitem__()
 
         if cfg.lstm_steps!=0:
             if self.mode=='val':   
@@ -215,10 +219,11 @@ class preprocessing():
             else:
                 f = h5py.File(f'{self.path}{self.name}{self.year}_{self.attributes[0]}_{str(cfg.depth)}_{self.attributes[1]}_{self.attributes[2]}_{str(cfg.in_channels)}.hdf5', 'w')
 
-
-        dset1 = f.create_dataset('tos_sym', shape=n, dtype = 'float32', data = tos_new)
-        #for dim in range(0, 3):
-        #    h5[cfg.data_types[0]].dims[dim].label = dname[dim]
+        #create dataset with variable
+        dset1 = f.create_dataset('tos_sym', shape=tos_new.shape, dtype = 'float32', data = tos_new)
+        #label dimensions
+        #for dim, dname in in zip(dims, dnames):
+        #    h5[cfg.data_types[0]].dim.label = dname
         f.close()
 
 

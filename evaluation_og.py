@@ -18,6 +18,7 @@ from preprocessing import preprocessing
 import xarray as xr
 import netCDF4 as nc
 import cdo
+from sklearn.metrics import mean_squared_error
 
 cdo = cdo.Cdo()
 
@@ -147,7 +148,11 @@ def heat_content_timeseries(depth_steps, iteration, name):
     rho = 1025  #density of seawater
     shc = 3850  #specific heat capacity of seawater
 
-    f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_cut.hdf5', 'r')
+    if cfg.val_cut:
+        f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_cut.hdf5', 'r')
+    else:
+        f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}.hdf5', 'r')
+
     output = np.array(f.get('output'))
     gt = np.array(f.get('gt'))
     image = np.array(f.get('image'))
@@ -157,10 +162,10 @@ def heat_content_timeseries(depth_steps, iteration, name):
     mask = np.where(mask==0, np.NaN, 1)
 
     #take spatial mean of network output and ground truth
-    masked_output = np.nanmean(np.nanmean(output * mask, axis=2), axis=2)
-    masked_gt = np.nanmean(np.nanmean(image * mask, axis=2), axis=2)
-    output = np.nanmean(np.nanmean(output * continent_mask, axis=2), axis=2)
-    gt = np.nanmean(np.nanmean(gt * continent_mask, axis=2), axis=2)
+    masked_output = np.nanmean(output * mask, axis=(3, 2))
+    masked_gt = np.nanmean(image * mask, axis=(3, 2))
+    output = np.nanmean(output * continent_mask, axis=(3, 2))
+    gt = np.nanmean(gt * continent_mask, axis=(3, 2))
 
 
     n = output.shape
@@ -175,7 +180,11 @@ def heat_content_timeseries(depth_steps, iteration, name):
         hc_net_masked[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*masked_output[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * masked_output[i, 0] * rho * shc
         hc_gt_masked[i] = np.sum([(depth_steps[k] - depth_steps[k-1])*masked_gt[i, k]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * masked_gt[i, 0] * rho * shc
 
-    f_final = h5py.File(f'{cfg.val_dir}{cfg.save_part}/timeseries_{iteration}_{name}.hdf5', 'w')
+    if cfg.val_cut:
+        f_final = h5py.File(f'{cfg.val_dir}{cfg.save_part}/timeseries_{iteration}_{name}_cut.hdf5', 'w')
+    else:
+        f_final = h5py.File(f'{cfg.val_dir}{cfg.save_part}/timeseries_{iteration}_{name}.hdf5', 'w')
+
     f_final.create_dataset(name='net_ts', shape=hc_net.shape, dtype=float, data=hc_net)
     f_final.create_dataset(name='gt_ts', shape=hc_gt.shape, dtype=float, data=hc_gt)
     f_final.create_dataset(name='net_ts_masked', shape=hc_net_masked.shape, dtype=float, data=hc_net_masked)
@@ -213,9 +222,21 @@ def heat_content_correlation(depth_steps, iteration, name):
     rho = 1025  #density of seawater
     shc = 3850  #specific heat capacity of seawater
 
-    f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_cut.hdf5', 'r')
+    if cfg.val_cut:
+        f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_cut.hdf5', 'r')
+    else:
+        f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}.hdf5', 'r')
+
     output = np.array(f.get('output'))
     gt = np.array(f.get('gt'))
+    
+    if cfg.val_cut:
+        fm = h5py.File('../Asi_maskiert/original_masks/Kontinent_newgrid_cut.hdf5', 'r')
+        continent_mask = fm.get('continent_mask') 
+    else:
+        fm = h5py.File('../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5', 'r')
+        continent_mask = fm.get('continent_mask') 
+
     image = np.array(f.get('image'))
     mask = np.array(f.get('mask'))
 
@@ -243,7 +264,11 @@ def heat_content_correlation(depth_steps, iteration, name):
                 hc_net_masked[i, j, l] = np.sum([(depth_steps[k] - depth_steps[k-1])*masked_output[i, k, j, l]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * masked_output[i, 0, j, l] * rho * shc
                 hc_gt_masked[i, j, l] = np.sum([(depth_steps[k] - depth_steps[k-1])*masked_gt[i, k, j, l]*rho*shc for k in range(1, n[1])]) + depth_steps[0] * masked_gt[i, 0, j, l] * rho * shc
 
-    f_final = h5py.File(f'{cfg.val_dir}{cfg.save_part}/heatcontent_{iteration}_{name}.hdf5', 'w')
+    if cfg.val_cut:
+        f_final = h5py.File(f'{cfg.val_dir}{cfg.save_part}/heatcontent_{iteration}_{name}_cut.hdf5', 'w')
+    else:
+        f_final = h5py.File(f'{cfg.val_dir}{cfg.save_part}/heatcontent_{iteration}_{name}.hdf5', 'w')
+
     f_final.create_dataset(name='net_ts', shape=hc_net.shape, dtype=float, data=hc_net)
     f_final.create_dataset(name='gt_ts', shape=hc_gt.shape, dtype=float, data=hc_gt)
     f_final.create_dataset(name='net_ts_masked', shape=hc_net_masked.shape, dtype=float, data=hc_net_masked)
@@ -327,7 +352,7 @@ def create_snapshot_image(model, dataset, filename):
 
     mask = ma.masked_array(mask, mask)
 
-    for c in range(output.shape[1]):
+    for c in range(gt.shape[1]):
         if cfg.attribute_anomaly == 'anomalies':
             vmin, vmax = (-5, 5)
         else:
@@ -358,18 +383,18 @@ def h5_to_netcdf_cutting(mode, depth):
 
     lat = np.array(ds_compare.lat.values)
     lon = np.array(ds_compare.lon.values)
-    time = np.array(ds_compare.time.values)
+    time = np.array(ds_compare.time.values)[:752]
 
     lon_out = np.arange(cfg.lon1, cfg.lon2)
     lat_out = np.arange(cfg.lat1, cfg.lat2)
 
     f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{cfg.resume_iter}_{mode}.hdf5', 'r')
 
-    cname = ['output', 'gt', 'image', 'mask']
+    cname = ['gt', 'output', 'image', 'mask']
 
     for name in cname:
         globals()[name] = np.array([f.get(name)]).squeeze(axis=0)
-        globals()[f'{name}_new'] = np.zeros(shape=(len(time[:-2]), depth, len(lat_out), len(lon_out)), dtype='float32')
+        globals()[f'{name}_new'] = np.zeros(shape=(len(time), depth, len(lat_out), len(lon_out)), dtype='float32')
 
     for la in lat_out:
         for lo in lon_out: 
@@ -382,8 +407,10 @@ def h5_to_netcdf_cutting(mode, depth):
                     if (x, y) == (a, b):
                         x_out.append(x)
                         y_out.append(y)
-            for name in cname:
-                globals()[f'{name}_new'][:, :, la - min(lat_out), lo - min(lon_out)] = np.mean([globals()[name][:, :, x, y] for x, y in zip(x_out, y_out)], axis=(2, 3))
+            for i in range(len(time)):
+                for j in range(depth):
+                    for name in cname:
+                        globals()[f'{name}_new'][i, j, la - min(lat_out), lo - min(lon_out)] = np.mean([globals()[name][i, j, x, y] for x, y in zip(x_out, y_out)])
 
     for name in cname:
         globals()[f'{name}_new'] = globals()[f'{name}_new'][:, :, ::-1, :] 
@@ -393,8 +420,8 @@ def h5_to_netcdf_cutting(mode, depth):
 
     #create xarray Dataset with all variables
     ds = xr.Dataset(
-        data_vars=dict(ouput=(["time", "depth", "x", "y"], output_new), image=(["time", "depth", "x", "y"], image_new), gt=(["time", "depth", "x", "y"], gt_new), mask=(["time", "depth", "x", "y"], mask_new)),
-        coords=dict(time=(["time"], time[:-2]), depth=(["depth"], depths), lon=(["lon"], lon_out),lat=(["lat"], lat_out)),
+        data_vars=dict(output=(["time", "depth", "x", "y"], output_new), image=(["time", "depth", "x", "y"], image_new), gt=(["time", "depth", "x", "y"], gt_new), mask=(["time", "depth", "x", "y"], mask_new)),
+        coords=dict(time=(["time"], time), depth=(["depth"], depths), lon=(["lon"], lon_out),lat=(["lat"], lat_out)),
         attrs=dict(description=f'Nc File for infilled dataset at Iteration {cfg.resume_iter}')
     )
 
@@ -406,54 +433,99 @@ def h5_to_netcdf_cutting(mode, depth):
         h5.create_dataset(name=name, shape=var.shape, dtype=float, data=var)
     h5.close()
 
-def pattern_correlation(image_1, image_2):
+def pattern_correlation(image_1, image_2, del_t=1):
 
     image_1 = np.array(image_1)
     image_2 = np.array(image_2)
 
-    image_1_c = image_1.flatten('C')
-    image_2_c = image_2.flatten('C')
-    image_1_f = image_1.flatten('F')
-    image_2_f = image_2.flatten('F')
+    image_1 = image_1.flatten('C')
+    image_2 = image_2.flatten('C')
 
-    corr_c = pearsonr(image_1_c, image_2_c)[1]
-    corr_f = pearsonr(image_1_f, image_2_f)[1]
-    corr_mean = (corr_c + corr_f)/2 
+    if del_t != 1:
+        image_1 = running_mean_std(image_1, mode='mean', del_t=del_t)
+        image_2 = running_mean_std(image_2, mode='mean', del_t=del_t)
 
-    return corr_c, corr_f, corr_mean 
+    corr = pearsonr(image_1, image_2)[0]
+
+    return corr 
 
 
-def pattern_corr_timeseries(name):
-  
-    f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_{name}_cut.hdf5', 'r')
-    output = np.array(f.get('output'))
-    gt = np.array(f.get('gt'))
+def pattern_corr_timeseries(name, del_t=1):
+      
+    if cfg.val_cut:
+        f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/heatcontent_{str(cfg.resume_iter)}_{name}_cut.hdf5', 'r')
+    else:
+        f = h5py.File(f'{cfg.val_dir}{cfg.save_part}/heatcontent_{str(cfg.resume_iter)}_{name}.hdf5', 'r')
+
+
+    output = np.nan_to_num(np.array(f.get('net_ts')), nan=0) 
+    gt = np.nan_to_num(np.array(f.get('gt_ts')), nan=0)
 
     n = output.shape
 
-    if cfg.attribute_depth == 'depth':
-        corr_ts, corr_ts_f, corr_ts_c = np.zeros((3, n[1], n[0])) 
+    corr_ts = np.zeros((n[0])) 
 
-        for i in range(n[1]):
-            for j in range(n[0]):
-                corr_ts_c[i, j], corr_ts_f[i, j], corr_ts[i, j] = pattern_correlation(output[i, j, :, :], gt[i, j, :, :])
+    for i in range(n[0]):
+        corr_ts[i] = pattern_correlation(output[i, :, :], gt[i, :, :], del_t)
+
+    if cfg.val_cut: 
+        f_final = h5py.File(f'{cfg.val_dir}{cfg.save_part}/pattern_corr_ts_{str(cfg.resume_iter)}_{name}_mean_{del_t}_cut.hdf5', 'w')
     else:
-        corr_ts, corr_ts_f, corr_ts_c = np.zeros((3, n[0])) 
+        f_final = h5py.File(f'{cfg.val_dir}{cfg.save_part}/pattern_corr_ts_{str(cfg.resume_iter)}_{name}_mean_{del_t}.hdf5', 'w')
 
-        for i in range(n[0]):
-            corr_ts_c[i], corr_ts_f[i], corr_ts[i] = pattern_correlation(output[i, :, :], gt[i, :, :])
-
-    
-    f_final = h5py.File(f'{cfg.val_dir}{cfg.save_part}/pattern_corr_ts_{str(cfg.resume_iter)}_{name}.hdf5', 'w')
-    f_final.create_dataset(name='corr_ts_mean', shape=corr_ts.shape, dtype=float, data=corr_ts)
-    f_final.create_dataset(name='corr_ts_f', shape=corr_ts_f.shape, dtype=float, data=corr_ts_f)
-    f_final.create_dataset(name='corr_ts_c', shape=corr_ts_c.shape, dtype=float, data=corr_ts_c)
+    f_final.create_dataset(name='corr_ts', shape=corr_ts.shape, dtype=float, data=corr_ts)
     f.close()
     
 
+def combine_layers(parts):
 
+    names = ['output', 'image', 'mask', 'gt']
+    for name in names:
+        globals()[f'{name}_full'] = np.zeros(shape=(752, 20, 128, 128))
+        globals()[f'{name}_obs_full'] = np.zeros(shape=(752, 20, 128, 128))
 
+    for depth, part in zip(range(len(parts)), parts):
+        f = h5py.File(f'{cfg.val_dir}part_{str(part)}/validation_{str(cfg.resume_iter)}_assimilation_{cfg.mask_argo}.hdf5', 'r')
+        fo = h5py.File(f'{cfg.val_dir}part_{str(part)}/validation_{str(cfg.resume_iter)}_observations_{cfg.mask_argo}.hdf5', 'r')
 
+        for name in names:
+            globals()[name] = np.array(f.get(name))
+            globals()[f'{name}_obs'] = np.array(fo.get(name)) 
+
+            globals()[f'{name}_full'][:, depth, :, :] = globals()[name][:, 0, :, :]
+            globals()[f'{name}_obs_full'][:, depth, :, :] = globals()[f'{name}_obs'][:, 0, :, :]
+
+    f_a = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_assimilation_{cfg.mask_argo}.hdf5', 'w')
+    f_o = h5py.File(f'{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_observations_{cfg.mask_argo}.hdf5', 'w')
+    for name in names:
+        f_a.create_dataset(name=name, shape=globals()[f'{name}_full'].shape, data=globals()[f'{name}_full']) 
+        f_o.create_dataset(name=name, shape=globals()[f'{name}_obs_full'].shape, data=globals()[f'{name}_obs_full']) 
+    f_a.close()
+    f_o.close()
+    
+
+def hc_ensemble_mean_std(path, name, members, length=754):
+
+    hc_all, hc_cut_all = np.zeros(shape=(2, members, length))
+
+    for i in range(1, members + 1):
+        file = f'{path}/{name}{i}_anomalies_depth_full_20.hdf5'
+        f = h5py.File(file, 'r')
+        hc = f.get('hc')
+        hc_cut = f.get('hc_cut')
+
+        hc_all[i - 1] = np.array(hc)
+        hc_cut_all[i - 1] = np.array(hc_cut)
+
+    mean = np.mean(hc_all, axis=0)
+    mean_cut = np.mean(hc_cut_all, axis=0)
+    std = np.std(hc_all, axis=0)
+    std_cut = np.std(hc_cut_all, axis=0)
+
+    if cfg.val_cut:
+        return mean_cut, std_cut, hc_cut_all
+    else:
+        return mean, std, hc_all
 
 #cfg.set_train_args()
 

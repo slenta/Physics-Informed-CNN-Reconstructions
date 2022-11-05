@@ -1,6 +1,5 @@
 import argparse
 import torch
-import os
 
 MEAN = [0.485, 0.456, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406, 0.406]
 STD = [0.229, 0.224, 0.225, 0.225, 0.225, 0.225, 0.225, 0.225, 0.225, 0.225]
@@ -17,14 +16,11 @@ LAMBDA_DICT_HOLE = {
 
 PDF_BINS = [0, 0.01, 0.02, 0.1, 1, 2, 10, 100]
 
-
-
-
-def get_format(dataset_name):
-    json_data = pkgutil.get_data(__name__, "static/dataset_format.json")
-    dataset_format = json.loads(json_data)
-
-    return dataset_format[str(dataset_name)]
+#def get_format(dataset_name):
+#    json_data = pkgutil.get_data(__name__, "static/dataset_format.json")
+#    dataset_format = json.loads(json_data)
+#
+#    return dataset_format[str(dataset_name)]
 
 
 class LoadFromFile(argparse.Action):
@@ -72,11 +68,6 @@ def global_args(parser, arg_file=None, prog_func=None):
     global skip_layers
     global gt_channels
     global recurrent_steps
-
-    if disable_skip_layers:
-        skip_layers = 0
-    else:
-        skip_layers = 1
 
     #gt_channels = []
     #for i in range(out_channels):
@@ -156,6 +147,7 @@ ensemble_member = None
 n_filters = None
 disable_first_bn = None
 depth = None
+val_cut = None
 
 def set_train_args(arg_file=None):
     arg_parser = argparse.ArgumentParser()
@@ -167,7 +159,7 @@ def set_train_args(arg_file=None):
     arg_parser.add_argument('--mask_name', type=str, default='Maske_')
     arg_parser.add_argument('--mask_year', type=str, default='1958_2021_newgrid')
     arg_parser.add_argument('--im_year', type=str, default='r8_16_newgrid')
-    arg_parser.add_argument('--ensemble_member', type=int, default=9)
+    arg_parser.add_argument('--ensemble_member', type=int, default=2)
     arg_parser.add_argument('--resume_iter', type=int)
     arg_parser.add_argument('--device', type=str, default='cpu')
     arg_parser.add_argument('--batch_size', type=int, default=4)
@@ -177,7 +169,7 @@ def set_train_args(arg_file=None):
     arg_parser.add_argument('--lr-finetune', type=float, default=5e-5)
     arg_parser.add_argument('--max_iter', type=int, default=500000)
     arg_parser.add_argument('--log_interval', type=int, default=10)
-    arg_parser.add_argument('--save_model_interval', type=int, default=30000)
+    arg_parser.add_argument('--save_model_interval', type=int, default=25000)
     arg_parser.add_argument('--lstm_steps', type=int, default=0)
     arg_parser.add_argument('--prev-next-steps', type=int, default=0)
     arg_parser.add_argument('--encoding_layers', type=int, default=4)
@@ -194,21 +186,22 @@ def set_train_args(arg_file=None):
     arg_parser.add_argument('--disable_skip_layers', action='store_true')
     arg_parser.add_argument('--vis_interval', type=int, default=50000)
     arg_parser.add_argument('--eval_im_year', type=str, default='r16_newgrid')
-    arg_parser.add_argument('--prepro_mode', type=str, default='both')
+    arg_parser.add_argument('--prepro_mode', type=str, default='none')
     arg_parser.add_argument('--attribute_anomaly', type=str, default='anomalies')   
     arg_parser.add_argument('--attribute_depth', type=str, default='depth')
     arg_parser.add_argument('--attribute_argo', type=str, default='argo')
     arg_parser.add_argument('--mask_argo', type=str, default='argo')
     arg_parser.add_argument('--lon1', type=int, default=-60)
     arg_parser.add_argument('--lon2', type=int, default=-10)
-    arg_parser.add_argument('--lat1', type=int, default=50)
-    arg_parser.add_argument('--lat2', type=int, default=65)
+    arg_parser.add_argument('--lat1', type=int, default=45)
+    arg_parser.add_argument('--lat2', type=int, default=60)
     arg_parser.add_argument('--val_interval', type=int, default=50000)
     arg_parser.add_argument('--val_dir', type=str, default='../Asi_maskiert/results/validation/')
     arg_parser.add_argument('--eval_mask_year', type=str, default='1958_2021_newgrid')
     arg_parser.add_argument('--n_filters', type=int, default=None)
     arg_parser.add_argument('--disable_first_bn', action='store_true')
     arg_parser.add_argument('--depth', type=int, default=0)
+    arg_parser.add_argument('--val_cut', action='store_true')
     global_args(arg_parser, arg_file)
     args = arg_parser.parse_args()
 
@@ -265,6 +258,7 @@ def set_train_args(arg_file=None):
     global n_filters
     global disable_first_bn
     global depth
+    global val_cut
 
     im_name = args.im_name
     mask_name = args.mask_name
@@ -325,117 +319,129 @@ def set_train_args(arg_file=None):
     n_filters = args.n_filters
     disable_first_bn = args.disable_first_bn
     depth = args.depth
+    val_cut = args.val_cut
 
-def set_evaluation_args():
+def set_evaluation_args(arg_file=None):
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--data-types', type=str, default='tho')
-    arg_parser.add_argument('--img-names', type=str, default='Image_3d_1958_2020.hdf5')
-    arg_parser.add_argument('--mask-names', type=str, default='Maske_')
-    arg_parser.add_argument('--evaluation-dirs', type=str, default='evaluation/')
-    arg_parser.add_argument('--snapshot-dirs', type=str, default='../Asi_maskiert/results')
-    arg_parser.add_argument('--mask_year', type=str, default='2020')
-    arg_parser.add_argument('--data-root-dir', type=str, default='../Asi_maskiert/original_image/')
-    arg_parser.add_argument('--mask-dir', type=str, default='../Asi_maskiert/original_masks/')
+    arg_parser.add_argument('--log_dir', type=str, default='logs/')
+    arg_parser.add_argument('--save_dir', type=str, default='../Asi_maskiert/results/')
+    arg_parser.add_argument('--im_dir', type=str, default='../Asi_maskiert/original_image/')
+    arg_parser.add_argument('--mask_dir', type=str, default='../Asi_maskiert/original_masks/')
+    arg_parser.add_argument('--im_name', type=str, default='Image_')
+    arg_parser.add_argument('--mask_name', type=str, default='Maske_')
+    arg_parser.add_argument('--mask_year', type=str, default='1958_2021_newgrid')
+    arg_parser.add_argument('--im_year', type=str, default='r16_newgrid')
+    arg_parser.add_argument('--ensemble_member', type=int, default=2)
+    arg_parser.add_argument('--resume_iter', type=int)
     arg_parser.add_argument('--device', type=str, default='cpu')
-    arg_parser.add_argument('--partitions', type=int, default=1)
-    arg_parser.add_argument('--prev-next', type=int, default=0)
-    arg_parser.add_argument('--lstm-steps', type=int, default=0)
-    arg_parser.add_argument('--prev-next-steps', type=int, default=0)
-    arg_parser.add_argument('--encoding-layers', type=str, default='3')
-    arg_parser.add_argument('--pooling-layers', type=str, default='0')
-    arg_parser.add_argument('--image-sizes', type=str, default='256')
-    arg_parser.add_argument('--infill', type=str, default=None)
-    arg_parser.add_argument('--create-images', type=str, default=None)
-    arg_parser.add_argument('--create-video', action='store_true')
-    arg_parser.add_argument('--create-report', action='store_true')
-    arg_parser.add_argument('--eval-names', type=str, default='Output')
-    arg_parser.add_argument('--eval-range', type=str, default=None)
-    arg_parser.add_argument('--ts-range', type=str, default=None)
-    arg_parser.add_argument('--out-channels', type=int, default=1)
-    arg_parser.add_argument('--eval-threshold', type=float, default=None)
-    arg_parser.add_argument('--in_channels', type=int, default=1)
-    arg_parser.add_argument('--channel-reduction-rate', type=int, default=1)
+    arg_parser.add_argument('--batch_size', type=int, default=4)
+    arg_parser.add_argument('--n_threads', type=int, default=32)
+    arg_parser.add_argument('--lstm_steps', type=int, default=0)
+    arg_parser.add_argument('--encoding_layers', type=int, default=4)
+    arg_parser.add_argument('--pooling_layers', type=int, default=2)
+    arg_parser.add_argument('--out_channels', type=int, default=20)
+    arg_parser.add_argument('--in_channels', type=int, default=20)
     arg_parser.add_argument('--save_part', type=str, default='part_1')
     arg_parser.add_argument('--image_size', type=int, default=128)
-    arg_parser.add_argument('--weights', type=str, default=None)
-    arg_parser.add_argument('--attention', action='store_true')
-    arg_parser.add_argument('--disable-skip-layers', action='store_true')
+    arg_parser.add_argument('--vis_interval', type=int, default=50000)
+    arg_parser.add_argument('--eval_im_year', type=str, default='r16_newgrid')
+    arg_parser.add_argument('--prepro_mode', type=str, default='none')
+    arg_parser.add_argument('--attribute_anomaly', type=str, default='anomalies')   
+    arg_parser.add_argument('--attribute_depth', type=str, default='depth')
+    arg_parser.add_argument('--attribute_argo', type=str, default='argo')
+    arg_parser.add_argument('--mask_argo', type=str, default='argo')
+    arg_parser.add_argument('--lon1', type=int, default=-60)
+    arg_parser.add_argument('--lon2', type=int, default=-10)
+    arg_parser.add_argument('--lat1', type=int, default=45)
+    arg_parser.add_argument('--lat2', type=int, default=60)
+    arg_parser.add_argument('--val_interval', type=int, default=50000)
+    arg_parser.add_argument('--val_dir', type=str, default='../Asi_maskiert/results/validation/')
+    arg_parser.add_argument('--eval_mask_year', type=str, default='1958_2021_newgrid')
+    arg_parser.add_argument('--n_filters', type=int, default=None)
+    arg_parser.add_argument('--disable_first_bn', action='store_true')
+    arg_parser.add_argument('--depth', type=int, default=0)
+    arg_parser.add_argument('--val_cut', action='store_true')
+    global_args(arg_parser, arg_file)
     args = arg_parser.parse_args()
 
-    global data_types
-    global img_names
-    global mask_names
-    global evaluation_dirs
-    global snapshot_dirs
-    global data_root_dir
+    global im_name
+    global mask_name
+    global mask_year
+    global im_year
+    global log_dir
+    global save_dir
+    global im_dir
     global mask_dir
+    global resume_iter
     global device
-    global partitions
+    global batch_size
+    global n_threads
     global lstm_steps
-    global prev_next_steps
     global encoding_layers
     global pooling_layers
-    #global image_sizes
-    global infill
-    global create_images
-    global create_video
-    global create_report
-    global eval_names
-    global eval_threshold
-    global eval_range
-    global ts_range
+    global image_size
+    global in_channels
     global out_channels
-    global channel_reduction_rate
-    global loss_criterion
+    global save_snapshot_image
     global save_part
     global image_size
-    global attention
-    global skip_layers
-    global weights
+    global vis_interval
+    global eval_im_year
+    global prepro_mode
+    global lon1
+    global lon2
+    global lat1
+    global lat2
+    global attribute_anomaly
+    global attribute_argo
+    global attribute_depth
+    global mask_argo
+    global val_interval
+    global val_dir
+    global eval_mask_year
+    global ensemble_member
+    global n_filters
+    global disable_first_bn
+    global depth
+    global val_cut
 
-    data_types = args.data_types.split(',')
-    img_names = args.img_names.split(',')
-    mask_names = args.mask_names.split(',')
-    evaluation_dirs = args.evaluation_dirs.split(',')
-    snapshot_dirs = args.snapshot_dirs.split(',')
-    data_root_dir = args.data_root_dir
+    im_name = args.im_name
+    mask_name = args.mask_name
+    eval_timesteps = args.eval_timesteps.split(',')
+    log_dir = args.log_dir
+    save_dir = args.save_dir
+    im_dir = args.im_dir
     mask_dir = args.mask_dir
+    resume_iter = args.resume_iter
     torch.backends.cudnn.benchmark = True
     device = torch.device(args.device)
-    partitions = args.partitions
+    batch_size = args.batch_size
+    n_threads = args.n_threads
     lstm_steps = args.lstm_steps
-    prev_next_steps = args.prev_next_steps
-    encoding_layers = list(map(int, args.encoding_layers.split(',')))
-    pooling_layers = list(map(int, args.pooling_layers.split(',')))
-    #image_sizes = list(map(int, args.image_sizes.split(',')))
-    infill = args.infill
-    if args.create_images:
-        create_images = args.create_images.split(',')
-    create_video = args.create_video
-    create_report = args.create_report
-    eval_names = args.eval_names.split(',')
-    if args.eval_range:
-        eval_range = args.eval_range.split(',')
-    if args.ts_range:
-        ts_range = args.ts_range.split(',')
-    eval_threshold = args.eval_threshold
+    encoding_layers = args.encoding_layers 
+    pooling_layers = args.pooling_layers
     out_channels = args.out_channels
-    channel_reduction_rate = args.channel_reduction_rate
-    gt_channels = []
-    for i in range(out_channels):
-        gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
     in_channels = args.in_channels
     im_year = args.im_year
     mask_year = args.mask_year
     save_part = args.save_part
     image_size = args.image_size
-    attention = args.attention
-    weights = args.weights
-    if args.disable_skip_layers:
-        skip_layers = 0
-    else:
-        skip_layers = 1
-    for i in range(out_channels):
-        gt_channels.append((i + 1) * prev_next_steps + i * (prev_next_steps + 1))
-
-
+    vis_interval = args.vis_interval
+    eval_im_year = args.eval_im_year
+    prepro_mode = args.prepro_mode
+    lon1 = args.lon1
+    lon2 = args.lon2
+    lat1 = args.lat1
+    lat2 = args.lat2
+    attribute_depth = args.attribute_depth
+    attribute_anomaly = args.attribute_anomaly
+    attribute_argo = args.attribute_argo
+    mask_argo = args.mask_argo
+    val_interval = args.val_interval
+    val_dir = args.val_dir
+    eval_mask_year = args.eval_mask_year
+    ensemble_member = args.ensemble_member
+    n_filters = args.n_filters
+    disable_first_bn = args.disable_first_bn
+    depth = args.depth
+    val_cut = args.val_cut

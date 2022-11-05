@@ -5,9 +5,6 @@ import netCDF4 as nc
 import h5py
 import torch
 from torch._C import dtype
-#from torch._C import float32
-#from torch._C import float32
-#from torch._C import double
 from torch.utils import data
 from torch.utils.data import Dataset
 import xarray as xr
@@ -46,15 +43,17 @@ class MaskDataset(Dataset):
         mask = f_mask.get('tos_sym')
         
         n = image.shape
-
+        #shuffle timesteps, if wanted
         if self.shuffle == True:
             np.random.shuffle(np.array(image))
             np.random.shuffle(np.array(mask))
 
+        #reduce data for testing purposes
         if self.mode == 'test':
             mask = mask[:8]
             image = image[:8]
 
+        #adjust shape, if lstm timesteps should be included
         if cfg.lstm_steps!=0:
             #convert to pytorch tensors and adjust depth dimension
             if cfg.attribute_depth=='depth':
@@ -106,12 +105,14 @@ class MaskDataset(Dataset):
                 mask = mask.repeat(3, 1, 1)
                 gt = gt.repeat(3, 1, 1)
 
+            #create masked image
             masked = mask * gt
 
         return masked, mask, gt
 
     def __len__(self):
-        
+
+        #get gt data to just return length of time dimension in different modes 
         if cfg.lstm_steps!=0:
             f_image = h5py.File(f'{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5', 'r')
         else:
