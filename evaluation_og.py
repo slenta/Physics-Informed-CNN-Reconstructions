@@ -541,6 +541,71 @@ def create_snapshot_image(model, dataset, filename):
     plt.close("all")
 
 
+def area_cutting_single(var):
+
+    ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_newgrid.nc")
+
+    length = var.shape[0]
+
+    lat = np.array(ds_compare.lat.values)
+    lon = np.array(ds_compare.lon.values)
+    time = np.array(ds_compare.time.values)[:length]
+
+    lon_out = np.arange(cfg.lon1, cfg.lon2)
+    lat_out = np.arange(cfg.lat1, cfg.lat2)
+
+    if len(var.shape) == 4:
+
+        depth = var.shape[1]
+        var_new = np.zeros(
+            shape=(len(time), depth, len(lat_out), len(lon_out)), dtype="float32"
+        )
+
+        for la in lat_out:
+            for lo in lon_out:
+                x_lon, y_lon = np.where(np.round(lon) == lo)
+                x_lat, y_lat = np.where(np.round(lat) == la)
+                x_out = []
+                y_out = []
+                for x, y in zip(x_lon, y_lon):
+                    for a, b in zip(x_lat, y_lat):
+                        if (x, y) == (a, b):
+                            x_out.append(x)
+                            y_out.append(y)
+                for i in range(len(time)):
+                    for j in range(depth):
+                        var_new[i, j, la - min(lat_out), lo - min(lon_out)] = np.mean(
+                            [var[i, j, x, y] for x, y in zip(x_out, y_out)]
+                        )
+
+        var_new = var_new[:, :, ::-1, :]
+    else:
+
+        var_new = np.zeros(
+            shape=(len(time), len(lat_out), len(lon_out)), dtype="float32"
+        )
+
+        for la in lat_out:
+            for lo in lon_out:
+                x_lon, y_lon = np.where(np.round(lon) == lo)
+                x_lat, y_lat = np.where(np.round(lat) == la)
+                x_out = []
+                y_out = []
+                for x, y in zip(x_lon, y_lon):
+                    for a, b in zip(x_lat, y_lat):
+                        if (x, y) == (a, b):
+                            x_out.append(x)
+                            y_out.append(y)
+                for i in range(len(time)):
+                    var_new[i, la - min(lat_out), lo - min(lon_out)] = np.mean(
+                        [var[i, x, y] for x, y in zip(x_out, y_out)]
+                    )
+
+        var_new = var_new[:, ::-1, :]
+
+    return var_new
+
+
 def area_cutting(mode, depth):
 
     ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9.nc")

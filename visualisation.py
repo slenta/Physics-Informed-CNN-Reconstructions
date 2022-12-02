@@ -289,6 +289,7 @@ def hc_plotting(path, iteration, time=600):
         f"{cfg.val_dir}{path}/validation_{str(iteration)}_observations_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
         "r",
     )
+    f_en4 = h5py.File(f"{cfg.im_dir}En4_reanalysis_1950_2020_NA.hdf5")
 
     f_cm = h5py.File(f"{cfg.mask_dir}Kontinent_newgrid.hdf5")
     continent_mask = np.array(f_cm.get("continent_mask"))
@@ -314,6 +315,7 @@ def hc_plotting(path, iteration, time=600):
         )
         hc_gt = np.array(f.get("hc_gt"))[time, :, :] * continent_mask
         hc_obs = np.array(fo.get("hc_net"))[time, :, :] * continent_mask
+        en4 = np.array(f_en4.get("ohc"))[time, :, :] * continent_mask
     else:
         time_1 = time[0]
         time_2 = time[1]
@@ -346,44 +348,20 @@ def hc_plotting(path, iteration, time=600):
             )
             * continent_mask
         )
+        en4 = (
+            np.nanmean(
+                np.nan_to_num(np.array(f_en4.get("ohc"))[time_1:time_2, :, :], nan=0),
+                axis=0,
+            )
+            * continent_mask
+        )
 
-    fig = plt.figure(figsize=(16, 5), constrained_layout=True)
+    fig = plt.figure(figsize=(12, 5), constrained_layout=True)
     fig.suptitle("Assimilation Heat Content Comparison")
-    plt.subplot(1, 3, 1)
-    plt.title(f"Masked Assimilations")
     current_cmap = plt.cm.get_cmap("coolwarm").copy()
     current_cmap.set_bad(color="grey")
 
-    newcolors = current_cmap(np.linspace(0, 1, 30000)).copy()
-    black = [0.0, 0.0, 0.0, 1.0]  # black (alpha = 1.0)
-    grey = [128, 128, 128, 1.0]  # grey (alpha = 1.0)
-    white = [1.0, 1.0, 1.0, 1.0]  # white (alpha = 1.0)
-    newcolors[14999, :] = white
-    newcmp = matplotlib.colors.ListedColormap(newcolors)
-    newcmp.set_bad(color="grey")
-
-    # all_colors = rainbow_mod(np.linspace(0, 1, 256))
-
-    # vmin = 0.0
-    # vmax = 100.0
-
-    # all_colors[: int(np.round((20.0 - vmin) / (vmax - vmin) * 256)), :] = under_color
-    # all_colors[int(np.round((72.0 - vmin) / (vmax - vmin) * 256)) :, :] = over_color
-
-    # rainbow_mod_list = matplotlib.colors.ListedColormap(all_colors.tolist())
-
-    plt.imshow(
-        image_grey,
-        cmap=newcmp,
-        vmin=-9e8,
-        vmax=9e8,
-        aspect="auto",
-        interpolation=None,
-    )
-    plt.colorbar(label="Heat Content in J")
-    plt.xlabel("Transformed Longitudes")
-    plt.ylabel("Transformed Latitudes")
-    plt.subplot(1, 3, 2)
+    plt.subplot(1, 2, 1)
     plt.title("Assimilation Heat Content")
     plt.imshow(
         hc_gt,
@@ -395,7 +373,7 @@ def hc_plotting(path, iteration, time=600):
     )
     plt.xlabel("Transformed Longitudes")
     plt.ylabel("Transformed Latitudes")
-    plt.subplot(1, 3, 3)
+    plt.subplot(1, 2, 2)
     plt.title("Network Output Heat Content")
     plt.imshow(
         hc_assi,
@@ -417,16 +395,15 @@ def hc_plotting(path, iteration, time=600):
     fig = plt.figure(figsize=(16, 5), constrained_layout=True)
     fig.suptitle("Observations Heat Content Comparison")
     plt.subplot(1, 3, 1)
-    plt.title(f"Observations")
+    plt.title(f"EN4 Reanalysis")
     plt.imshow(
-        image_grey_o,
-        cmap=newcmp,
-        vmin=-9e8,
-        vmax=9e8,
+        en4,
+        cmap=current_cmap,
+        vmin=-3e9,
+        vmax=3e9,
         aspect="auto",
         interpolation=None,
     )
-    plt.colorbar(label="Heat Content in J")
     plt.xlabel("Transformed Longitudes")
     plt.ylabel("Transformed Latitudes")
     plt.subplot(1, 3, 2)
@@ -484,6 +461,10 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
         f"{cfg.val_dir}{path}/timeseries_{str(iteration)}_observations_{cfg.mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
         "r",
     )
+    f_en4 = h5py.File(f"{cfg.im_dir}En4_reanalysis_1950_2020_NA{val_cut}.hdf5")
+
+    en4 = np.array(f_en4.get("ohc"))
+    en4 = np.nansum(en4, axis=(1, 2))
 
     hc_assi = np.array(f.get("net_ts"))
     hc_gt = np.array(f.get("gt_ts"))
@@ -522,6 +503,7 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
         hc_assi = evalu.running_mean_std(hc_assi, mode="mean", del_t=del_t)
         hc_gt = evalu.running_mean_std(hc_gt, mode="mean", del_t=del_t)
         hc_obs = evalu.running_mean_std(hc_obs, mode="mean", del_t=del_t)
+        en4 = evalu.running_mean_std(en4, mode="mean", del_t=del_t)
         hc_assi_masked = evalu.running_mean_std(
             hc_assi_masked, mode="mean", del_t=del_t
         )
@@ -533,15 +515,18 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
 
     # define running mean timesteps
     if cfg.attribute_argo == "argo":
-        hc_gt, hc_obs, hc_assi, del_a, del_o, del_gt = (
+        hc_gt, hc_obs, hc_assi, del_a, del_o, del_gt, en4 = (
             hc_gt[552:],
             hc_obs[552:],
             hc_assi[552:],
             del_a[552:],
             del_o[552:],
             del_gt[552:],
+            en4[552:],
         )
         start = 2004 + (del_t // 12) // 2
+    else:
+        start = 1958 + (del_t // 12) // 2
 
     length = len(hc_gt)
 
@@ -578,6 +563,7 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
         o = ""
         plt.plot(hc_gt, label="Assimilation Heat Content", color="darkred")
         plt.plot(hc_assi, label="Network Reconstructed Heat Content", color="royalblue")
+        # plt.plot(en4, label="EN4 Reanalysis", color="purple")
         plt.fill_between(
             range(len(hc_assi)),
             hc_assi + del_a,
@@ -620,6 +606,22 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
     plt.ylabel("Heat Content [J]")
     plt.savefig(
         f"../Asi_maskiert/pdfs/validation/{path}/validation_timeseries_masked_{cfg.mask_argo}_{str(iteration)}_{del_t}_mean{val_cut}_{cfg.eval_im_year}.pdf"
+    )
+    plt.show()
+
+    plt.figure(figsize=(10, 6))
+    if obs == False:
+        plt.plot(hc_assi - hc_gt, label="Assimilation reconstruction")
+    else:
+        plt.plot(hc_obs - hc_gt, label="Assimilation Heat Content")
+    plt.grid()
+    plt.legend()
+    plt.xticks(ticks=ticks, labels=labels)
+    plt.title("Misfit: Neural Network Reconstruction - Assimilation")
+    plt.xlabel("Time in years")
+    plt.ylabel("Heat Content [J]")
+    plt.savefig(
+        f"../Asi_maskiert/pdfs/validation/{path}/misfit_{str(iteration)}_{del_t}_mean{val_cut}_{cfg.eval_im_year}{o}_mask_{cfg.mask_argo}_data_{cfg.attribute_argo}.pdf"
     )
     plt.show()
 
@@ -721,8 +723,6 @@ def pattern_corr_plot(part, del_t=1, obs=False):
 
     # calculate running mean, if necessary
     if del_t != 1:
-        # corr_o = evalu.running_mean_std(corr_o, mode="mean", del_t=del_t)
-        # corr_a = evalu.running_mean_std(corr_a, mode="mean", del_t=del_t)
 
         length = len(corr_o)
         print(length)
@@ -746,7 +746,7 @@ def pattern_corr_plot(part, del_t=1, obs=False):
     plt.legend()
     plt.ylim(0, 1)
     plt.xticks(ticks=ticks, labels=labels)
-    plt.title("OHC Pattern Correlation: Annual means")
+    plt.title("OHC Pattern Correlation")
     plt.xlabel("Time in years")
     plt.ylabel(f"Pattern Correlation as ACC")
     plt.savefig(
@@ -832,9 +832,9 @@ obs = False
 # output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=19, mode='Observations')
 # output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=19, mode='Assimilation')
 # hc_plotting(
-#     cfg.save_part,
-#     cfg.resume_iter,
-#     time=[120, 180],
+#    cfg.save_part,
+#    cfg.resume_iter,
+#    time=[740, 748],
 # )
 # correlation_plotting(cfg.save_part, str(cfg.resume_iter), depth=0)
 timeseries_plotting(
@@ -843,7 +843,7 @@ timeseries_plotting(
     obs=obs,
     del_t=1,
 )
-# pattern_corr_plot(cfg.save_part, del_t=12, obs=obs)
+pattern_corr_plot(cfg.save_part, del_t=1, obs=obs)
 # error_pdf(argo=cfg.mask_argo, n_windows=4, del_t=12)
 # std_plotting(del_t=1*12)
 

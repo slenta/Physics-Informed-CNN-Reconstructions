@@ -1,5 +1,6 @@
 # creating timeseries from all assimilation ensemble members and ensemble mean
 import numpy as np
+import netCDF4
 import matplotlib.pyplot as plt
 import h5py
 import config as cfg
@@ -749,47 +750,97 @@ path = f"{cfg.mask_dir}Kontinent_newgrid.hdf5"
 
 
 ############### Masked pattern correlation
-val_cut = "_cut"
-f_a = h5py.File(
-    f"{cfg.val_dir}/{cfg.save_part}/validation_{cfg.resume_iter}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+# val_cut = "_cut"
+# f_a = h5py.File(
+#    f"{cfg.val_dir}/{cfg.save_part}/validation_{cfg.resume_iter}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+#    "r",
+# )
+# f_o = h5py.File(
+#    f"{cfg.val_dir}{cfg.save_part}/validation_{cfg.resume_iter}_observations_{cfg.mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+#    "r",
+# )
+#
+# del_t = 12
+# image_o = np.nanmean(np.array(f_o.get("image")), axis=1)
+# image_a = np.nanmean(np.array(f_a.get("image")), axis=1)
+#
+# image_o = evalu.running_mean_std(image_o, mode="mean", del_t=del_t)
+# image_a = evalu.running_mean_std(image_a, mode="mean", del_t=del_t)
+#
+# corr = []
+# for i in range(image_o.shape[0]):
+#    o = image_o[i, :, :].flatten()
+#    a = image_a[i, :, :].flatten()
+#    corr.append(pearsonr(o, a)[0])
+#
+#
+# length = len(corr)
+# end = 2021 - (del_t // 12) // 2
+# ticks = np.arange(0, length, 12 * 5)
+# labels = np.arange(1958, end, 5)
+#
+#
+## calculate running mean, if necessary
+# plt.figure(figsize=(10, 6))
+# plt.plot(corr, label="Pattern Correlation: Masked Assimilation - Observations")
+# plt.grid()
+# plt.legend()
+# plt.ylim(0, 1)
+# plt.xticks(ticks=ticks, labels=labels)
+# plt.title("OHC Masked Pattern Correlation: Annual means")
+# plt.xlabel("Time in years")
+# plt.ylabel(f"Pattern Correlation as ACC")
+# plt.savefig(
+#    f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/masked_pattern_corr_{cfg.eval_im_year}.pdf"
+# )
+# plt.show()
+
+
+############## EN4 reanalysis plotting
+
+file = f"{cfg.im_dir}En4_reanalysis_1950_2020_NA"
+ds = xr.load_dataset(f"{file}.nc", decode_times=False)
+time = ds.time
+ds["time"] = netCDF4.num2date(time[:], time.units)
+ds = ds.sel(time=slice("1958-01", "2020-10"))
+
+tos = ds.thetao.values
+
+f = h5py.File(
+    "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
     "r",
 )
-f_o = h5py.File(
-    f"{cfg.val_dir}{cfg.save_part}/validation_{cfg.resume_iter}_observations_{cfg.mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
-    "r",
-)
+tos_mean = f.get("sst_mean")
+for i in range(len(tos)):
+    tos[i] = tos[i] - tos_mean[i % 12]
 
-del_t = 12
-image_o = np.nanmean(np.array(f_o.get("image")), axis=1)
-image_a = np.nanmean(np.array(f_a.get("image")), axis=1)
+# adjust shape of variables to fit quadratic input
+n = tos.shape
+rest = np.zeros((n[0], n[1], 128 - n[2], n[3]))
+tos = np.concatenate((tos, rest), axis=2)
+n = tos.shape
+rest2 = np.zeros((n[0], n[1], n[2], 128 - n[3]))
+tos = np.concatenate((tos, rest2), axis=3)
 
-image_o = evalu.running_mean_std(image_o, mode="mean", del_t=del_t)
-image_a = evalu.running_mean_std(image_a, mode="mean", del_t=del_t)
+ohc_en4 = evalu.heat_content_single(tos[:, :20, :, :])
 
-corr = []
-for i in range(image_o.shape[0]):
-    o = image_o[i, :, :].flatten()
-    a = image_a[i, :, :].flatten()
-    corr.append(pearsonr(o, a)[0])
+# f_en4 = h5py.File(f"{file}.h5py", "r")
+# ohc_en4 = np.array(f_en4.get("ohc"))
 
-
-length = len(corr)
-end = 2021 - (del_t // 12) // 2
-ticks = np.arange(0, length, 12 * 5)
-labels = np.arange(1958, end, 5)
-
-
-# calculate running mean, if necessary
-plt.figure(figsize=(10, 6))
-plt.plot(corr, label="Pattern Correlation: Masked Assimilation - Observations")
-plt.grid()
-plt.legend()
-plt.ylim(0, 1)
-plt.xticks(ticks=ticks, labels=labels)
-plt.title("OHC Masked Pattern Correlation: Annual means")
-plt.xlabel("Time in years")
-plt.ylabel(f"Pattern Correlation as ACC")
-plt.savefig(
-    f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/masked_pattern_corr_{cfg.eval_im_year}.pdf"
-)
+plt.imshow(np.nanmean(ohc_en4[:120, :, :], axis=0), cmap="coolwarm")
 plt.show()
+
+plt.plot(np.nansum(ohc_en4, axis=(1, 2)))
+plt.show()
+
+f = h5py.File(f"{file}.hdf5", "w")
+f.create_dataset(name="ohc", shape=ohc_en4.shape, data=ohc_en4)
+f.close()
+
+ohc_newgrid = evalu.area_cutting_single(ohc_en4)
+plt.plot(np.nansum(ohc_newgrid, axis=(1, 2)))
+plt.show()
+
+f = h5py.File(f"{file}_cut.hdf5", "w")
+f.create_dataset(name="ohc", shape=ohc_newgrid.shape, data=ohc_newgrid)
+f.close()

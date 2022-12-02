@@ -81,7 +81,7 @@ if cfg.attribute_depth == "no_depth":
         name=f"assimilation_{argo}",
     )
 else:
-    evalu.combine_layers(np.arange(40, 60))
+    evalu.combine_layers(np.arange(20, 40))
     evalu.area_cutting(mode=f"assimilation_{argo}", depth=cfg.in_channels)
     evalu.heat_content(depths, str(cfg.resume_iter), name=f"assimilation_{argo}")
     evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=12)

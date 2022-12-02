@@ -50,7 +50,7 @@ class preprocessing:
 
             # adjust time dimension for training purposes
             time_var = ds.time
-            if cfg.attribute_argo == "argo":
+            if cfg.mask_argo == "argo":
                 ds = ds.sel(time=slice(200400, 202011))
             elif cfg.attribute_argo == "preargo":
                 ds = ds.sel(time=slice(195800, 200400))
@@ -246,7 +246,7 @@ class preprocessing:
                 )
             elif self.mode == "mask":
                 f = h5py.File(
-                    f"{self.path}{self.name}{self.year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_{str(cfg.ensemble_member)}.hdf5",
+                    f"{self.path}{self.name}{self.year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_{str(cfg.ensemble_member)}.hdf5",
                     "w",
                 )
             else:
@@ -268,7 +268,7 @@ class preprocessing:
                 )
             elif self.mode == "mask":
                 f = h5py.File(
-                    f"{self.path}{self.name}{self.year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_{str(cfg.ensemble_member)}.hdf5",
+                    f"{self.path}{self.name}{self.year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}_{str(cfg.ensemble_member)}.hdf5",
                     "w",
                 )
             else:
