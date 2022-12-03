@@ -1,0 +1,9 @@
+\babel@toc {english}{}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Estimates of upper 2.000 m North Atlantic ocean heat content using different data assimilation and interpolation methods \citep {hakkinen_heat_2015}.\relax }}{4}{figure.caption.6}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Estimates of upper 700 m North Atlantic OHC of one EnKF assimilation's ensemble member (red) and the neural network reconstruction (blue). The shaded areas represent the uncertainty caused by the corresponding ensemble spread.\relax }}{12}{figure.caption.7}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Misfit between EnKF assimilation NA upper 700m OHC and the neural network's reconstruction.\relax }}{12}{figure.caption.8}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Map of EnKF assimilation (left) and neural network reconstruction of NA upper 700m anomaly OHC estimate.\relax }}{13}{figure.caption.9}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Pattern correlation for monthly estimates of anomaly NA OHC of one EnKF assimilation ensemble member and neural network reconstructions of masked assimilations.\relax }}{14}{figure.caption.10}%

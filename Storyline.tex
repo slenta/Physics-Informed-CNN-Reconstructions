@@ -1,0 +1,97 @@
+
+%HEADER
+
+\documentclass[11pt,a4paper]{scrreprt}	%artikeltyp
+
+\usepackage[english]{babel}	%sprache
+\usepackage[utf8]{inputenc}%utf8, für zeichen, umlaute etc.
+\usepackage[a4paper,lmargin={2.5cm},rmargin={2.5cm},tmargin={2.5cm},bmargin = {2.5cm}]{geometry}	%Abstände, usw. ändern
+\usepackage{amsmath}	%mathe
+\usepackage{subfiles}
+\usepackage{amssymb}	%mathe
+%\usepackage{amsfonts}	%mathe
+\usepackage{nicefrac}	%erlaubt z.B. schräge brüche(\nicefrac)
+\usepackage{graphicx}% Graphikpaket (für PNG,GIF,JPG)
+\usepackage{float,rotating}%Option für fixe Position; Drehung von Abbildungen etc.
+\usepackage{setspace}%zeilenabstand 
+\usepackage{hyperref}%klickbare links
+\usepackage{gensymb}%z.B. Gradzeichen
+\usepackage{wrapfig} %gibt wrapfigures
+\usepackage{epstopdf} % eps dateien einbinden
+\usepackage{dsfont}
+\usepackage{subcaption}
+\usepackage{MnSymbol}	%für Kreisbogenzeichen
+\usepackage{subfiles}
+\usepackage{tabularx}
+\usepackage{mhchem}
+\usepackage[round]{natbib}
+
+%..............Kopf und Fußzeilengestaltung:.................
+\usepackage{fancyhdr}
+\pagestyle{headings}
+
+%\lhead{\nouppercase{\leftmark}}
+%\rhead{\thepage}
+
+
+
+%..............Definitionen:................
+\newcommand{\pd}{\partial}
+\newcommand{\pfrac}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\ph}{\varphi}
+\newcommand{\fem}{\frac{e}{m}}
+\newcommand{\om}{\omega}
+\newcommand{\und}{~\text{und}~}
+\newcommand{\dg}{\degree}
+\newcommand{\un}[1]{\,\mathrm{#1}}
+\newcommand{\cd}{\cdot}
+\renewcommand*{\chapterheadstartvskip}{\vspace*{0.5cm}}%abstand oben bei anfang eines chapters
+\newcommand{\R}{\grqq}
+\newcommand{\A}{\glqq}
+%\renewcaptionname{ngerman}{\figurename}{Abb.} %"`Abb."' statt "`Abbildung"' gilt nur wenn ngerman geladen ist
+\setlength\parindent{0pt}
+
+
+\begin{document}
+	
+	\onehalfspacing
+	\section{Motivation}
+	
+	Ensemble Kalman Filter (EnKFs) data assimilation methods have been used increasingly in recent years to integrate observations into model states when initializing hindcasts [citation]. Especially on interannual to decadal scales these hindcasts are heavily dependent on the oceans long memory, which is expressed in variables, such as the ocean heat content (OHC) \cite{brune_preserving_2020}. Therefore, assimilating OHC efficiently and accurately is a major factor in the quality of hindcasts on interannual to decadal timescales. However, EnKFs show several limitations, both in quality and quantity. Quantitavely, EnKFs require high computational resources to assimilate large datasets with high resolutions. Additionally, they are unflexible when encountering changes in past observational data or in the production of new ensemble members. Qualitatively, most data assimilation techniques have higher uncertainties when working with low observational densities. In regard to OHC, observations have been historically scarce. This changed with the start of the argo project in 2004, which introduced floating bouys measuring temperature profiles up to a depth of 2000m into global oceans. Thus, the uncertainty on EnKF assimilated OHC even in well studied regions, such as the North Atlantic, is notably higher in the 20th century [figure uncertainty]. But not only do assimilation ensembles show a higher spread in times with lower observational density, missing observations can also lead to the assimilation not being able to compensate for model uncertainties through the integration of observations. \\
+	Machine Learning has shown to be a valid alternative to purely statistical mapping methods \cite{kadow_artificial_2020}. More specifically, \cite{kadow_artificial_2020} applied partial convolutions in U-nets to reconstruct global surface temperatures. In comparison to EnKF, machine learning approaches reduce the computational costs significantly especially when working with large datasets [citation]. Furthermore, machine learning approaches can integrate changes in observational data and new ensemble members much more easily as they are independent of an entire model setup. Careful selection of training data from periods with high observational density can lastly also limit model uncertainties to a minimum, as a trained network might be able to transfer trained patterns from periods with many observations to periods with few. \\
+	
+	\section{Approach and Methods}
+	
+	Building on \cite{kadow_artificial_2020} approach, I propose to use partial convolutional Unets to reconstruct subsurface temperatures in the North Atlantic and thus produce an alternative estimate of North Atlantic OHC. Training on a 16 member EnKF assimilation ensemble, I will examine, if machine learning is able to reproduce or even has the potential to replace EnKF data assimilation of North Atlantic OHC. To do so, the neural network will be trained on data assimilations during the well observed argo era (2004 -- 2020) in order to learn on assimilations, which posses lower uncertainty and integrate more observational data. The approach can then be extended to the preargo era, if the neural network is able to reproduce the assimilation ensemble within its uncertainty range during the argo era. In the course of these reconstructions, the machine learning reconstructions can also be used to discuss inconsistencies and uncertainties within the assimilation that is not mirrored in its ensemble spread. Finally, I will examine, whether the neural network is able to directly reconstruct observations in the preargo and argo era as well as more recent observations it has not trained on within the assimilations uncertainty range. Thus, the neural network's potential to replace EnKF assimilations can be assessed. \\
+ 	
+ 	\section{Results and Analysis}
+ 	
+ 	Within the argo era, the neural network is able to reconstruct assimilations masked with observational patterns within the assimilation's uncertainty range even for monthly values. Figure (\ref{fig:argo_timeseries_assi}) shows this timeseries of NA OHC from 2004 onwards for both the EnKF assimilations (red) and the neural network reconstructions of masked assimilations (blue). The uncertainty range around both timeseries represents the corresponding ensemble spread. In the case of the neural network, this ensemble is produced by reconstructing the masked assimilations at different training iterations. The network state of each member is extracted 1000 iterations apart from the next. Figure \ref{fig:assi_2018} shows that not only the entire OHC are calculated well by the neural network, but also all major spatial OHC patterns are represented well by the neural network. Figure \ref{fig:pattern_corr_argo_assi} depicts the pattern correlation between the ML reconstructions and the EnKF assimilations and confirms this impression. With correlations of close to or over 0.8 and an average of 0.84, the correlation is significant for the whole period. Overall, the neural network can therefore be said to be able to reproduce EnKF assimmilations during the argo era. Figure \ref{fig:assi_2018} also shows a distinct cooling of the Subpolar Gyre (SPG), while the rest of the Atlantic experiences a warming overall. This pattern has been subject to recent debates and is supposed to be caused by multidecadal internal variability. Thus, many publications concerned with North Atlantic OHC focus on the SPG. To guarantee comparibility to other studies, all further reconstructions will be restricted to the area of the SPG from now on, more specifically the region between 45 -- 60 \dg North and -60 -- -10 \dg West shown in figure \ref{fig:SPG}. \\
+	Now that the neural network has shown to be able to reproduce assimilations during the argo era, it can be tested, in how far these results are also applicable to the preargo era. Figure \ref{fig:full_timeseries_assi} shows a comparison of the full OHC timeseries for the SPG of EnKF assimilation and the neural network reconstructions of masked assimilations. Clearly, the timeseries show less agreement during the preargo era than they due later on. This can be considered an indicator for the increased uncertainty stemming from the lower observational density. Figure \ref{fig:full_timeseries_assi_argomask} underlines this point. It shows reconstructions over the same period, with the difference that the observational patterns of the argo era are used instead of the actual observations of that time to mask the assimilations. Therefore, it gives an estimate, how much of this uncertainty comes from the amount of observations. However, as it is assumed that the assimilation is more accurate over the training period, the difference between reconstruction and assimilation cannot be interpreted as a fault of the neural network. Instead, it rather shows the uncertainty the assimilation incorporates, if the underlying model cannot be supported by sufficient observations. This uncertainty becomes especially clear in the first 10 years of the assimilation. In figure \ref{fig:full_timeseries_assi} the assimilation shows much stronger interannual variations in SPG OHC at the start of the 1960s than the neural network reconstructions. \cite{vimal_personal} has already examined similar EnKF assimilations during that period and found that the assimilation seems possess much higher uncertainty during that time than its ensemble spread suggests. The differences between both timeseries support that assumption. It shows that the assimilation's behavior during this period is not consistent to the spatial patterns and geophysical processes during the neural network's training period. Comparing both timeseries to a comparable ERA5 interpolation even suggests that the neural network reconstruction is more consistent with other estimations of SPG OHC during that period. Figure \ref{fig:1965_assi} visualizes the OHC of both the assimilation and reconstruction during that time period in the form of a 10 year mean. Both versions differ most notably in the central NA, where the assimilation shows strong negative anomalies, while the neural network reconstruction depicts close to no anomalies in that region. Similar differences have already been described in other publications and can be related to what is known as the gulf stream's \textit{North-West corner}. Many climate models, such as the [] underlying this EnKF assimilation, are known to represent the gulf stream in the central NA further south than its observed flow. Therefore, the assimilation shows strong negative anomalies in the region of this North-West corner whenever there are no observations available to nudge the underlying model towards a correct representation of the gulf streams flow. As the neural network is only trained in a period with high observational density in the entire NA, it only learns a correct representation of the gulf streams flow. Correspondingly, the reconstructions do not show the same negative anomalies in this region, when there are no observations available to suggest anything different. Thus, it can also be assumed that at least parts of the differences between assimilation and neural network reconstruction during the early 1960s can be attributed to a false representation of the North-West corner, while from the 1970s onwards at least sporadic observations are available in this region causing a different assimilation output. Figure \ref{fig:corr_start_assi} supports this analysis, as it shows that the gridwise correlation between reconstruction and assimilation is especially low in the region of the North-West corner during the first 10 years, while it depicts higher correlation in the rest of the preargo era with the steady rise of observations. This whole representation of the North-West and its corresponding effects on the SPG OHC timeseries suggests that a neural network trained with assimilation data during a time with high observational density can be able to detect model uncertainties in specific regions in addition to providing an estimate of the overall uncertainty not contained within the assimilation's ensemble spread. \\
+	During the remainder of the 20th century reconstruction and assimilation mostly agree within their respective uncertainty ranges. Nonetheless, the reconstruction shows a positive bias during nearly the entire period. This positive bias could still be a remainder of the North-West corner depiction and vanishes slowly but steadily in the 1970s and 1980s. Afterwards, both timeseries agree with each other until and throughout the argo era. Next, it can be evaluated, if the neural network is also able to directly reconstruct SPG OHC from observations in the preargo as well as the argo era. Figure \ref{fig:timeseries_full_obs} shows a comparison of the assimilaton's SPG OHC timeseries and the direct reconstruction of observations and the reconstruction of masked assimilations by the previously trained neural network. Again, the uncertainty ranges represent the corresponding ensemble spread. The direct reconstruction possesses a clear negative bias in comparison to the reconstruction of the masked assimilations. This leads to a higher correlation in most of the preargo era, especially in the 1970s and 80s as it works against the positive bias discussed in section \ref{northwest} most likely stemming from a misrepresentation of the North-West corner of the gulf stream. From the 1990s onwards this negative bias leads to much higher differences to the assimilation OHC. This overall bias can be explained by the bias the EnKF assimilations show towards the measured values at the points of observations. Figure \ref{fig:masked_timeseries} illustrates that difference by showing the OHC values of the observations and assimilation as well as the corresponding reconstructions at the points of observations. The neural network then transfers this bias to the overall OHC calculation when given the observations as input. 
+	
+	[Discussion of reasons for assimlation bias]
+	
+	When visualizing the pattern correlation between observations reconstruction and the EnKF assimilations, it becomes obvious that there are more differences between both OHC estimates than a pure bias. Figure \ref{fig:pattern_corr_obs} depicts much lower correlations than \ref{fig:pattern_corr_assi} does. This underlines also the differences in spatial patterns between the reconstruction and the assimilation. Again, a look into the pattern correlation between observations and assimilation at the points of observations shows that this behavior can be interpreted as an amplification of the differences between assimilation and observations. Overall, the neural network is able to reproduce the assimilation at most times within their respective uncertainty ranges. Nonetheless, biases and uncertainties from the training data at the points of observations have to be considered carefully, as they are amplified in direct neural network reconstructions. \\
+ 	In a final analysis step, it will now be examined, in how far the neural network can also be used to reconstruct data from more recent time periods. To investigate, if the neural network could be used to replace the EnKF assimilation of new observations outside of the networks training data, it is given a year of monthly data from October 2020 until October 2021 as input. This period lies outside of the timeframe chosen as training data because it was not available at the start of this analysis. Figure \ref{fig:timeseries_anhang_assi} depicts the resulting reconstruction. It can be seen that each single monthly OHC value lies within the uncertainty of the assimilation's ensemble spread.
+ 	
+ 	
+ 	\section{Summary and Conclusion}
+ 	
+ 	In this work, I have shown that the convolutional U-net trained on argo era EnKF assimilations is able to reproduce argo and preargo era assimilation data from masked assimilations. This reconstruction can also be utilized to detect or discuss uncertainties or even errors within the assimilation and its underlying model. This ability is exemplified by the neural network's representation of the North-West corner during times without observations in the relevant area. Additionally, the neural network has also shown the ability to reconstruct observations directly, although clear differences to the assimilation OHC estimations are visible, even during the argo era. These differences can mostly be attributed to differences between the assimilation and observations at the points of observations, which are then amplified through the neural network reconstruction. Thus, the differences cannot be considered a fault in the reconstructions but rather mirror the uncertainties in the assimilation's representation of observational data points. Finally, the neural network was able to reconstruct new current observations within the uncertainty range of the assimilation ensemble spread.\\
+ 	Therefore, it can be concluded that the neural network can not only reproduce but also replace the assimilation depending on the respective aim and circumstances. Exemplary uses could include the generation of more ensemble members for uncertainty estimation and possibly the initialization of grand ensemble hindcasts. In that context it has to be mentioned that this work has only examined the neural network reconstruction in comparison to the assimilation. Any conclusions about their usefulness for hindcast initialization would have to be proven separately. Additionally, as the time and resources saved for the assimilation of a single new month are not significant in comparison for their later uses. They only become relevant, when either larger datasets and more variables are used or the reconstructions are concerned with the entire timeframe including the preargo era. Here, it also has to be further investigated, in how far the results of the neural network reconstruction are applicable into the past as well as the future compared to the used training period. Nonetheless, overall, this work has shown that machine learning or more specifically convolutional Unets can be used to replicate data assimilation, analyse their uncertainties beyond their own ensemble spread and even have the potential to replace them depending on the respective circumstances. \\
+ 	
+ 	
+	
+	
+	
+	\bibliographystyle{apalike}
+	\bibliography{Masterbib}
+	
+	
+\end{document}
+	
+	
+	
+	
+	

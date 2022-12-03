@@ -1,0 +1,29 @@
+\babel@toc {english}{}
+\contentsline {chapter}{\numberline {1}Introduction}{2}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Motivation and Problem}{2}{section.1.1}%
+\contentsline {subsection}{\numberline {1.1.1}Why is OHC important to the climate system?}{2}{subsection.1.1.1}%
+\contentsline {subsection}{\numberline {1.1.2}What happens with North Atlantic OHC -- especially SPG -- with progressing climate change?}{2}{subsection.1.1.2}%
+\contentsline {subsection}{\numberline {1.1.3}Current Literature on North Atlantic OHC estimates}{2}{subsection.1.1.3}%
+\contentsline {subsection}{\numberline {1.1.4}Uncertainties on OHC esimation}{3}{subsection.1.1.4}%
+\contentsline {subsection}{\numberline {1.1.5}Mapping methods in current literature}{3}{subsection.1.1.5}%
+\contentsline {subsection}{\numberline {1.1.6}Dependence of mapping methods on data coverage}{4}{subsection.1.1.6}%
+\contentsline {subsection}{\numberline {1.1.7}The argo/preargo uncertainty problem: Definition of uncertainty and observation density}{4}{subsection.1.1.7}%
+\contentsline {section}{\numberline {1.2}My Approach to a better solution to the problem}{5}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1}What alternative ways to reconstruct OHC? Directer? Faster?}{5}{subsection.1.2.1}%
+\contentsline {subsection}{\numberline {1.2.2}Aim 1: Better defining NA OHC uncertainty with ML reconstructions}{5}{subsection.1.2.2}%
+\contentsline {subsection}{\numberline {1.2.3}Literature: OHC uncertainty and ENKF Assimilations}{5}{subsection.1.2.3}%
+\contentsline {subsection}{\numberline {1.2.4}Methods and Prodcedure: How do I plan to evaluate uncertainty?}{5}{subsection.1.2.4}%
+\contentsline {subsection}{\numberline {1.2.5}Aim 2: Gaining direct access to full image from observations}{5}{subsection.1.2.5}%
+\contentsline {subsection}{\numberline {1.2.6}Literature: Deep Learning Assimilations}{5}{subsection.1.2.6}%
+\contentsline {subsection}{\numberline {1.2.7}Methods and Procedure: How do I directly reconstruct and evaluate reconstructions?}{5}{subsection.1.2.7}%
+\contentsline {section}{\numberline {1.3}Summary and Thesis Structure}{5}{section.1.3}%
+\contentsline {chapter}{\numberline {2}Data and Methods}{6}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Data}{6}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Data Assimilation}{6}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}Observational Data}{7}{subsection.2.1.2}%
+\contentsline {section}{\numberline {2.2}Methods}{7}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}The Convolutional U-net}{7}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Neural Network Setup and Parameters}{8}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Data Preprocessing}{9}{subsection.2.2.3}%
+\contentsline {section}{\numberline {2.3}Reconstructing North Atlantic Ocean Heat Content}{9}{section.2.3}%
+\contentsline {chapter}{\numberline {3}Results}{11}{chapter.3}%

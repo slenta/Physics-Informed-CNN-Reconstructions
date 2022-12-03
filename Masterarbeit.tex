@@ -1,0 +1,128 @@
+%HEADER
+
+\documentclass[11pt,a4paper]{scrreprt}	%artikeltyp
+
+\usepackage[english]{babel}	%sprache
+\usepackage[utf8]{inputenc}%utf8, für zeichen, umlaute etc.
+\usepackage[a4paper,lmargin={2.5cm},rmargin={2.5cm},tmargin={2.5cm},bmargin = {2.5cm}]{geometry}	%Abstände, usw. ändern
+\usepackage{amsmath}	%mathe
+\usepackage{subfiles}
+\usepackage{amssymb}	%mathe
+%\usepackage{amsfonts}	%mathe
+\usepackage{nicefrac}	%erlaubt z.B. schräge brüche(\nicefrac)
+\usepackage{graphicx}% Graphikpaket (für PNG,GIF,JPG)
+\usepackage{float,rotating}%Option für fixe Position; Drehung von Abbildungen etc.
+\usepackage{setspace}%zeilenabstand 
+\usepackage{hyperref}%klickbare links
+\usepackage{gensymb}%z.B. Gradzeichen
+\usepackage{wrapfig} %gibt wrapfigures
+\usepackage{epstopdf} % eps dateien einbinden
+\usepackage{dsfont}
+\usepackage{subcaption}
+\usepackage{MnSymbol}	%für Kreisbogenzeichen
+\usepackage{subfiles}
+\usepackage{tabularx}
+\usepackage{mhchem}
+\usepackage[round]{natbib}
+
+%..............Kopf und Fußzeilengestaltung:.................
+\usepackage{fancyhdr}
+\pagestyle{headings}
+
+%\lhead{\nouppercase{\leftmark}}
+%\rhead{\thepage}
+
+
+
+%..............Definitionen:................
+\newcommand{\pd}{\partial}
+\newcommand{\pfrac}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\ph}{\varphi}
+\newcommand{\fem}{\frac{e}{m}}
+\newcommand{\om}{\omega}
+\newcommand{\und}{~\text{und}~}
+\newcommand{\dg}{\degree}
+\newcommand{\un}[1]{\,\mathrm{#1}}
+\newcommand{\cd}{\cdot}
+\renewcommand*{\chapterheadstartvskip}{\vspace*{0.5cm}}%abstand oben bei anfang eines chapters
+\newcommand{\R}{\grqq}
+\newcommand{\A}{\glqq}
+%\renewcaptionname{ngerman}{\figurename}{Abb.} %"`Abb."' statt "`Abbildung"' gilt nur wenn ngerman geladen ist
+\setlength\parindent{0pt}
+
+
+\begin{document}
+
+	\begin{titlepage}
+		
+		\vspace{10 cm}
+		\begin{figure}
+			\centering
+			\includegraphics*[width=0.55\linewidth]{Bilder/Uni_logo.pdf}
+		\end{figure}
+	
+		
+		\begin{center}
+			\rule{\textwidth}{1.6pt}\vspace*{-\baselineskip}\vspace*{2pt} % Thick horizontal rule
+			\rule{\textwidth}{0.4pt} % Thin horizontal rule
+			
+			\vspace{1.5\baselineskip} % Whitespace above the title
+			
+			\textbf{\LARGE Reconstructing North Atlantic Ocean Heat Content Using Convolutional Neural Networks} % Title
+			
+			\vspace{0.75\baselineskip} % Whitespace below the title
+			
+			\rule{\textwidth}{0.4pt}\vspace*{-\baselineskip}\vspace{3.2pt} % Thin horizontal rule
+			\rule{\textwidth}{1.6pt} % Thick horizontal rule
+			
+			\vspace{2\baselineskip} % Whitespace after the title block
+			\vspace*{2.0cm}
+			\LARGE{Master Thesis\\}
+			\vspace{3cm}
+			\Large 
+			Author: Paul Simon Lentz\\
+			Matriculation Number: 737 4279 \\
+			University Hamburg \\
+			Master of Integrated Climate System Sciences \\
+			Faculty for Mathematics, Informatics and Natural Sciences \\
+			Supervisors: Prof. Dr. Johanna Baehr, Dr. Christopher Kadow \\
+			Deadline: 16.01.2023\\
+			\vspace{5 cm}
+		\end{center}
+	
+	
+	\end{titlepage}
+	
+	\pagenumbering{gobble}
+	
+	%\addtocounter{page}{-5}
+	\thispagestyle{empty}
+	\clearpage\mbox{}\clearpage
+	
+	\onehalfspacing
+	\tableofcontents %inhaltsverzeichnis
+	\listoffigures
+	\listoftables
+	
+	\newpage
+	\pagenumbering{arabic}
+	\setlength\parindent{0cm}
+	
+	\subfile{./Subfiles/Abstract.tex}
+	
+	\subfile{./Subfiles/Introduction.tex}
+	
+	\subfile{./Subfiles/Data_Methods.tex}
+	
+	\subfile{./Subfiles/Results.tex}
+	
+	%\subfile{Diskussion.tex}	
+	
+	\bibliographystyle{apalike}
+	\bibliography{Masterbib}
+	
+
+	%\subfile{Anhang.tex}
+
+
+\end{document}

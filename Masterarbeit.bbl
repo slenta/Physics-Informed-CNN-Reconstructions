@@ -1,0 +1,213 @@
+\begin{thebibliography}{}
+
+\bibitem[Boyer et~al., 2016]{boyer_sensitivity_2016}
+Boyer, T., Domingues, C.~M., Good, S.~A., Johnson, G.~C., Lyman, J.~M., Ishii,
+  M., Gouretski, V., Willis, J.~K., Antonov, J., Wijffels, S., Church, J.~A.,
+  Cowley, R., and Bindoff, N.~L. (2016).
+\newblock Sensitivity of {Global} {Upper}-{Ocean} {Heat} {Content} {Estimates}
+  to {Mapping} {Methods}, {XBT} {Bias} {Corrections}, and {Baseline}
+  {Climatologies}*.
+\newblock {\em Journal of Climate}, 29(13):4817--4842.
+
+\bibitem[Brune et~al., 2018]{brune_time_2018}
+Brune, S., Düsterhus, A., Pohlmann, H., Müller, W.~A., and Baehr, J. (2018).
+\newblock Time dependency of the prediction skill for the {North} {Atlantic}
+  subpolar gyre in initialized decadal hindcasts.
+\newblock {\em Climate Dynamics}, 51(5-6):1947--1970.
+
+\bibitem[Brune et~al., 2015]{brune_assimilation_2015}
+Brune, S., Nerger, L., and Baehr, J. (2015).
+\newblock Assimilation of oceanic observations in a global coupled {Earth}
+  system model with the {SEIK} filter.
+\newblock {\em Ocean Modelling}, 96:254--264.
+
+\bibitem[Brune et~al., 2021]{brune_mpi-esm-lr_1201p5_2021}
+Brune, S., Pohlmann, H., Müller, W.~A., Nielsen, D.~M., Hövel, L., and Baehr,
+  J. (2021).
+\newblock {MPI}-{ESM}-{LR}\_1.2.01p5 decadal predictions {localEnKF}: monthly
+  mean values.
+
+\bibitem[Buckley et~al., 2019]{buckley_predictability_2019}
+Buckley, M.~W., DelSole, T., Lozier, M.~S., and Li, L. (2019).
+\newblock Predictability of {North} {Atlantic} {Sea} {Surface} {Temperature}
+  and {Upper}-{Ocean} {Heat} {Content}.
+\newblock {\em Journal of Climate}, 32(10):3005--3023.
+
+\bibitem[Carrassi et~al., 2018]{carrassi_data_2018}
+Carrassi, A., Bocquet, M., Bertino, L., and Evensen, G. (2018).
+\newblock Data assimilation in the geosciences: {An} overview of methods,
+  issues, and perspectives.
+\newblock {\em WIREs Climate Change}, 9(5).
+
+\bibitem[Cheng et~al., 2017]{cheng_improved_2017}
+Cheng, L., Trenberth, K.~E., Fasullo, J., Boyer, T., Abraham, J., and Zhu, J.
+  (2017).
+\newblock Improved estimates of ocean heat content from 1960 to 2015.
+\newblock {\em Science Advances}, 3(3):e1601545.
+
+\bibitem[Cheng et~al., 2018]{cheng_decadal_2018}
+Cheng, L., Wang, G., Abraham, J., and Huang, G. (2018).
+\newblock Decadal {Ocean} {Heat} {Redistribution} {Since} the {Late} 1990s and
+  {Its} {Association} with {Key} {Climate} {Modes}.
+\newblock {\em Climate}, 6(4):91.
+
+\bibitem[Cheng et~al., 2014]{cheng_time_2014}
+Cheng, L., Zhu, J., Cowley, R., Boyer, T., and Wijffels, S. (2014).
+\newblock Time, {Probe} {Type}, and {Temperature} {Variable} {Bias}
+  {Corrections} to {Historical} {Expendable} {Bathythermograph} {Observations}.
+\newblock {\em Journal of Atmospheric and Oceanic Technology},
+  31(8):1793--1825.
+
+\bibitem[Dee et~al., 2011]{dee_era-interim_2011}
+Dee, D.~P., Uppala, S.~M., Simmons, A.~J., Berrisford, P., Poli, P., Kobayashi,
+  S., Andrae, U., Balmaseda, M.~A., Balsamo, G., Bauer, P., Bechtold, P.,
+  Beljaars, A. C.~M., van~de Berg, L., Bidlot, J., Bormann, N., Delsol, C.,
+  Dragani, R., Fuentes, M., Geer, A.~J., Haimberger, L., Healy, S.~B.,
+  Hersbach, H., Hólm, E.~V., Isaksen, L., Kållberg, P., Köhler, M.,
+  Matricardi, M., McNally, A.~P., Monge-Sanz, B.~M., Morcrette, J.-J., Park,
+  B.-K., Peubey, C., de~Rosnay, P., Tavolato, C., Thépaut, J.-N., and Vitart,
+  F. (2011).
+\newblock The {ERA}-{Interim} reanalysis: configuration and performance of the
+  data assimilation system.
+\newblock {\em Quarterly Journal of the Royal Meteorological Society},
+  137(656):553--597.
+
+\bibitem[Garcia-Soto et~al., 2021]{garcia-soto_overview_2021}
+Garcia-Soto, C., Cheng, L., Caesar, L., Schmidtko, S., Jewett, E.~B., Cheripka,
+  A., Rigor, I., Caballero, A., Chiba, S., Báez, J.~C., Zielinski, T., and
+  Abraham, J.~P. (2021).
+\newblock An {Overview} of {Ocean} {Climate} {Change} {Indicators}: {Sea}
+  {Surface} {Temperature}, {Ocean} {Heat} {Content}, {Ocean} {pH}, {Dissolved}
+  {Oxygen} {Concentration}, {Arctic} {Sea} {Ice} {Extent}, {Thickness} and
+  {Volume}, {Sea} {Level} and {Strength} of the {AMOC} ({Atlantic} {Meridional}
+  {Overturning} {Circulation}).
+\newblock {\em Frontiers in Marine Science}, 8:642372.
+
+\bibitem[Good et~al., 2013]{good_en4_2013}
+Good, S.~A., Martin, M.~J., and Rayner, N.~A. (2013).
+\newblock {EN4}: {Quality} controlled ocean temperature and salinity profiles
+  and monthly objective analyses with uncertainty estimates: {THE} {EN4} {DATA}
+  {SET}.
+\newblock {\em Journal of Geophysical Research: Oceans}, 118(12):6704--6716.
+
+\bibitem[Gouretski and Cheng, 2020]{gouretski_correction_2020}
+Gouretski, V. and Cheng, L. (2020).
+\newblock Correction for {Systematic} {Errors} in the {Global} {Dataset} of
+  {Temperature} {Profiles} from {Mechanical} {Bathythermographs}.
+\newblock {\em Journal of Atmospheric and Oceanic Technology}, 37(5):841--855.
+
+\bibitem[Hersbach et~al., 2020]{hersbach_era5_2020}
+Hersbach, H., Bell, B., Berrisford, P., Hirahara, S., Horányi, A.,
+  Muñoz‐Sabater, J., Nicolas, J., Peubey, C., Radu, R., Schepers, D.,
+  Simmons, A., Soci, C., Abdalla, S., Abellan, X., Balsamo, G., Bechtold, P.,
+  Biavati, G., Bidlot, J., Bonavita, M., Chiara, G., Dahlgren, P., Dee, D.,
+  Diamantakis, M., Dragani, R., Flemming, J., Forbes, R., Fuentes, M., Geer,
+  A., Haimberger, L., Healy, S., Hogan, R.~J., Hólm, E., Janisková, M.,
+  Keeley, S., Laloyaux, P., Lopez, P., Lupu, C., Radnoti, G., Rosnay, P.,
+  Rozum, I., Vamborg, F., Villaume, S., and Thépaut, J. (2020).
+\newblock The {ERA5} global reanalysis.
+\newblock {\em Quarterly Journal of the Royal Meteorological Society},
+  146(730):1999--2049.
+
+\bibitem[Häkkinen et~al., 2015]{hakkinen_heat_2015}
+Häkkinen, S., Rhines, P.~B., and Worthen, D.~L. (2015).
+\newblock Heat content variability in the {North} {Atlantic} {Ocean} in ocean
+  reanalyses: {OHC} {IN} {THE} {NORTH} {ATLANTIC} {OCEAN}.
+\newblock {\em Geophysical Research Letters}, 42(8):2901--2909.
+
+\bibitem[Kadow et~al., 2020]{kadow_artificial_2020}
+Kadow, C., Hall, D.~M., and Ulbrich, U. (2020).
+\newblock Artificial intelligence reconstructs missing climate information.
+\newblock {\em Nature Geoscience}, 13(6):408--413.
+
+\bibitem[Keenlyside and Ba, 2010]{keenlyside_prospects_2010}
+Keenlyside, N.~S. and Ba, J. (2010).
+\newblock Prospects for decadal climate prediction.
+\newblock {\em WIREs Climate Change}, 1(5):627--635.
+
+\bibitem[Levitus et~al., 2012]{levitus_world_2012}
+Levitus, S., Antonov, J.~I., Boyer, T.~P., Baranova, O.~K., Garcia, H.~E.,
+  Locarnini, R.~A., Mishonov, A.~V., Reagan, J.~R., Seidov, D., Yarosh, E.~S.,
+  and Zweng, M.~M. (2012).
+\newblock World ocean heat content and thermosteric sea level change
+  (0–2000 m), 1955–2010.
+\newblock {\em Geophysical Research Letters}, 39:5.
+
+\bibitem[Liu et~al., 2018]{liu_image_2018}
+Liu, G., Reda, F.~A., Shih, K.~J., Wang, T.-C., Tao, A., and Catanzaro, B.
+  (2018).
+\newblock Image {Inpainting} for {Irregular} {Holes} {Using} {Partial}
+  {Convolutions}.
+\newblock {\em arXiv:1804.07723 [cs]}.
+\newblock arXiv: 1804.07723.
+
+\bibitem[Marotzke et~al., 2016]{marotzke_miklip_2016}
+Marotzke, J., Müller, W.~A., Vamborg, F. S.~E., Becker, P., Cubasch, U.,
+  Feldmann, H., Kaspar, F., Kottmeier, C., Marini, C., Polkova, I., Prömmel,
+  K., Rust, H.~W., Stammer, D., Ulbrich, U., Kadow, C., Köhl, A., Kröger, J.,
+  Kruschke, T., Pinto, J.~G., Pohlmann, H., Reyers, M., Schröder, M., Sienz,
+  F., Timmreck, C., and Ziese, M. (2016).
+\newblock {MiKlip}: {A} {National} {Research} {Project} on {Decadal} {Climate}
+  {Prediction}.
+\newblock {\em Bulletin of the American Meteorological Society},
+  97(12):2379--2394.
+
+\bibitem[Mauritsen et~al., 2019]{mauritsen_developments_2019}
+Mauritsen, T., Bader, J., Becker, T., Behrens, J., Bittner, M., Brokopf, R.,
+  Brovkin, V., Claussen, M., Crueger, T., Esch, M., Fast, I., Fiedler, S.,
+  Fläschner, D., Gayler, V., Giorgetta, M., Goll, D.~S., Haak, H., Hagemann,
+  S., Hedemann, C., Hohenegger, C., Ilyina, T., Jahns, T.,
+  Jimenéz‐de‐la‐Cuesta, D., Jungclaus, J., Kleinen, T., Kloster, S.,
+  Kracher, D., Kinne, S., Kleberg, D., Lasslop, G., Kornblueh, L., Marotzke,
+  J., Matei, D., Meraner, K., Mikolajewicz, U., Modali, K., Möbis, B.,
+  Müller, W.~A., Nabel, J. E. M.~S., Nam, C. C.~W., Notz, D., Nyawira, S.,
+  Paulsen, H., Peters, K., Pincus, R., Pohlmann, H., Pongratz, J., Popp, M.,
+  Raddatz, T.~J., Rast, S., Redler, R., Reick, C.~H., Rohrschneider, T.,
+  Schemann, V., Schmidt, H., Schnur, R., Schulzweida, U., Six, K.~D., Stein,
+  L., Stemmler, I., Stevens, B., Storch, J., Tian, F., Voigt, A., Vrese, P.,
+  Wieners, K., Wilkenskjeld, S., Winkler, A., and Roeckner, E. (2019).
+\newblock Developments in the {MPI}‐{M} {Earth} {System} {Model} version 1.2
+  ({MPI}‐{ESM1}.2) and {Its} {Response} to {Increasing} {CO} $_{\textrm{2}}$.
+\newblock {\em Journal of Advances in Modeling Earth Systems}, 11(4):998--1038.
+
+\bibitem[Nerger and Hiller, 2013]{nerger_software_2013}
+Nerger, L. and Hiller, W. (2013).
+\newblock Software for ensemble-based data assimilation
+  systems—{Implementation} strategies and scalability.
+\newblock {\em Computers \& Geosciences}, 55:110--118.
+
+\bibitem[Pham et~al., 1998]{pham_filtres_1998}
+Pham, D.~T., Verron, J., and Gourdeau, L. (1998).
+\newblock Filtres de {Kaiman} singuliers évolutifs pour l'assimilation de
+  données en océanographie.
+\newblock {\em Comptes Rendus de l'Académie des Sciences - Series IIA - Earth
+  and Planetary Science}, 326(4):255--260.
+
+\bibitem[Roemmich et~al., 2009]{roemmich_Argo_2009}
+Roemmich, D., Johnson, G., Riser, S., Davis, R., Gilson, J., Owens, W.~B.,
+  Garzoli, S., Schmid, C., and Ignaszewski, M. (2009).
+\newblock The {Argo} {Program}: {Observing} the {Global} {Oceans} with
+  {Profiling} {Floats}.
+\newblock {\em Oceanography}, 22(2):34--43.
+
+\bibitem[Uppala et~al., 2005]{uppala_era-40_2005}
+Uppala, S.~M., KÅllberg, P.~W., Simmons, A.~J., Andrae, U., Bechtold, V.
+  D.~C., Fiorino, M., Gibson, J.~K., Haseler, J., Hernandez, A., Kelly, G.~A.,
+  Li, X., Onogi, K., Saarinen, S., Sokka, N., Allan, R.~P., Andersson, E.,
+  Arpe, K., Balmaseda, M.~A., Beljaars, A. C.~M., Berg, L. V.~D., Bidlot, J.,
+  Bormann, N., Caires, S., Chevallier, F., Dethof, A., Dragosavac, M., Fisher,
+  M., Fuentes, M., Hagemann, S., Hólm, E., Hoskins, B.~J., Isaksen, L.,
+  Janssen, P. A. E.~M., Jenne, R., Mcnally, A.~P., Mahfouf, J.-F., Morcrette,
+  J.-J., Rayner, N.~A., Saunders, R.~W., Simon, P., Sterl, A., Trenberth,
+  K.~E., Untch, A., Vasiljevic, D., Viterbo, P., and Woollen, J. (2005).
+\newblock The {ERA}-40 re-analysis.
+\newblock {\em Quarterly Journal of the Royal Meteorological Society},
+  131(612):2961--3012.
+
+\bibitem[Yeager et~al., 2012]{yeager_decadal_2012}
+Yeager, S., Karspeck, A., Danabasoglu, G., Tribbia, J., and Teng, H. (2012).
+\newblock A {Decadal} {Prediction} {Case} {Study}: {Late} {Twentieth}-{Century}
+  {North} {Atlantic} {Ocean} {Heat} {Content}.
+\newblock {\em Journal of Climate}, 25(15):5173--5189.
+
+\end{thebibliography}
