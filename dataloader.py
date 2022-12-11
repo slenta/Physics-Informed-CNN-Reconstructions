@@ -238,14 +238,3 @@ class ValDataset(Dataset):
         length = gt.shape[0]
 
         return length
-
-
-# dataset1 = SpecificValDataset(12*27 + 11, '11_1985')
-# mi, m, i = dataset1[0]
-
-# dataset1 = MaskDataset(7, '2020_newgrid', '3d_1958_2020_newgrid', 'train')
-# mi, m, i, = dataset1[3]
-# print(mi.shape, m.shape, i.shape)
-
-# f_mask = h5py.File('../Asi_maskiert/original_masks/Maske_2004_2020.hdf5', 'r')
-# mask = f_mask.get('tos_sym')

@@ -23,7 +23,6 @@ from sklearn.metrics import mean_squared_error
 cdo = cdo.Cdo()
 
 sys.path.append("./")
-cfg.set_train_args()
 
 
 def evaluate(
@@ -162,10 +161,7 @@ def infill(model, dataset, partitions, iter, name):
         )
     h5.close()
 
-    return (
-        ma.masked_array(gt, mask)[:, :, :, :],
-        ma.masked_array(output_comp, mask)[:, :, :, :],
-    )
+    return output, gt
 
 
 def heat_content_timeseries(depth_steps, iteration, name):
@@ -796,11 +792,11 @@ def hc_ml_ensemble(members, length=754):
 
     for i in range(1, members + 1):
         if cfg.val_cut:
-            file_a = f"{cfg.val_dir}{cfg.save_part}/timeseries_{1000000 + 1000*i}_assimilation_full_cut.hdf5"
-            file_o = f"{cfg.val_dir}{cfg.save_part}/timeseries_{1000000 + 1000*i}_observations_full_cut.hdf5"
+            file_a = f"{cfg.val_dir}part_16/timeseries_{1000000 + 1000*i}_assimilation_full_cut.hdf5"
+            file_o = f"{cfg.val_dir}part_16/timeseries_{1000000 + 1000*i}_observations_full_cut.hdf5"
         else:
-            file_a = f"{cfg.val_dir}{cfg.save_part}/timeseries_{1000000 + 1000*i}_assimilation_full.hdf5"
-            file_o = f"{cfg.val_dir}{cfg.save_part}/timeseries_{1000000 + 1000*i}_observations_full.hdf5"
+            file_a = f"{cfg.val_dir}part_16/timeseries_{1000000 + 1000*i}_assimilation_full.hdf5"
+            file_o = f"{cfg.val_dir}part_16/timeseries_{1000000 + 1000*i}_observations_full.hdf5"
 
         f_a = h5py.File(file_a, "r")
         f_o = h5py.File(file_o, "r")

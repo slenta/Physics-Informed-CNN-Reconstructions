@@ -11,6 +11,8 @@ import evaluation_og as evalu
 from sklearn.metrics import mean_squared_error
 from scipy.stats import pearsonr, norm
 
+cfg.set_evaluation_args()
+
 if not os.path.exists(f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/"):
     os.makedirs(f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/")
 
@@ -292,7 +294,10 @@ def hc_plotting(path, iteration, time=600):
     f_en4 = h5py.File(f"{cfg.im_dir}En4_reanalysis_1950_2020_NA.hdf5")
 
     f_cm = h5py.File(f"{cfg.mask_dir}Kontinent_newgrid.hdf5")
+    f_spg = h5py.File(f"{cfg.mask_dir}SPG_Maske.hdf5")
+    spg = f_spg.get("SPG")
     continent_mask = np.array(f_cm.get("continent_mask"))
+    coastlines = np.array(f_cm.get("coastlines"))
 
     image_o = np.array(fc_o.get("image"))
     image = np.array(fc.get("image"))
@@ -300,15 +305,12 @@ def hc_plotting(path, iteration, time=600):
     if type(time) == int:
 
         image = image[time, :, :, :]
-        image = evalu.heat_content_single(image)
-        image_grey = np.where(image == 0, 1, image) * continent_mask
-        image_grey = np.where(image_grey == 1, np.nan, image_grey)
-        image_grey = np.where(image_grey == 10e25, 0, image_grey)
+        # image = evalu.heat_content_single(image)
+        # image_grey = np.where(image == 0, np.nan, image) * continent_mask
 
-        image_o = image_o[time, :, :, :]
-        image_o = evalu.heat_content_single(image_o)
-        image_grey_o = np.where(image_o == 0, 2, image_o) * continent_mask
-        image_grey_o = np.where(image_grey_o == 2, np.nan, image_grey_o)
+        # image_o = image_o[time, :, :, :]
+        # image_o = evalu.heat_content_single(image_o)
+        # image_grey_o = np.where(image_o == 0, np.nan, image_o) * continent_mask
 
         hc_assi = (
             np.where(np.array(f.get("hc_net"))[time, :, :] == 0, 1) * continent_mask
@@ -320,52 +322,43 @@ def hc_plotting(path, iteration, time=600):
         time_1 = time[0]
         time_2 = time[1]
         image = np.nanmean(image[time_1:time_2, :, :, :], axis=0)
-        image = evalu.heat_content_single(image)
-        image_grey = image * continent_mask
+        print(1)
+        # image = evalu.heat_content_single(image)
+        # image_grey = image * continent_mask
 
-        image_o = np.nanmean(image_o[time_1:time_2, :, :, :], axis=0)
-        image_o = evalu.heat_content_single(image_o)
-        image_grey_o = image_o * continent_mask
+        # image_o = np.nanmean(image_o[time_1:time_2, :, :, :], axis=0)
+        # image_o = evalu.heat_content_single(image_o)
+        # image_grey_o = image_o * continent_mask
 
-        hc_assi = (
-            np.nanmean(
-                np.nan_to_num(np.array(f.get("hc_net"))[time_1:time_2, :, :], nan=0),
-                axis=0,
-            )
-            * continent_mask
+        hc_assi = np.nanmean(
+            np.nan_to_num(np.array(f.get("hc_net"))[time_1:time_2, :, :], nan=1),
+            axis=0,
         )
-        hc_gt = (
-            np.nanmean(
-                np.nan_to_num(np.array(f.get("hc_gt"))[time_1:time_2, :, :], nan=0),
-                axis=0,
-            )
-            * continent_mask
+        hc_gt = np.nanmean(
+            np.nan_to_num(np.array(f.get("hc_gt"))[time_1:time_2, :, :], nan=1),
+            axis=0,
         )
-        hc_obs = (
-            np.nanmean(
-                np.nan_to_num(np.array(fo.get("hc_net"))[time_1:time_2, :, :], nan=0),
-                axis=0,
-            )
-            * continent_mask
+        hc_obs = np.nanmean(
+            np.nan_to_num(np.array(fo.get("hc_net"))[time_1:time_2, :, :], nan=1),
+            axis=0,
         )
-        en4 = (
-            np.nanmean(
-                np.nan_to_num(np.array(f_en4.get("ohc"))[time_1:time_2, :, :], nan=0),
-                axis=0,
-            )
-            * continent_mask
+        en4 = np.nanmean(
+            np.nan_to_num(np.array(f_en4.get("ohc"))[time_1:time_2, :, :], nan=1),
+            axis=0,
         )
 
     fig = plt.figure(figsize=(12, 5), constrained_layout=True)
     fig.suptitle("Assimilation Heat Content Comparison")
-    current_cmap = plt.cm.get_cmap("coolwarm").copy()
-    current_cmap.set_bad(color="grey")
+    cmap_1 = plt.cm.get_cmap("coolwarm").copy()
+    cmap_1.set_bad(color="darkgrey")
+    cmap_2 = plt.cm.get_cmap("bwr").copy()
+    cmap_2.set_bad(color="black")
 
     plt.subplot(1, 2, 1)
     plt.title("Assimilation Heat Content")
     plt.imshow(
-        hc_gt,
-        cmap=current_cmap,
+        coastlines * spg * hc_gt,
+        cmap=cmap_1,
         vmin=-3e9,
         vmax=3e9,
         aspect="auto",
@@ -376,8 +369,8 @@ def hc_plotting(path, iteration, time=600):
     plt.subplot(1, 2, 2)
     plt.title("Network Output Heat Content")
     plt.imshow(
-        hc_assi,
-        cmap=current_cmap,
+        hc_assi * spg * coastlines,
+        cmap=cmap_1,
         vmin=-3e9,
         vmax=3e9,
         aspect="auto",
@@ -397,8 +390,8 @@ def hc_plotting(path, iteration, time=600):
     plt.subplot(1, 3, 1)
     plt.title(f"EN4 Reanalysis")
     plt.imshow(
-        en4,
-        cmap=current_cmap,
+        en4 * coastlines * spg,
+        cmap=cmap_1,
         vmin=-3e9,
         vmax=3e9,
         aspect="auto",
@@ -409,8 +402,8 @@ def hc_plotting(path, iteration, time=600):
     plt.subplot(1, 3, 2)
     plt.title("Assimilation Heat Content")
     plt.imshow(
-        hc_gt,
-        cmap=current_cmap,
+        hc_gt * spg * coastlines,
+        cmap=cmap_1,
         vmin=-3e9,
         vmax=3e9,
         aspect="auto",
@@ -421,8 +414,8 @@ def hc_plotting(path, iteration, time=600):
     plt.subplot(1, 3, 3)
     plt.title("Network Output Heat Content")
     plt.imshow(
-        hc_obs,
-        cmap=current_cmap,
+        hc_obs * spg * coastlines,
+        cmap=cmap_1,
         vmin=-3e9,
         vmax=3e9,
         aspect="auto",
@@ -582,7 +575,7 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
     plt.grid()
     plt.legend()
     plt.xticks(ticks=ticks, labels=labels)
-    plt.title("Comparison Reconstruction to Assimilation Timeseries")
+    plt.title("SPG OHC Estimates")
     plt.xlabel("Time in years")
     plt.ylabel("Heat Content [J]")
     plt.savefig(
@@ -611,9 +604,27 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
 
     plt.figure(figsize=(10, 6))
     if obs == False:
-        plt.plot(hc_assi - hc_gt, label="Assimilation reconstruction")
+        misfit = hc_assi - hc_gt
+        del_total = del_a + del_gt
+        plt.plot(misfit, label="Misfit: Assimilation and Indirect NN Reconstruction")
+        plt.fill_between(
+            range(len(misfit)),
+            misfit + del_total,
+            misfit - del_total,
+            label="Combined Uncertainty",
+            color="lightsteelblue",
+        )
     else:
-        plt.plot(hc_obs - hc_gt, label="Assimilation Heat Content")
+        misfit = hc_obs - hc_gt
+        del_total = del_o + del_gt
+        plt.plot(misfit, label="Misfit: Assimilation and Direct NN Reconstruction")
+        plt.fill_between(
+            range(len(misfit)),
+            misfit + del_total,
+            misfit - del_total,
+            label="Combined Uncertainty",
+            color="lightsteelblue",
+        )
     plt.grid()
     plt.legend()
     plt.xticks(ticks=ticks, labels=labels)
@@ -834,7 +845,7 @@ obs = False
 # hc_plotting(
 #    cfg.save_part,
 #    cfg.resume_iter,
-#    time=[740, 748],
+#    time=[0, 120],
 # )
 # correlation_plotting(cfg.save_part, str(cfg.resume_iter), depth=0)
 timeseries_plotting(

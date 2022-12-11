@@ -1,4 +1,5 @@
 # creating timeseries from all assimilation ensemble members and ensemble mean
+import matplotlib
 import numpy as np
 import netCDF4
 import matplotlib.pyplot as plt
@@ -610,8 +611,13 @@ cfg.set_train_args()
 #
 # tos = np.array(ds.thetao.values[0, 0, :, :])
 # n = tos.shape
-# tos_new = np.zeros(tos.shape)
-#
+# rest = np.zeros((128 - n[0], n[1])) * np.nan
+# tos = np.concatenate((tos, rest), axis=0)
+# n = tos.shape
+# rest2 = np.zeros((n[0], 128 - n[1])) * np.nan
+# tos = np.concatenate((tos, rest2), axis=1)
+# n = tos.shape
+# tos_new = tos.copy()
 # x_out = []
 # y_out = []
 #
@@ -631,16 +637,43 @@ cfg.set_train_args()
 #        if x not in x_out or y not in y_out:
 #            tos[x, y] = np.nan
 #
-# current_cmap = plt.cm.get_cmap("coolwarm").copy()
-# current_cmap.set_bad(color="gray")
+# tos = np.where(np.isnan(tos) == False, 1, tos)
+#
+# for x in range(n[0] - 1):
+#    for y in range(n[1] - 1):
+#        if tos[x, y] != 1:
+#            if (
+#                tos[x + 1, y] != 1
+#                and tos[x - 1, y] != 1
+#                and tos[x, y - 1] != 1
+#                and tos[x, y + 1] != 1
+#            ):
+#                tos[x, y] = 50
+#            else:
+#                tos[x, y] = np.nan
+#
+#
+# SPG_lines = np.where(np.isnan(tos) == False, 1, np.nan)
+#
+# cmap_1 = plt.cm.get_cmap("coolwarm").copy()
+# cmap_1.set_bad(color="grey")
+# cmap_2 = plt.cm.get_cmap("jet").copy()
+# cmap_2.set_bad(color="black")
+#
 # plt.title("Subpolar Gyre Region")
 # plt.xlabel("Transformed Longitudes")
 # plt.ylabel("Transformed Latitudes")
-# plt.imshow(tos, cmap=current_cmap)
+# plt.imshow(tos_new, cmap=cmap_1, vmin=-3, vmax=60)
+# plt.imshow(SPG_lines, cmap=cmap_2, vmin=-3, vmax=60, alpha=0.3)
 # plt.savefig(
 #    f"../Asi_maskiert/pdfs/validation/part_16/SPG_grid.pdf",
 # )
 # plt.show()
+#
+# path = f"{cfg.mask_dir}SPG_Maske.hdf5"
+# fs = h5py.File(path, "w")
+# fs.create_dataset(name="SPG", shape=SPG_lines.shape, data=SPG_lines)
+# fs.close()
 
 ### Pattern Correlation for anhang
 
@@ -713,15 +746,9 @@ cfg.set_train_args()
 
 ###### Drawing coastlines
 
-path = f"{cfg.mask_dir}Kontinent_newgrid.hdf5"
-# path = f"{cfg.mask_dir}Kontinent_newgrid_cut.hdf5"
-
-# f = h5py.File(path, "r")
-#
-# continent_mask = np.array(f.get("continent_mask"))
 
 # fc = h5py.File(
-#    f"{cfg.val_dir}part_16/validation_1000000_assimilation_full.hdf5",
+#    f"{cfg.val_dir}part_16/validation_1000000_assimilation_full_cut.hdf5",
 #    "r",
 # )
 # gt = np.array(fc.get("gt"))[0, 0, :, :]
@@ -740,12 +767,26 @@ path = f"{cfg.mask_dir}Kontinent_newgrid.hdf5"
 #            ):
 #                continent_mask[x, y] = np.nan
 #            else:
-#                continent_mask[x, y] = np.nan
+#                continent_mask[x, y] = 1e6
 #
-## f.close()
 #
+# cmap_1 = plt.cm.get_cmap("coolwarm").copy()
+# cmap_1.set_bad(color="grey")
+# cmap_2 = plt.cm.get_cmap("coolwarm").copy()
+# cmap_2.set_bad(color="black")
+#
+#
+# coastlines = np.where(continent_mask == 1e6, np.nan, 1)
+# continent_mask = np.where(continent_mask == 1e6, np.nan, continent_mask)
+#
+# plt.imshow(gt * continent_mask, cmap=cmap_1, vmin=-3, vmax=3)
+# plt.imshow(coastlines * gt, cmap=cmap_2, vmin=-3, vmax=3, alpha=0.5)
+# plt.show()
+#
+# path = f"{cfg.mask_dir}Kontinent_newgrid_cut.hdf5"
 # f = h5py.File(path, "w")
 # f.create_dataset("continent_mask", shape=continent_mask.shape, data=continent_mask)
+# f.create_dataset("coastlines", shape=coastlines.shape, data=coastlines)
 # f.close()
 
 
@@ -798,49 +839,62 @@ path = f"{cfg.mask_dir}Kontinent_newgrid.hdf5"
 
 ############## EN4 reanalysis plotting
 
-file = f"{cfg.im_dir}En4_reanalysis_1950_2020_NA"
-ds = xr.load_dataset(f"{file}.nc", decode_times=False)
-time = ds.time
-ds["time"] = netCDF4.num2date(time[:], time.units)
-ds = ds.sel(time=slice("1958-01", "2020-10"))
+# file = f"{cfg.im_dir}En4_reanalysis_1950_2020_NA"
+# ds = xr.load_dataset(f"{file}.nc", decode_times=False)
+# time = ds.time
+# ds["time"] = netCDF4.num2date(time[:], time.units)
+# ds = ds.sel(time=slice("1958-01", "2020-10"))
+#
+# tos = ds.thetao.values
+#
+# f = h5py.File(
+#    "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
+#    "r",
+# )
+# tos_mean = f.get("sst_mean")
+# for i in range(len(tos)):
+#    tos[i] = tos[i] - tos_mean[i % 12]
+#
+## adjust shape of variables to fit quadratic input
+# n = tos.shape
+# rest = np.zeros((n[0], n[1], 128 - n[2], n[3]))
+# tos = np.concatenate((tos, rest), axis=2)
+# n = tos.shape
+# rest2 = np.zeros((n[0], n[1], n[2], 128 - n[3]))
+# tos = np.concatenate((tos, rest2), axis=3)
+#
+# ohc_en4 = evalu.heat_content_single(tos[:, :20, :, :])
+#
+## f_en4 = h5py.File(f"{file}.h5py", "r")
+## ohc_en4 = np.array(f_en4.get("ohc"))
+#
+# plt.imshow(np.nanmean(ohc_en4[:120, :, :], axis=0), cmap="coolwarm")
+# plt.show()
+#
+# plt.plot(np.nansum(ohc_en4, axis=(1, 2)))
+# plt.show()
+#
+# f = h5py.File(f"{file}.hdf5", "w")
+# f.create_dataset(name="ohc", shape=ohc_en4.shape, data=ohc_en4)
+# f.close()
+#
+# ohc_newgrid = evalu.area_cutting_single(ohc_en4)
+# plt.plot(np.nansum(ohc_newgrid, axis=(1, 2)))
+# plt.show()
+#
+# f = h5py.File(f"{file}_cut.hdf5", "w")
+# f.create_dataset(name="ohc", shape=ohc_newgrid.shape, data=ohc_newgrid)
+# f.close()
 
-tos = ds.thetao.values
 
-f = h5py.File(
-    "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
-    "r",
-)
-tos_mean = f.get("sst_mean")
-for i in range(len(tos)):
-    tos[i] = tos[i] - tos_mean[i % 12]
+file = f"{cfg.val_dir}{cfg.save_part}/val_errors.hdf5"
+f = h5py.File(file, "r")
+rsmes = np.array(f.get("rsmes")).flatten()
 
-# adjust shape of variables to fit quadratic input
-n = tos.shape
-rest = np.zeros((n[0], n[1], 128 - n[2], n[3]))
-tos = np.concatenate((tos, rest), axis=2)
-n = tos.shape
-rest2 = np.zeros((n[0], n[1], n[2], 128 - n[3]))
-tos = np.concatenate((tos, rest2), axis=3)
+xx = np.arange(cfg.save_model_interval, cfg.resume_iter, cfg.save_model_interval)
+print(xx.shape)
 
-ohc_en4 = evalu.heat_content_single(tos[:, :20, :, :])
-
-# f_en4 = h5py.File(f"{file}.h5py", "r")
-# ohc_en4 = np.array(f_en4.get("ohc"))
-
-plt.imshow(np.nanmean(ohc_en4[:120, :, :], axis=0), cmap="coolwarm")
+plt.figure(figsize=(10, 6))
+plt.plot(xx, rsmes)
+plt.grid()
 plt.show()
-
-plt.plot(np.nansum(ohc_en4, axis=(1, 2)))
-plt.show()
-
-f = h5py.File(f"{file}.hdf5", "w")
-f.create_dataset(name="ohc", shape=ohc_en4.shape, data=ohc_en4)
-f.close()
-
-ohc_newgrid = evalu.area_cutting_single(ohc_en4)
-plt.plot(np.nansum(ohc_newgrid, axis=(1, 2)))
-plt.show()
-
-f = h5py.File(f"{file}_cut.hdf5", "w")
-f.create_dataset(name="ohc", shape=ohc_newgrid.shape, data=ohc_newgrid)
-f.close()

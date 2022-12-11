@@ -61,8 +61,12 @@ depths = prepo.depths()
 argo = cfg.mask_argo
 print(argo)
 
-# evaluate assimilation reconstruction model
-if cfg.attribute_depth == "no_depth":
+if cfg.combine_layers:
+    evalu.combine_layers(
+        np.arange(cfg.combine_start, cfg.combine_start + cfg.in_channels)
+    )
+
+else:
     start_iter = load_ckpt(
         "{}/ckpt/{}/{}.pth".format(cfg.save_dir, cfg.save_part, cfg.resume_iter),
         [("model", model)],
@@ -80,19 +84,6 @@ if cfg.attribute_depth == "no_depth":
         iter=str(cfg.resume_iter),
         name=f"assimilation_{argo}",
     )
-else:
-    evalu.combine_layers(np.arange(20, 40))
-    evalu.area_cutting(mode=f"assimilation_{argo}", depth=cfg.in_channels)
-    evalu.heat_content(depths, str(cfg.resume_iter), name=f"assimilation_{argo}")
-    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=12)
-    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=1)
-    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=5 * 12)
-    evalu.heat_content_timeseries(
-        depths, str(cfg.resume_iter), name=f"assimilation_{argo}"
-    )
-
-# validate with observations
-if cfg.attribute_depth == "no_depth":
     val_obs_dataset = ValDataset(
         cfg.eval_im_year, cfg.mask_year, depth, cfg.in_channels
     )
@@ -103,7 +94,20 @@ if cfg.attribute_depth == "no_depth":
         iter=str(cfg.resume_iter),
         name=f"observations_{argo}",
     )
-else:
+
+if cfg.eval_full:
+    # evaluate assimilation reconstruction
+    evalu.combine_layers(np.arange(60, 80))
+    evalu.area_cutting(mode=f"assimilation_{argo}", depth=cfg.in_channels)
+    evalu.heat_content(depths, str(cfg.resume_iter), name=f"assimilation_{argo}")
+    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=12)
+    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=1)
+    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=5 * 12)
+    evalu.heat_content_timeseries(
+        depths, str(cfg.resume_iter), name=f"assimilation_{argo}"
+    )
+
+    # evaluate observations reconstruction
     evalu.area_cutting(mode=f"observations_{argo}", depth=cfg.in_channels)
     evalu.heat_content(depths, str(cfg.resume_iter), name=f"observations_{argo}")
     evalu.pattern_corr_timeseries(name=f"observations_{argo}", del_t=12)

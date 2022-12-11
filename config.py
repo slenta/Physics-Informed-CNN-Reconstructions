@@ -138,6 +138,7 @@ lon1 = None
 lon2 = None
 lat1 = None
 lat2 = None
+latlons = None
 save_part = None
 attribute_depth = None
 attribute_anomaly = None
@@ -152,6 +153,10 @@ n_filters = None
 disable_first_bn = None
 depth = None
 val_cut = None
+combine_layers = None
+vis_step = None
+combine_start = None
+eval_full = None
 
 
 def set_train_args(arg_file=None):
@@ -213,6 +218,10 @@ def set_train_args(arg_file=None):
     arg_parser.add_argument("--disable_first_bn", action="store_true")
     arg_parser.add_argument("--depth", type=int, default=0)
     arg_parser.add_argument("--val_cut", action="store_true")
+    arg_parser.add_argument("--vis_step", type=int, default=600)
+    arg_parser.add_argument("--combine_layers", action="store_true")
+    arg_parser.add_argument("--eval_full", action="store_true")
+    arg_parser.add_argument("--combine_start", type=int, default=60)
     global_args(arg_parser, arg_file)
     args = arg_parser.parse_args()
 
@@ -270,6 +279,10 @@ def set_train_args(arg_file=None):
     global disable_first_bn
     global depth
     global val_cut
+    global combine_layers
+    global combine_start
+    global eval_full
+    global vis_step
 
     im_name = args.im_name
     mask_name = args.mask_name
@@ -331,6 +344,10 @@ def set_train_args(arg_file=None):
     disable_first_bn = args.disable_first_bn
     depth = args.depth
     val_cut = args.val_cut
+    combine_layers = args.combine_layers
+    vis_step = args.vis_step
+    combine_start = args.combine_start
+    eval_full = args.eval_full
 
 
 def set_evaluation_args(arg_file=None):
@@ -349,6 +366,7 @@ def set_evaluation_args(arg_file=None):
     arg_parser.add_argument("--im_year", type=str, default="r16_newgrid")
     arg_parser.add_argument("--ensemble_member", type=int, default=2)
     arg_parser.add_argument("--resume_iter", type=int)
+    arg_parser.add_argument("--lr", type=float, default=2e-4)
     arg_parser.add_argument("--device", type=str, default="cpu")
     arg_parser.add_argument("--batch_size", type=int, default=4)
     arg_parser.add_argument("--n_threads", type=int, default=32)
@@ -358,19 +376,16 @@ def set_evaluation_args(arg_file=None):
     arg_parser.add_argument("--out_channels", type=int, default=20)
     arg_parser.add_argument("--in_channels", type=int, default=20)
     arg_parser.add_argument("--save_part", type=str, default="part_1")
-    arg_parser.add_argument("--image_size", type=int, default=128)
     arg_parser.add_argument("--vis_interval", type=int, default=50000)
     arg_parser.add_argument("--eval_im_year", type=str, default="r16_newgrid")
-    arg_parser.add_argument("--prepro_mode", type=str, default="none")
     arg_parser.add_argument("--attribute_anomaly", type=str, default="anomalies")
     arg_parser.add_argument("--attribute_depth", type=str, default="depth")
     arg_parser.add_argument("--attribute_argo", type=str, default="argo")
     arg_parser.add_argument("--mask_argo", type=str, default="argo")
-    arg_parser.add_argument("--lon1", type=int, default=-60)
-    arg_parser.add_argument("--lon2", type=int, default=-10)
-    arg_parser.add_argument("--lat1", type=int, default=45)
-    arg_parser.add_argument("--lat2", type=int, default=60)
-    arg_parser.add_argument("--val_interval", type=int, default=50000)
+    arg_parser.add_argument("--lonlats", type=list, default=[-60, -10, 45, 60])
+    arg_parser.add_argument("--image_size", type=int, default=128)
+    arg_parser.add_argument("--vis_step", type=int, default=600)
+    arg_parser.add_argument("--prepro_mode", type=str, default="none")
     arg_parser.add_argument(
         "--val_dir", type=str, default="../Asi_maskiert/results/validation/"
     )
@@ -379,6 +394,9 @@ def set_evaluation_args(arg_file=None):
     arg_parser.add_argument("--disable_first_bn", action="store_true")
     arg_parser.add_argument("--depth", type=int, default=0)
     arg_parser.add_argument("--val_cut", action="store_true")
+    arg_parser.add_argument("--combine_layers", action="store_true")
+    arg_parser.add_argument("--eval_full", action="store_true")
+    arg_parser.add_argument("--combine_start", type=int, default=60)
     global_args(arg_parser, arg_file)
     args = arg_parser.parse_args()
 
@@ -397,15 +415,11 @@ def set_evaluation_args(arg_file=None):
     global lstm_steps
     global encoding_layers
     global pooling_layers
-    global image_size
+    global prepro_mode
     global in_channels
     global out_channels
-    global save_snapshot_image
     global save_part
-    global image_size
-    global vis_interval
     global eval_im_year
-    global prepro_mode
     global lon1
     global lon2
     global lat1
@@ -414,7 +428,7 @@ def set_evaluation_args(arg_file=None):
     global attribute_argo
     global attribute_depth
     global mask_argo
-    global val_interval
+    global vis_step
     global val_dir
     global eval_mask_year
     global ensemble_member
@@ -422,10 +436,14 @@ def set_evaluation_args(arg_file=None):
     global disable_first_bn
     global depth
     global val_cut
+    global combine_layers
+    global combine_start
+    global eval_full
+    global lr
+    global image_size
 
     im_name = args.im_name
     mask_name = args.mask_name
-    eval_timesteps = args.eval_timesteps.split(",")
     log_dir = args.log_dir
     save_dir = args.save_dir
     im_dir = args.im_dir
@@ -440,22 +458,19 @@ def set_evaluation_args(arg_file=None):
     pooling_layers = args.pooling_layers
     out_channels = args.out_channels
     in_channels = args.in_channels
+    prepro_mode = args.prepro_mode
     im_year = args.im_year
     mask_year = args.mask_year
     save_part = args.save_part
-    image_size = args.image_size
-    vis_interval = args.vis_interval
     eval_im_year = args.eval_im_year
-    prepro_mode = args.prepro_mode
-    lon1 = args.lon1
-    lon2 = args.lon2
-    lat1 = args.lat1
-    lat2 = args.lat2
+    lon1 = args.lonlats[0]
+    lon2 = args.lonlats[1]
+    lat1 = args.lonlats[2]
+    lat2 = args.lonlats[3]
     attribute_depth = args.attribute_depth
     attribute_anomaly = args.attribute_anomaly
     attribute_argo = args.attribute_argo
     mask_argo = args.mask_argo
-    val_interval = args.val_interval
     val_dir = args.val_dir
     eval_mask_year = args.eval_mask_year
     ensemble_member = args.ensemble_member
@@ -463,3 +478,9 @@ def set_evaluation_args(arg_file=None):
     disable_first_bn = args.disable_first_bn
     depth = args.depth
     val_cut = args.val_cut
+    combine_layers = args.combine_layers
+    vis_step = args.vis_step
+    combine_start = args.combine_start
+    eval_full = args.eval_full
+    lr = args.lr
+    image_size = args.image_size
