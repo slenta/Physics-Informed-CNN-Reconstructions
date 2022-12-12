@@ -21,7 +21,7 @@
 	\subsection{Data Assimilation}
 	
 	In general, Kalman Filter (KF) assimilations assume the uncertainties of model and observations to be Gaussian and then assimilates the observations sequentially. Both, model and observations, are described as probability density functions (PDFs) and the Kalman filter alternates between forecasting and analyzing the PDF's covariance and mean \cite{carrassi_data_2018}. It is often supplemented by a backward calculation of the smoothing mean and covariance to refine the previous estimates in what is called the Kalman smoother (KS). By introducing an ensemble of model trajectories instead of one single representation of the model dynamics, the KF can be adjusted and extended in what is called an ensemble Kalman filter (EnKF). This allows for the covariance matrices to be approximated by an ensemble of model states. The covariance matrix and ensemble mean are then sequentially forecast and updated. EnKFs provide computationally efficient and very accurate results, especially in high dimensional systems, such as the climate and Earth system \citep{carrassi_data_2018}. \\
-		
+	
 	For this work, an ensemble coupled MPI-ESM assimilation \citep{brune_mpi-esm-lr_1201p5_2021} is used to train the U-net to reconstruct masked temperature profiles. An oceanic localized EnKF, implemented with the Parallel Data Assimilation Framework \citep{nerger_software_2013}, assimilates monthly EN4 temperature and salinity profiles. Simultaneously, atmospheric nudging of ERA40/ERAInterim/ERA5 reanalyses \citep{uppala_era-40_2005, dee_era-interim_2011, hersbach_era5_2020} takes place. All monthly datasets range from January 1958 until October 2020 and present temperature profiles up to a depth of 2.000 m in 40 depth steps.\\
 	These assimilation runs are based on the work of \cite{brune_assimilation_2015} and use a version of the singular evolutive interpolated Kalman filter (SEIK, \cite{pham_filtres_1998}) in their EnKF. This assimilation was developed as a model inherent initialization for the MPI-ESM and showed improvements especially in the assimilation of sea surface temperatures and ocean heat content \citep{brune_assimilation_2015}. Therefore, it provides a good estimate of the relevant variables and represents a fitting choice as training data for the U-net.
 	
@@ -46,19 +46,19 @@
 	The U-net adopted in this work is based on the one used by \cite{kadow_artificial_2020} to reconstruct near-surface air temperature data. \cite{kadow_artificial_2020} adopted image inpainting technology developed by \cite{liu_image_2018}. This original U-net focused on infilling irregular holes in a variety of images. The concept of infilling irregular holes aims at producing smooth results consistent with the holes' environment without limiting itself to rectangular holes. \cite{liu_image_2018} achieved that by designing a convolutional U-net, which utilizes partial convolutions in each encoding and decoding layer. Partial convolutions consist of a masked and re-normalized convolution operation, which is then followed by an automatic mask-update step \citep{liu_image_2018}. In mathematical terms, this means that the partial convolution at each location is defined as
 	
 	\begin{align}
-		x' = \begin{cases}
-		W^{T} (X \cdot M) \frac{\sum(1)}{\sum(M)} + b, &\text{if} \, \sum(M) > 0\\
-		0, &\text{otherwise ,}\\
-		\end{cases}
+	x' = \begin{cases}
+	W^{T} (X \cdot M) \frac{\sum(1)}{\sum(M)} + b, &\text{if} \, \sum(M) > 0\\
+	0, &\text{otherwise ,}\\
+	\end{cases}
 	\end{align}
 	
 	where $W$ denotes the convolutional filter weights, $b$ its corresponding bias, $X$ the feature values for the current convolution, $M$ the corresponding mask and $1$ an array with the same size as $M$ filled with ones \cite{liu_image_2018}. This mask is then updated for each element according to \cite{liu_image_2018} as
 	
 	\begin{align}
-		m' = \begin{cases}
-		1, & \text{if} \sum(M) > 0 \\
-		0, & \text{otherwise .} \\
-		\end{cases}
+	m' = \begin{cases}
+	1, & \text{if} \sum(M) > 0 \\
+	0, & \text{otherwise .} \\
+	\end{cases}
 	\end{align}
 	
 	So, with enough partial convolutions, the mask is eventually updated to incorporate only ones and the output image does not possess any empty pixels anymore. Decoding layers then additionally use the \textit{PyTorch} interpolation function to upsample the image successively back to its original scale. This approach yields significant upsides compared to normal convolutional layers. Convolutional U-nets rely very heavily on the initial values given to the U-net in the places of the image holes. Most deep learning approaches to image inpainting use constant placeholders in the holes of the input images. This often makes computationally expensive postprocessing necessary to compensate for the artifacts stemming from this initial value bias \citep{liu_image_2018}. Partial convolutional layers account for the initial value problem by using the described re-normalization and a masked convolution operation as well as the automatic mask update step (\ref{mask_update}). This results in the reconstruction being only dependent on the input data that is not masked out and thus renders the initial hole value irrelevant \citep{liu_image_2018}. An additional upside of this approach is the fact that this dependence on only the valid input data renders the shape of the holes irrelevant. Both problems are also applicable to the reconstruction of missing temperature observations, as the missing data usually differs at every timestep in its shape. Thus, these partial convolutional U-nets can learn spatial patterns of temperature data and apply them to highly varying observational patterns \cite{kadow_artificial_2020}.\\
@@ -81,7 +81,7 @@
 	The aim of this work is to develop an improved uncertainty estimate on North Atlantic ocean heat content, specifically in the time before the availability of Argo data. To do this, I propose to divide the available 16 member ensemble of monthly data assimilation runs into two distinct eras. The first part will be called the pre-Argo era, which starts with the beginning of the assimilation runs in 1958 and ends once the Argo project has reached close to global coverage of subsurface temperature observations in 2004. The timespan afterwards, once the Argo floats have reached near global observation coverage, will be called the Argo era and ends with the end of the assimilation runs in October 2020. \\
 	
 	To assess, if convolutional U-nets can be considered a valid alternative to EnKF data assimilation, the neural network will be trained on data assimilations during the well observed Argo era (2004 -- 2020) in order to learn on assimilations, which posses lower uncertainty and have integrated more observational data. After the network has been fully trained, visible at the progression of its training curve, it can be given masked temperature profiles for reconstruction. At first, the network will reconstruct the Argo era masked assimilations from one of the held back ensemble members. Each month of assimilation data will be masked with the corresponding observational pattern from that time. Given the high observational density during the Argo era, this reconstruction can be considered the first step for the neural network towards the reproduction of the assimilation OHC estimate. This approach can then be extended to the pre-Argo era, if the neural network is able to reproduce the assimilation ensemble within its uncertainty range during the Argo era. Analyzing the reconstructed OHC timeseries as well as maps from individual timesteps, the machine learning reconstructions can also be used to discuss inconsistencies and uncertainties within the assimilation. Differences between both OHC estimates can then be taken as indicator for uncertainties that are not mirrored within the assimilation's ensemble spread. Finally, I will examine, whether the neural network is able to directly reconstruct observations in the pre-Argo and Argo era as well as more recent observations it has not trained on within the assimilations uncertainty range. The results will then be evaluated in regard to the neural network's potential to reproduce or replace EnKF assimilations. Additionally, its implications on a new uncertainty estimate on the EnKF assimilations OHC outside of its ensemble spread will be considered. \\
-
+	
 	
 	
 \end{document}
