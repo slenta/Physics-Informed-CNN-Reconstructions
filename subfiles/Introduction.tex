@@ -1,0 +1,63 @@
+% !TeX root = ../Masterarbeit.tex
+
+\documentclass[Masterarbeit.tex]{subfile}
+
+\begin{document}
+	
+	\chapter{Introduction}
+	
+	\section{Motivation and Problem}
+	
+	\subsection{Why is OHC important to the climate system?}
+	Predicting changes of Earth system variables on interannual to decadal scales has been the focus of large amounts of current climate research. From forecasts of extreme weather events like droughts or heat waves to predictions of precipitation and temperature on regional scales, decadal predictions yield a number of important results \citep{marotzke_miklip_2016, keenlyside_prospects_2010}. However, land surface and atmospheric components of the Earth system often change so quickly that they are difficult to rely on when predicting on larger timescales from months to decades. Due to their low frequency variability and long memory in comparison to the atmosphere, oceans play a special role in climate modeling on interannual to decadal time scales. In particular ocean heat content indicates long term changes in heat fluxes between the Earth system's oceanic and atmospheric components \citep{cheng_improved_2017}. In addition to that, it also shows a consistent and slowly varying response to changes in external boundary conditions of the climate system. Therefore, representing changes in ocean heat content and its response to external forcings accurately is one of the major challenges for decadal climate predictions.\\
+	
+	\subsection{What happens with North Atlantic OHC -- especially SPG -- with progressing climate change?}
+	\subsection{Current Literature on North Atlantic OHC estimates}
+	Ocean heat content is not only important for climate predictions due to its low frequency variability. Additionally, it is instrumental to the Earth's energy budget and its response to anthropogenic greenhouse gas emissions. Greenhouse gases reflect longwave radiation back towards the Earth's surface, creating an imbalance in the Earth's energy budget in the form of a surplus of incoming energy compared to the outgoing longwave radiation. More than $90 \%$ of this energy imbalance is retained in the global oceans with over $30 \%$ being stored in the North Atlantic \citep{hakkinen_heat_2015}. This does not only lead to thermal expansion and thus a direct rise in sea level but also affects the formation of sea ice and the global circulation systems. In comparison to surface land and sea temperatures, changes in ocean heat content also show lower background noise in comparison to their signal, making them a better indicator for climatic changes \citep{cheng_decadal_2018}. While the overall global heat content has risen significantly over the past 50 years due to anthropogenic climate change, regional differences can be observed. The subpolar North Atlantic for example, or more specifically the Subpolar Gyre (SPG), has seen an overall cooling trend (SOURCE). SOURCE attribute these changes to regional natural variability closely connected to the North Atlantic Oscillation (NAO), which impacts the regional climate in Europe as well as northern North America (SOURCE). The North Atlantic and especially its sea surface temperature (SST) can be predicted with relatively high skill on interannual to decadal timescales \citep{buckley_predictability_2019}. However, especially when examining subsurface temperatures in the North Atlantic and OHC, several sources of uncertainties remain. Better estimating these uncertainties could thus give insights into the different regional OHC trends in the North Atlantic and their impact on European climate and weather. \\
+	
+	
+	
+	
+	
+	Additionally, most Earth system models (ESMs) require a current state close to observations as an initialization. Thus, accurate climate predictions on interannual to decadal time scales depend both on the initial state of ocean heat content and its response to external forcing \citep{yeager_decadal_2012}.  \\
+	
+	\subsection{Uncertainties on OHC esimation}
+	
+	In general, ocean heat content estimates are dependent on several factors. A first and very direct source of uncertainties is the bias measurement instruments bring into the calculation of ocean heat content. Over large parts of the $20^{\un{th}}$ century, mechanical bathythermographs (MBTs) and expendable bathythermographs (XBTs) provided considerable amounts of ocean temperature profile data. MBTs accounted for $68 \%$ of profiles from 1941--1966 before being replaced by XBTs, which then accounted for $38 \%$ of profile data from 1970--2001 \citep{gouretski_correction_2020}. Both measurement methods have been found to incorporate a time variant warm bias, which significantly impacted ocean heat content timeseries. \cite{gouretski_correction_2020} show that time and spatially dependent corrections can help significantly reduce the MBT bias of $0.2\degree$C. Nonetheless, even after the correction a bias of up to $0.1\degree$C remains, particularly in the southern hemisphere. Similarly, \cite{cheng_time_2014} have designed a correction method for the XBT bias, which limits the bias up to $\pm 0.04\degree$C. In addition to XBT and MBT biases, \cite{boyer_sensitivity_2016} have identified mapping methods and baseline climatologies as additional sources of uncertainties. Especially since scientific consensus on the choice of XBT bias correction method has been reached by now \citep{garcia-soto_overview_2021}, \cite{boyer_sensitivity_2016} have identified the choice of mapping method as a larger source of uncertainty for the calculation of ocean heat content. 
+	
+	\subsection{Mapping methods in current literature}
+	Mapping methods refer to the way of reconstructing a full set of values of a variable from a limited amount of observations. As ocean heat content cannot be observed directly, it is usually calculated by integrating over temperature profiles from the ocean surface down to a depth of up to 2.000 m. However, subsurface temperature observations often lack adequate coverage and thus cannot be used without further processing to initialize climate models. In order to create a complete set of values close to the observed state, a range of statistical mapping methods can be applied. On the one hand, data assimilation runs aim to bring together Earth system model processes with an incomplete observed state. The complete set of values hereby produced can then be used for model initialization. On the other hand, statistical methods interpolate between missing data points on a purely mathematical basis. Both techniques have shown high correlation to each other in the reconstruction of oceanic heat content \cite{brune_time_2018}. However, data assimilation requires high computational costs and statistical infilling methods can have trouble reproducing physical processes in undersampled regions. Additionally, data assimilation runs show lower correlation to interpolation methods in the second half of the twentieth century compared to assimilations run over the last 20 years \citep{brune_time_2018}. \\
+	
+	\subsection{Dependence of mapping methods on data coverage}
+	\subsection{The argo/preargo uncertainty problem: Definition of uncertainty and observation density}
+	
+	At the start of the 2000s the amount of subsurface temperature observations in global oceans started to rise rapidly due to the introduction of the Argo project. The Argo project is an internationl cooperation, which placed 4.000 swimming buoys in the global oceans \citep{roemmich_Argo_2009}. These buoys drift with ocean currents and continually measure temperatures up to a depth of 2.000 m. The timeseries of different infilling methods of global upper ocean heat content show much higher correlation with each other after the introduction of Argo floats, as can be seen in figure \ref{fig:ohc_timeseries}. As there is no reference point for the ground truth available at points without direct observation, the only estimate of the missing data comes in form of uncertainty ranges of different infilling methods. Therefore, the uncertainty range of ocean heat content estimates at locations with undersampled temperature measurements is much higher before the introduction of Argo floats \citep{levitus_world_2012}.
+	
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.8\textwidth]{plots/ohc_timeseries.png}
+		\caption{Estimates of upper 2.000 m North Atlantic ocean heat content using different data assimilation and interpolation methods \citep{hakkinen_heat_2015}.}
+		\label{fig:ohc_timeseries}
+	\end{figure}
+	
+	
+	\section{My Approach to a better solution to the problem}
+	
+	\subsection{What alternative ways to reconstruct OHC? Directer? Faster?}
+	
+	\subsection{Aim 1: Better defining NA OHC uncertainty with ML reconstructions}
+	
+	\subsection{Literature: OHC uncertainty and ENKF Assimilations}
+	
+	\subsection{Methods and Prodcedure: How do I plan to evaluate uncertainty?}
+	
+	\subsection{Aim 2: Gaining direct access to full image from observations}
+	
+	\subsection{Literature: Deep Learning Assimilations}
+	
+	\subsection{Methods and Procedure: How do I directly reconstruct and evaluate reconstructions?}
+	
+	\section{Summary and Thesis Structure}
+	
+\end{document}
