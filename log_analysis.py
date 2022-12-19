@@ -1,19 +1,19 @@
-#file to look at and analyze network logs
-
+# file to look at and analyze network logs and plot training error
 import numpy as np
-from tensorboard.backend.event_processing import event_multiplexer
+import config as cfg
+import matplotlib.pyplot as plt
+import matplotlib
+import pandas as pd
 
-LOGDIR = '../Asi_maskiert/logs/default/'
-RUN_NAME = 'events.out.tfevents.1652028193.mg207'
 
-def main():
-  multiplexer = event_multiplexer.EventMultiplexer()
-  multiplexer.AddRunsFromDirectory(LOGDIR)
-  multiplexer.Reload()
+def trainings_error_plot(part=cfg.save_part, mode="Training"):
+    file_valid = f"../Asi_maskiert/pdfs/validation/{part}/run-.-tag-loss_valid.csv"
+    file_hole = f"../Asi_maskiert/pdfs/validation/{part}/run-.-tag-loss_hole.csv"
 
-  graph = multiplexer.Graph(RUN_NAME)
-  print(len(graph.node))
-  print(graph.node[0])
+    pd_valid = pd.read_csv(file_valid)
+    pd_hole = pd.read_csv(file_hole)
 
-if __name__ == '__main__':
-  main()
+    print(pd_hole, pd_valid)
+
+
+trainings_error_plot("part_19")
