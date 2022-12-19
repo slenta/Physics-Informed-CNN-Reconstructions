@@ -57,7 +57,7 @@ class preprocessing:
             elif cfg.attribute_argo == "full":
                 ds = ds.sel(time=slice(195800, 202011))
             if cfg.attribute_argo == "anhang":
-                ds = ds.sel(time=slice(202009, 202112))
+                ds = ds.sel(time=slice(195800, 202112))
 
             tos = ds.tho.values
             tos = np.where(np.isnan(tos) == False, 1, 0)
@@ -76,7 +76,7 @@ class preprocessing:
             elif cfg.attribute_argo == "full":
                 ds = ds.sel(time=slice("1958-01", "2020-10"))
             elif cfg.attribute_argo == "anhang":
-                ds = ds.sel(time=slice("2020-09", "2021-12"))
+                ds = ds.sel(time=slice("1958-01", "2021-11"))
 
             # change total values to anomalies using calculated baseline climatology
             # (taken from ensemble mean of all assimilation data)
@@ -84,17 +84,12 @@ class preprocessing:
                 "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
                 "r",
             )
-            tos_mean = f.get("sst_mean")
+            tos_mean = f.get("sst_mean_newgrid")
             tos = ds.thetao.values
 
-            if cfg.attribute_argo == "anhang":
-                if cfg.attribute_anomaly == "anomalies":
-                    for i in range(len(tos)):
-                        tos[i] = tos[i] - tos_mean[(i + 9) % 12]
-            else:
-                if cfg.attribute_anomaly == "anomalies":
-                    for i in range(len(tos)):
-                        tos[i] = tos[i] - tos_mean[i % 12]
+            if cfg.attribute_anomaly == "anomalies":
+                for i in range(len(tos)):
+                    tos[i] = tos[i] - tos_mean[i % 12]
 
             # eliminate nan values
             tos = np.nan_to_num(tos, nan=0)
@@ -110,7 +105,7 @@ class preprocessing:
             elif cfg.attribute_argo == "full":
                 ds = ds.sel(time=slice(195800, 202011))
             if cfg.attribute_argo == "anhang":
-                ds = ds.sel(time=slice(202009, 202112))
+                ds = ds.sel(time=slice(195800, 202112))
 
             # change total values to anomalies using calculated baseline
             # climatology (taken from ensemble mean of all assimilation data)
@@ -119,17 +114,12 @@ class preprocessing:
                 "r",
             )
 
-            tos_mean = f.get("sst_mean")
+            tos_mean = f.get("sst_mean_newgrid")
             tos = ds.tho.values
 
-            if cfg.attribute_argo == "anhang":
-                if cfg.attribute_anomaly == "anomalies":
-                    for i in range(len(tos)):
-                        tos[i] = tos[i] - tos_mean[(i + 9) % 12]
-            else:
-                if cfg.attribute_anomaly == "anomalies":
-                    for i in range(len(tos)):
-                        tos[i] = tos[i] - tos_mean[i % 12]
+            if cfg.attribute_anomaly == "anomalies":
+                for i in range(len(tos)):
+                    tos[i] = tos[i] - tos_mean[i % 12]
 
             tos = np.nan_to_num(tos, nan=0)
 
@@ -162,16 +152,11 @@ class preprocessing:
                 "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
                 "r",
             )
-            tos_mean = f.get("sst_mean")
+            tos_mean = f.get("sst_mean_newgrid")
 
-            if cfg.attribute_argo == "anhang":
-                if cfg.attribute_anomaly == "anomalies":
-                    for i in range(len(tos)):
-                        tos[i] = tos[i] - tos_mean[(i + 9) % 12]
-            else:
-                if cfg.attribute_anomaly == "anomalies":
-                    for i in range(len(tos)):
-                        tos[i] = tos[i] - tos_mean[i % 12]
+            if cfg.attribute_anomaly == "anomalies":
+                for i in range(len(tos)):
+                    tos[i] = tos[i] - tos_mean[i % 12]
 
             tos = np.nan_to_num(tos, nan=0)
 
@@ -213,9 +198,12 @@ class preprocessing:
 
         # plot variable for quick check
         tos_new = self.__getitem__()
-        pixel_plot = plt.figure()
-        pixel_plot = plt.imshow(tos_new[0, 0, :, :], vmin=-5, vmax=5)
-        plt.colorbar(pixel_plot)
+        plt.figure()
+        plt.imshow(tos_new[0, :, :])
+        plt.colorbar()
+        plt.show()
+
+        plt.plot(np.nanmean(tos_new, axis=(2, 1)))
         plt.show()
 
     def depths(self):

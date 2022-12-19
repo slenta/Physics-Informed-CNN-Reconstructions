@@ -273,22 +273,22 @@ def correlation_plotting(path, iteration, depth):
     plt.show()
 
 
-def hc_plotting(path, iteration, time=600):
+def hc_plotting(path, iteration, time=600, obs=False, mask_argo="full"):
 
     f = h5py.File(
-        f"{cfg.val_dir}{path}/heatcontent_{str(iteration)}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
+        f"{cfg.val_dir}{path}/heatcontent_{str(iteration)}_assimilation_{mask_argo}_{cfg.eval_im_year}.hdf5",
         "r",
     )
     fo = h5py.File(
-        f"{cfg.val_dir}{path}/heatcontent_{str(iteration)}_observations_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
+        f"{cfg.val_dir}{path}/heatcontent_{str(iteration)}_observations_{mask_argo}_{cfg.eval_im_year}.hdf5",
         "r",
     )
     fc = h5py.File(
-        f"{cfg.val_dir}{path}/validation_{str(iteration)}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
+        f"{cfg.val_dir}{path}/validation_{str(iteration)}_assimilation_{mask_argo}_{cfg.eval_im_year}.hdf5",
         "r",
     )
     fc_o = h5py.File(
-        f"{cfg.val_dir}{path}/validation_{str(iteration)}_observations_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
+        f"{cfg.val_dir}{path}/validation_{str(iteration)}_observations_{mask_argo}_{cfg.eval_im_year}.hdf5",
         "r",
     )
     f_en4 = h5py.File(f"{cfg.im_dir}En4_reanalysis_1950_2020_NA.hdf5")
@@ -354,84 +354,116 @@ def hc_plotting(path, iteration, time=600):
     cmap_2 = plt.cm.get_cmap("bwr").copy()
     cmap_2.set_bad(color="black")
 
-    plt.subplot(1, 2, 1)
-    plt.title("Assimilation Heat Content")
-    plt.imshow(
-        coastlines * spg * hc_gt,
-        cmap=cmap_1,
-        vmin=-3e9,
-        vmax=3e9,
-        aspect="auto",
-        interpolation=None,
-    )
-    plt.xlabel("Transformed Longitudes")
-    plt.ylabel("Transformed Latitudes")
-    plt.subplot(1, 2, 2)
-    plt.title("Network Output Heat Content")
-    plt.imshow(
-        hc_assi * spg * coastlines,
-        cmap=cmap_1,
-        vmin=-3e9,
-        vmax=3e9,
-        aspect="auto",
-        interpolation=None,
-    )
-    plt.xlabel("Transformed Longitudes")
-    plt.ylabel("Transformed Latitudes")
-    plt.colorbar(label="Heat Content in J")
+    if obs == False:
+        plt.subplot(1, 2, 1)
+        plt.title("Assimilation Heat Content")
+        plt.imshow(
+            coastlines * spg * hc_gt,
+            cmap=cmap_1,
+            vmin=-3e9,
+            vmax=3e9,
+            aspect="auto",
+            interpolation=None,
+        )
+        plt.xlabel("Transformed Longitudes")
+        plt.ylabel("Transformed Latitudes")
+        plt.subplot(1, 2, 2)
+        plt.title("Network Output Heat Content")
+        plt.imshow(
+            hc_assi * spg * coastlines,
+            cmap=cmap_1,
+            vmin=-3e9,
+            vmax=3e9,
+            aspect="auto",
+            interpolation=None,
+        )
+        plt.xlabel("Transformed Longitudes")
+        plt.ylabel("Transformed Latitudes")
+        plt.colorbar(label="Heat Content in J")
+        plt.savefig(
+            f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{cfg.mask_argo}_{cfg.eval_im_year}.pdf",
+            dpi=fig.dpi,
+        )
+        plt.show()
+
+    else:
+        fig = plt.figure(figsize=(16, 5), constrained_layout=True)
+        fig.suptitle("Observations Heat Content Comparison")
+        plt.subplot(1, 3, 1)
+        plt.title(f"EN4 Reanalysis")
+        plt.imshow(
+            en4 * coastlines * spg,
+            cmap=cmap_1,
+            vmin=-3e9,
+            vmax=3e9,
+            aspect="auto",
+            interpolation=None,
+        )
+        plt.xlabel("Transformed Longitudes")
+        plt.ylabel("Transformed Latitudes")
+        plt.subplot(1, 3, 2)
+        plt.title("Assimilation Heat Content")
+        plt.imshow(
+            hc_gt * spg * coastlines,
+            cmap=cmap_1,
+            vmin=-3e9,
+            vmax=3e9,
+            aspect="auto",
+            interpolation=None,
+        )
+        plt.xlabel("Transformed Longitudes")
+        plt.ylabel("Transformed Latitudes")
+        plt.subplot(1, 3, 3)
+        plt.title("Network Output Heat Content")
+        plt.imshow(
+            hc_obs * spg * coastlines,
+            cmap=cmap_1,
+            vmin=-3e9,
+            vmax=3e9,
+            aspect="auto",
+            interpolation=None,
+        )
+        plt.xlabel("Transformed Longitudes")
+        plt.ylabel("Transformed Latitudes")
+        plt.colorbar(label="Heat Content in J")
+        plt.savefig(
+            f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{cfg.mask_argo}_{cfg.eval_im_year}_obs.pdf",
+            dpi=fig.dpi,
+        )
+        plt.show()
+
+
+def plot_val_error(part, iteration, interval, combine_start, in_channels):
+
+    error_overall = np.zeros(shape=(in_channels, iteration // interval - 1))
+    print(iteration // interval - 1)
+    for part in np.arange(combine_start, combine_start + in_channels):
+        file = f"{cfg.val_dir}part_{part}/val_errors.hdf5"
+        f = h5py.File(file, "r")
+        rsmes = np.array(f.get("rsmes")).flatten()
+        error_overall[part - combine_start, :] = rsmes
+
+    error = np.mean(error_overall, axis=0)
+    xx = np.arange(interval, iteration, interval)
+    print(xx.shape)
+
+    plt.figure(figsize=(10, 6))
+    plt.title("Validation Error")
+    plt.xlabel("Training Iteration")
+    plt.ylabel("Validation Error")
+    plt.plot(xx, error)
+    plt.grid()
     plt.savefig(
-        f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{cfg.mask_argo}_{cfg.eval_im_year}.pdf",
-        dpi=fig.dpi,
+        f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/valerror_{iteration}.pdf"
     )
     plt.show()
 
-    fig = plt.figure(figsize=(16, 5), constrained_layout=True)
-    fig.suptitle("Observations Heat Content Comparison")
-    plt.subplot(1, 3, 1)
-    plt.title(f"EN4 Reanalysis")
-    plt.imshow(
-        en4 * coastlines * spg,
-        cmap=cmap_1,
-        vmin=-3e9,
-        vmax=3e9,
-        aspect="auto",
-        interpolation=None,
-    )
-    plt.xlabel("Transformed Longitudes")
-    plt.ylabel("Transformed Latitudes")
-    plt.subplot(1, 3, 2)
-    plt.title("Assimilation Heat Content")
-    plt.imshow(
-        hc_gt * spg * coastlines,
-        cmap=cmap_1,
-        vmin=-3e9,
-        vmax=3e9,
-        aspect="auto",
-        interpolation=None,
-    )
-    plt.xlabel("Transformed Longitudes")
-    plt.ylabel("Transformed Latitudes")
-    plt.subplot(1, 3, 3)
-    plt.title("Network Output Heat Content")
-    plt.imshow(
-        hc_obs * spg * coastlines,
-        cmap=cmap_1,
-        vmin=-3e9,
-        vmax=3e9,
-        aspect="auto",
-        interpolation=None,
-    )
-    plt.xlabel("Transformed Longitudes")
-    plt.ylabel("Transformed Latitudes")
-    plt.colorbar(label="Heat Content in J")
-    plt.savefig(
-        f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{cfg.mask_argo}_{cfg.eval_im_year}_obs.pdf",
-        dpi=fig.dpi,
-    )
-    plt.show()
+    return np.where(min(error))
 
 
-def timeseries_plotting(path, iteration, obs=True, del_t=1):
+def timeseries_plotting(
+    part, iteration, obs=True, del_t=1, argo="full", mask_argo="full"
+):
 
     if cfg.val_cut:
         val_cut = "_cut"
@@ -439,19 +471,19 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
         val_cut = ""
 
     f_a = h5py.File(
-        f"{cfg.val_dir}/{path}/validation_{iteration}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+        f"{cfg.val_dir}/{part}/validation_{iteration}_assimilation_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
         "r",
     )
     f_o = h5py.File(
-        f"{cfg.val_dir}{path}/validation_{iteration}_observations_{cfg.mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+        f"{cfg.val_dir}{part}/validation_{iteration}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
         "r",
     )
     f = h5py.File(
-        f"{cfg.val_dir}{path}/timeseries_{str(iteration)}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+        f"{cfg.val_dir}{part}/timeseries_{str(iteration)}_assimilation_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
         "r",
     )
     fo = h5py.File(
-        f"{cfg.val_dir}{path}/timeseries_{str(iteration)}_observations_{cfg.mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+        f"{cfg.val_dir}{part}/timeseries_{str(iteration)}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
         "r",
     )
     f_en4 = h5py.File(f"{cfg.im_dir}En4_reanalysis_1950_2020_NA{val_cut}.hdf5")
@@ -479,7 +511,10 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
     gt_mean, std_gt, hc_all = evalu.hc_ensemble_mean_std(
         cfg.im_dir, name="Image_r", members=16
     )
-    hc_all_a, hc_all_o = evalu.hc_ml_ensemble(15, length=752)
+    print(std_gt.shape)
+    hc_all_a, hc_all_o = evalu.hc_ml_ensemble(
+        members=15, part=part, iteration=iteration, length=768
+    )
     std_a = evalu.running_mean_std(
         np.nanstd(hc_all_a, axis=0), mode="mean", del_t=del_t
     )
@@ -507,7 +542,7 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
         )
 
     # define running mean timesteps
-    if cfg.attribute_argo == "argo":
+    if argo == "argo":
         hc_gt, hc_obs, hc_assi, del_a, del_o, del_gt, en4 = (
             hc_gt[552:],
             hc_obs[552:],
@@ -518,19 +553,27 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
             en4[552:],
         )
         start = 2004 + (del_t // 12) // 2
+        end = 2021 - (del_t // 12) // 2
+    elif argo == "anhang":
+        hc_gt, hc_obs, hc_assi, del_a, del_o, del_gt, en4 = (
+            hc_gt[552:],
+            hc_obs[552:],
+            hc_assi[552:],
+            del_a[552:],
+            del_o[552:],
+            del_gt[552:],
+            en4[552:],
+        )
+        start = 2004 + (del_t // 12) // 2
+        end = 2022 - (del_t // 12) // 2
+
     else:
         start = 1958 + (del_t // 12) // 2
+        end = 2021 - (del_t // 12) // 2
 
     length = len(hc_gt)
-
-    if del_t != 1:
-        length = len(hc_gt)
-        end = 2021 - (del_t // 12) // 2
-        ticks = np.arange(0, length, 12 * 5)
-        labels = np.arange(start, end, 5)
-    else:
-        ticks = np.arange(0, length, 12 * 5)
-        labels = np.arange(start, 2021, 5)
+    ticks = np.arange(0, length, 12 * 5)
+    labels = np.arange(start, end, 5)
 
     plt.figure(figsize=(10, 6))
 
@@ -579,7 +622,7 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
     plt.xlabel("Time in years")
     plt.ylabel("Heat Content [J]")
     plt.savefig(
-        f"../Asi_maskiert/pdfs/validation/{path}/validation_timeseries_{str(iteration)}_{del_t}_mean{val_cut}{o}_{cfg.eval_im_year}_mask_{cfg.mask_argo}_data_{cfg.attribute_argo}.pdf"
+        f"../Asi_maskiert/pdfs/validation/{part}/validation_timeseries_{str(iteration)}_{del_t}_mean{val_cut}{o}_{cfg.eval_im_year}_mask_{mask_argo}_data_{argo}.pdf"
     )
     plt.show()
 
@@ -598,7 +641,7 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
     plt.xlabel("Time in years")
     plt.ylabel("Heat Content [J]")
     plt.savefig(
-        f"../Asi_maskiert/pdfs/validation/{path}/validation_timeseries_masked_{cfg.mask_argo}_{str(iteration)}_{del_t}_mean{val_cut}_{cfg.eval_im_year}.pdf"
+        f"../Asi_maskiert/pdfs/validation/{part}/validation_timeseries_masked_{mask_argo}_{str(iteration)}_{del_t}_mean{val_cut}_{cfg.eval_im_year}.pdf"
     )
     plt.show()
 
@@ -632,7 +675,7 @@ def timeseries_plotting(path, iteration, obs=True, del_t=1):
     plt.xlabel("Time in years")
     plt.ylabel("Heat Content [J]")
     plt.savefig(
-        f"../Asi_maskiert/pdfs/validation/{path}/misfit_{str(iteration)}_{del_t}_mean{val_cut}_{cfg.eval_im_year}{o}_mask_{cfg.mask_argo}_data_{cfg.attribute_argo}.pdf"
+        f"../Asi_maskiert/pdfs/validation/{part}/misfit_{str(iteration)}_{del_t}_mean{val_cut}_{cfg.eval_im_year}{o}_mask_{cfg.mask_argo}_data_{cfg.attribute_argo}.pdf"
     )
     plt.show()
 
@@ -707,7 +750,9 @@ def std_plotting(del_t, ensemble=True):
     plt.show()
 
 
-def pattern_corr_plot(part, del_t=1, obs=False):
+def pattern_corr_plot(
+    part, del_t=1, obs=False, resume_iter=550000, argo="full", mask_argo="full"
+):
 
     if cfg.val_cut:
         val_cut = "_cut"
@@ -715,22 +760,27 @@ def pattern_corr_plot(part, del_t=1, obs=False):
         val_cut = ""
 
     f_o = h5py.File(
-        f"{cfg.val_dir}{cfg.save_part}/pattern_corr_ts_{str(cfg.resume_iter)}_observations_{cfg.mask_argo}_mean_{del_t}{val_cut}.hdf5",
+        f"{cfg.val_dir}{cfg.save_part}/pattern_corr_ts_{resume_iter}_observations_{mask_argo}_{cfg.eval_im_year}_mean_{del_t}{val_cut}.hdf5",
         "r",
     )
     f_a = h5py.File(
-        f"{cfg.val_dir}{cfg.save_part}/pattern_corr_ts_{str(cfg.resume_iter)}_assimilation_{cfg.mask_argo}_mean_{del_t}{val_cut}.hdf5",
+        f"{cfg.val_dir}{cfg.save_part}/pattern_corr_ts_{resume_iter}_assimilation_{mask_argo}_{cfg.eval_im_year}_mean_{del_t}{val_cut}.hdf5",
         "r",
     )
 
     corr_o = np.squeeze(np.array(f_o.get("corr_ts")))
     corr_a = np.squeeze(np.array(f_a.get("corr_ts")))
 
-    if cfg.attribute_argo == "argo":
+    if argo == "argo":
         corr_o, corr_a = corr_o[552:], corr_a[552:]
         start = 2004 + (del_t // 12) // 2
+        end = 2021 - (del_t // 12) // 2
+    elif argo == "anhang":
+        start = 2004 + (del_t // 12) // 2
+        end = 2022 - (del_t // 12) // 2
     else:
         start = 1958 + (del_t // 12) // 2
+        end = 2021 - (del_t // 12) // 2
 
     # calculate running mean, if necessary
     if del_t != 1:
@@ -738,7 +788,6 @@ def pattern_corr_plot(part, del_t=1, obs=False):
         length = len(corr_o)
         print(length)
 
-        end = 2021 - (del_t // 12) // 2
         ticks = np.arange(0, length, 12 * 5)
         labels = np.arange(start, end, 5)
 
@@ -761,7 +810,7 @@ def pattern_corr_plot(part, del_t=1, obs=False):
     plt.xlabel("Time in years")
     plt.ylabel(f"Pattern Correlation as ACC")
     plt.savefig(
-        f"../Asi_maskiert/pdfs/validation/{part}/pattern_cor_timeseries_{str(cfg.resume_iter)}_{del_t}_{cfg.eval_im_year}_{cfg.attribute_argo}{val_cut}.pdf"
+        f"../Asi_maskiert/pdfs/validation/{part}/pattern_cor_timeseries_{resume_iter}_{del_t}_{cfg.eval_im_year}_{argo}{val_cut}.pdf"
     )
     plt.show()
 
@@ -834,7 +883,7 @@ def error_pdf(argo, n_windows=1, del_t=1):
 
 
 cfg.set_train_args()
-obs = False
+# obs = False
 # masked_output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=0)
 # output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=0, mode='Observations')
 # output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=0, mode='Assimilation')
@@ -848,13 +897,13 @@ obs = False
 #    time=[0, 120],
 # )
 # correlation_plotting(cfg.save_part, str(cfg.resume_iter), depth=0)
-timeseries_plotting(
-    cfg.save_part,
-    cfg.resume_iter,
-    obs=obs,
-    del_t=1,
-)
-pattern_corr_plot(cfg.save_part, del_t=1, obs=obs)
+# timeseries_plotting(
+#    cfg.save_part,
+#    cfg.resume_iter,
+#    obs=obs,
+#    del_t=12,
+# )
+# pattern_corr_plot(cfg.save_part, del_t=12, obs=obs)
 # error_pdf(argo=cfg.mask_argo, n_windows=4, del_t=12)
 # std_plotting(del_t=1*12)
 

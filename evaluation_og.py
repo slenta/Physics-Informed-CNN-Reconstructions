@@ -164,7 +164,7 @@ def infill(model, dataset, partitions, iter, name):
     return output, gt
 
 
-def heat_content_timeseries(depth_steps, iteration, name):
+def heat_content_timeseries(depth_steps, iteration, name, anomalies=True):
 
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
@@ -174,9 +174,17 @@ def heat_content_timeseries(depth_steps, iteration, name):
             f"{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_{cfg.eval_im_year}_cut.hdf5",
             "r",
         )
+        fb = h5py.File(
+            "../Asi_maskiert/original_image/baseline_climatologyargo_cut.hdf5",
+            "r",
+        )
     else:
         f = h5py.File(
             f"{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_{cfg.eval_im_year}.hdf5",
+            "r",
+        )
+        fb = h5py.File(
+            "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
             "r",
         )
 
@@ -184,6 +192,14 @@ def heat_content_timeseries(depth_steps, iteration, name):
     gt = np.array(f.get("gt"))
     image = np.array(f.get("image"))
     mask = np.array(f.get("mask"))
+    cvar = [gt, output, image, mask]
+
+    # if anomalies == True:
+    #    thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
+
+    #    for var in cvar:
+    #        for i in range(var.shape[0]):
+    #            var[i] = var[i] + thetao_mean[i % 12]
 
     continent_mask = np.where(gt[0, 0, :, :] == 0, np.NaN, 1)
     mask = np.where(mask == 0, np.NaN, 1)
@@ -293,7 +309,7 @@ def running_mean_std(var, mode, del_t):
 
 
 # calculating heat content gridpoint wise
-def heat_content_single(image):
+def heat_content_single(image, depths=False):
 
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
@@ -316,6 +332,9 @@ def heat_content_single(image):
         n[1],
     )
     depth_steps = prepo.depths()
+    if type(depths) != bool:
+        depth_steps = depths
+
     if cfg.val_cut:
         image = image
     else:
@@ -360,7 +379,7 @@ def heat_content_single(image):
 
 
 # calculating heat content gridpoint wise
-def heat_content(depth_steps, iteration, name):
+def heat_content(depth_steps, iteration, name, anomalies=True):
 
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
@@ -378,16 +397,33 @@ def heat_content(depth_steps, iteration, name):
 
     output = np.array(f.get("output"))
     gt = np.array(f.get("gt"))
+    image = np.array(f.get("image"))
+    mask = np.array(f.get("mask"))
 
     if cfg.val_cut:
         fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid_cut.hdf5", "r")
         continent_mask = fm.get("continent_mask")
+        fb = h5py.File(
+            "../Asi_maskiert/original_image/baseline_climatologyargo_cut.hdf5",
+            "r",
+        )
     else:
         fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5", "r")
         continent_mask = fm.get("continent_mask")
+        fb = h5py.File(
+            "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
+            "r",
+        )
 
-    image = np.array(f.get("image"))
-    mask = np.array(f.get("mask"))
+    # if anomalies == True:
+    #    thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
+    #    print(thetao_mean.shape)
+
+    #    cvar = [gt, output, image, mask]
+
+    #    for var in cvar:
+    #        for i in range(var.shape[0]):
+    #            var[i] = var[i] + thetao_mean[i % 12]
 
     continent_mask = np.where(gt[0, 0, :, :] == 0, np.NaN, 1)
     mask = np.where(mask == 0, np.NaN, 1)
@@ -736,7 +772,7 @@ def combine_layers(parts):
     names = ["output", "image", "mask", "gt"]
 
     if cfg.attribute_argo == "anhang":
-        length = 12
+        length = 764
     else:
         length = 752
 
@@ -744,6 +780,7 @@ def combine_layers(parts):
         globals()[f"{name}_full"] = np.zeros(shape=(length, 20, 128, 128))
         globals()[f"{name}_obs_full"] = np.zeros(shape=(length, 20, 128, 128))
 
+    print(cfg.resume_iter)
     for depth, part in zip(range(len(parts)), parts):
         f = h5py.File(
             f"{cfg.val_dir}part_{str(part)}/validation_{str(cfg.resume_iter)}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
@@ -786,17 +823,18 @@ def combine_layers(parts):
     f_o.close()
 
 
-def hc_ml_ensemble(members, length=754):
+def hc_ml_ensemble(members, part, iteration, length=754):
 
     hc_all_a, hc_all_o = np.zeros(shape=(2, members, length))
+    members = np.arange(1, members + 1)
 
-    for i in range(1, members + 1):
+    for member in members:
         if cfg.val_cut:
-            file_a = f"{cfg.val_dir}part_16/timeseries_{1000000 + 1000*i}_assimilation_full_cut.hdf5"
-            file_o = f"{cfg.val_dir}part_16/timeseries_{1000000 + 1000*i}_observations_full_cut.hdf5"
+            file_a = f"{cfg.val_dir}{part}/timeseries_{iteration}_assimilation_anhang_r{member}_full_newgrid_cut.hdf5"
+            file_o = f"{cfg.val_dir}{part}/timeseries_{iteration}_observations_anhang_r{member}_full_newgrid_cut.hdf5"
         else:
-            file_a = f"{cfg.val_dir}part_16/timeseries_{1000000 + 1000*i}_assimilation_full.hdf5"
-            file_o = f"{cfg.val_dir}part_16/timeseries_{1000000 + 1000*i}_observations_full.hdf5"
+            file_a = f"{cfg.val_dir}{part}/timeseries_{iteration}_assimilation_anhang_r{member}_full_newgrid.hdf5"
+            file_o = f"{cfg.val_dir}{part}/timeseries_{iteration}_observations_anhang_r{member}_full_newgrid.hdf5"
 
         f_a = h5py.File(file_a, "r")
         f_o = h5py.File(file_o, "r")
@@ -804,19 +842,22 @@ def hc_ml_ensemble(members, length=754):
         hc_a = np.array(f_a.get("net_ts"))
         hc_o = np.array(f_o.get("net_ts"))
 
-        hc_all_a[i - 1, :] = hc_a
-        hc_all_o[i - 1, :] = hc_o
+        hc_all_a[member - 1, :] = hc_a
+        hc_all_o[member - 1, :] = hc_o
+
+    hc_all_a = np.array(hc_all_a)
+    hc_all_o = np.array(hc_all_o)
 
     return hc_all_a, hc_all_o
 
 
-def hc_ensemble_mean_std(path, name, members, length=754):
+def hc_ensemble_mean_std(path, name, members, length=768):
 
     hc_all, hc_cut_all = np.zeros(shape=(2, members, length))
 
     for i in range(1, members + 1):
 
-        file = f"{path}/{name}{i}_anomalies_depth_full_20.hdf5"
+        file = f"{path}/{name}{i}_full_newgrid_depth_0_anomalies_anhang_20.hdf5"
         f = h5py.File(file, "r")
         hc = f.get("hc")
         hc_cut = f.get("hc_cut")

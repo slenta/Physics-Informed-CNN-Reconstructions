@@ -887,14 +887,93 @@ cfg.set_train_args()
 # f.close()
 
 
-file = f"{cfg.val_dir}{cfg.save_part}/val_errors.hdf5"
-f = h5py.File(file, "r")
-rsmes = np.array(f.get("rsmes")).flatten()
+################ Valerror plotting
 
-xx = np.arange(cfg.save_model_interval, cfg.resume_iter, cfg.save_model_interval)
-print(xx.shape)
+# error_overall = np.zeros(
+#    shape=(cfg.in_channels, cfg.resume_iter // cfg.save_model_interval - 1)
+# )
+# for part in np.arange(cfg.combine_start, cfg.combine_start + cfg.in_channels):
+#    file = f"{cfg.val_dir}part_{part}/val_errors.hdf5"
+#    f = h5py.File(file, "r")
+#    rsmes = np.array(f.get("rsmes")).flatten()
+#    error_overall[part - cfg.combine_start, :] = rsmes
+#
+# error = np.mean(error_overall, axis=0)
+# xx = np.arange(cfg.save_model_interval, cfg.resume_iter, cfg.save_model_interval)
+# print(xx.shape)
+#
+# plt.figure(figsize=(10, 6))
+# plt.plot(xx, error)
+# plt.grid()
+# plt.show()
 
-plt.figure(figsize=(10, 6))
-plt.plot(xx, rsmes)
-plt.grid()
+############## IAP reanalysis plotting
+
+# file = f"{cfg.im_dir}IAP/IAP_2000m_1958_2021"
+# ds = xr.load_dataset(f"{file}.nc", decode_times=False)
+# depth = ds.depth_std.values
+# print(depth)
+# tos = ds.temp.values
+# tos = np.transpose(tos, (0, 3, 1, 2))
+# tos = evalu.area_cutting_single(tos)
+# print(tos.shape)
+# ohc_iap = evalu.heat_content_single(tos[:, :27, :, :], depths=depth[:27])
+#
+# plt.imshow(np.nanmean(ohc_iap[:120, :, :], axis=0), cmap="coolwarm")
+# plt.show()
+#
+# plt.plot(np.nansum(ohc_iap, axis=(1, 2)))
+# plt.show()
+#
+# f = h5py.File(f"{file}.hdf5", "w")
+# f.create_dataset(name="ohc", shape=ohc_iap.shape, data=ohc_iap)
+# f.close()
+
+# ohc_newgrid = evalu.area_cutting_single(ohc_iap)
+# plt.plot(np.nansum(ohc_newgrid, axis=(1, 2)))
+# plt.show()
+#
+# f = h5py.File(f"{file}_cut.hdf5", "w")
+# f.create_dataset(name="ohc", shape=ohc_newgrid.shape, data=ohc_newgrid)
+# f.close()
+
+############# Create cut baseline_climatology
+ds = xr.load_dataset(f"{cfg.im_dir}Image_r3_14_newgrid.nc", decode_times=False)
+time_var = ds.time
+ds["time"] = netCDF4.num2date(time_var[:], time_var.units)
+ds = ds.sel(time=slice("1958-01", "2020-10"))
+ds = ds.groupby("time.month").mean("time")
+
+tos = np.array(ds.thetao.values)
+print(tos.shape)
+
+### adjust shape of variables to fit quadratic input
+n = tos.shape
+print(n)
+rest = np.zeros((n[0], n[1], 128 - n[2], n[3]))
+tos_new = np.concatenate((tos, rest), axis=2)
+n = tos_new.shape
+rest2 = np.zeros((n[0], n[1], n[2], 128 - n[3]))
+tos_new = np.concatenate((tos_new, rest2), axis=3)
+print(tos_new.shape, tos.shape)
+
+
+plt.plot(np.nanmean(tos_new, axis=(3, 2, 1)))
 plt.show()
+
+tos_cut = evalu.area_cutting_single(tos_new)
+
+f2 = h5py.File(
+    "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
+    "w",
+)
+f2.create_dataset(name="sst_mean_newgrid", shape=tos.shape, data=tos)
+f2.create_dataset(name="sst_mean", shape=tos_new.shape, data=tos_new)
+f2.close()
+
+f = h5py.File(
+    "../Asi_maskiert/original_image/baseline_climatologyargo_cut.hdf5",
+    "w",
+)
+f.create_dataset(name="sst_mean", shape=tos_cut.shape, data=tos_cut)
+f.close()

@@ -14,6 +14,7 @@ from model.net import PConvLSTM
 import os
 
 matplotlib.use("Agg")
+cfg.set_train_args()
 
 if not os.path.exists(f"{cfg.save_dir}/images/{cfg.save_part}/"):
     os.makedirs(f"{cfg.save_dir}/images/{cfg.save_part}/")
@@ -21,8 +22,7 @@ if not os.path.exists(f"{cfg.save_dir}/ckpt/{cfg.save_part}/"):
     os.makedirs(f"{cfg.save_dir}/ckpt/{cfg.save_part}/")
 if not os.path.exists(f"{cfg.save_dir}/validation/{cfg.save_part}/"):
     os.makedirs(f"{cfg.save_dir}/validation/{cfg.save_part}/")
-
-cfg.set_train_args()
+print(f"{cfg.save_dir}/validation/{cfg.save_part}/")
 
 if cfg.lstm_steps == 0:
     lstm = False
@@ -97,7 +97,6 @@ else:
 
 if cfg.eval_full:
     # evaluate assimilation reconstruction
-    evalu.combine_layers(np.arange(60, 80))
     evalu.area_cutting(mode=f"assimilation_{argo}", depth=cfg.in_channels)
     evalu.heat_content(depths, str(cfg.resume_iter), name=f"assimilation_{argo}")
     evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=12)
