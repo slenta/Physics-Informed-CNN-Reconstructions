@@ -6,43 +6,64 @@
 	
 	\chapter{Results} \label{results}
 	
-	At first, the U-net is trained with assimilations as well as masks only from the Argo era. Thus, it is set up as well as possible to reproduce argo era assimilations. The training process is then conducted until the loss parameters do not show any significant decrease anymore. Manual selection has shown that the most important loss parameters for the reconstruction of masked temperature profiles are those monitoring the direct misfit of each gridpoint and the total variation loss between neighboring gridpoints. Thus, their multiplicators have been upgraded in this version of the convolutional U-net and their development will be shown to indicate the state of training of the neural network. \\
-	
-	Figure \ref{fig:loss} shows the development of the hole and valid loss functions of the network training on reconstructing the first depth layer, the sea surface temperatures (SSTs). After around 1000000 training iterations, the network's loss function is not reduced significantly anymore with additional training iterations. It has reached a stable plateau. Thus, the first part of the training process is stopped and followed by 200000 iterations of finetuning. In the process of finetuning a lower learning rate of $5 \cd 10^{-5}$ ensures that the network moves as close as possible towards the local minimum it would be circling around with a higher learning rate. Figure \ref{fig:loss_val} depicts the development of the validation loss. Validation is conducted by giving the network several timesteps of one of the held back assimilation ensemble members (r15i1p1f1) to reconstruct. The resulting validation error is then calculated parallel to the training error. The progression of the validation loss shows that the network has not adjusted too much to the training data up to 1.000.000 training iterations. Thus, overfitting of the network is prevented. \\
-	
-	
 	\section{Present: Argo Era Reconstructions} \label{analysis_argo}
 	
-	After the training process is complete, the Argo era assimilation data of another held back ensemble member (r2i1p1f1) is masked with the corresponding observational patterns. These masks are then given to the trained neural network for reconstruction. The reconstructed temperature profiles are then converted to an OHC timeseries. While the network is trained with the masked assimilations from the entire NA, the data for all other analysis steps is limited to just the SPG. Thus, the neural network is given the opportunity to also learn the SPG surrounding spatial patterns, while the remaining analysis is focused on a region that is of higher interest to current research. Therefore, the results can also be better compared to other OHC estimates. Figure (\ref{fig:argo_timeseries_assi}) shows the timeseries of Argo era SPG OHC for both the EnKF assimilations (red) and the neural network reconstructions of masked assimilations (blue). The uncertainty range around both timeseries represents the corresponding ensemble spread. In the case of the neural network, this ensemble is produced by reconstructing each assimilation ensemble member individually. \\
+	At first, the U-net is trained with assimilations as well as masks only from the Argo era. Thus, it is set up as well as possible to reproduce argo era assimilations. The training process is then conducted until the loss parameters do not show any significant decrease anymore. Manual selection has shown that the most important loss parameters for the reconstruction of masked temperature profiles are those monitoring the direct misfit of each gridpoint and the total variation loss between neighboring gridpoints. Thus, their multiplicators have been upgraded in this version of the convolutional U-net and their development will be shown to indicate the state of training of the neural network. \\
 	
 	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/Loss/Training_loss_argo}
+		\caption{Hole and Valid training loss for the first 600.000 training iterations of the neural network.}
+		\label{fig:loss_argo}
+	\end{figure}
+	
+	
+	Figure \ref{fig:loss_argo} shows the development of the hole and valid loss functions of the network training on reconstructing the first depth layer, the sea surface temperatures (SSTs). After 600.000 iterations, both hole and valid loss have reached a plateau with the hole loss showing a much higher variability. Usually, the point with the lowest combined training loss would be chosen as a evaluation point of the network state. However, a further evaluation of the network at different states during the training shows, that although gridwise loss of the neural network reconstructions is still stagnating, its overall error is already rising again. This behavior could stem from overfitting to the training data or the a bias induced in the gridwise functions by the location of the observational grid points. \\
+	
+	
+	\begin{figure}
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/timeseries/valerror_argo}
+		\caption{Development of the overall OHC validation loss with iterations. }
+		\label{fig:valerrorargo}
+	\end{figure}
+	
+
+	Figure \ref{fig:valerrorargo} shows the development of a different loss metric. It shows the mean mismatch between the assimilation and neural network OHC estimate at all grid points for all 20 depth layers. In comparison to figure \ref{fig:loss_argo}, this validation error already rises from 40.000 iterations on. Further evaluation of the loss metrics shows that the overall reconstruction loss represents the actual mismatch between the OHC timeseries much better than the training loss. Additionally, it is performed with a held back assimilation ensemble member (r2i1p1f1), which makes it less susceptible to overtraining to the exact training input. Due to all these reasons, it is chosen from hereon out in order to decide on the stopping point of the training process. Due to the validation low around iteration 40.000, this network state will be chosen for this first part of the analysis. \\
+	
+	\begin{figure}[h]
 		\centering
 		\includegraphics[width=1.0\textwidth]{plots/timeseries/Timeseries_argo_assi.pdf}
 		\caption{Estimates of upper 700 m SPG OHC of one EnKF assimilation's ensemble member (red) and the neural network reconstruction (blue) during the Argo era. The shaded areas represent the uncertainty caused by the corresponding ensemble spread.}
 		\label{fig:argo_timeseries_assi}
 	\end{figure}
 	
+	
+	
+	After the training process is complete, the Argo era assimilation data of another held back ensemble member (r2i1p1f1) is masked with the corresponding observational patterns. These masks are then given to the trained neural network for reconstruction. The reconstructed temperature profiles are then converted to an OHC timeseries. While the network is trained with the masked assimilations from the entire NA, the data for all other analysis steps is limited to just the SPG. Thus, the neural network is given the opportunity to also learn the SPG surrounding spatial patterns, while the remaining analysis is focused on a region that is of higher interest to current research. Therefore, the results can also be better compared to other OHC estimates. Figure \ref{fig:argo_timeseries_assi} shows the timeseries of Argo era SPG OHC for both the EnKF assimilations (red) and the neural network reconstructions of masked assimilations (blue). The uncertainty range around both timeseries represents the corresponding ensemble spread. In the case of the neural network, this ensemble is produced by reconstructing each assimilation ensemble member individually. \\
+	
 	\begin{figure}[H]
 		\centering
-		\includegraphics[width=1.0\textwidth]{plots/timseries/Misfit_argo_assi.pdf}
+		\includegraphics[width=1.0\textwidth]{plots/timeseries/Misfit_assi_argo.pdf}
 		\caption{Misfit between EnKF assimilation NA upper 700m OHC and the neural network's reconstruction.}
 		\label{fig:misfit_argo_assi}
 	\end{figure}	
 	
-	Within the Argo era, the neural network is able to reconstruct assimilations masked with observational patterns within the assimilation's uncertainty range for monthly values. Not only do both uncertainty ranges overlap, the fit is clearly better than just inside of one standard deviation. The neural network's reconstruction even manages to capture monthly trends in the assimilation very well. Analysing this timeseries further, the misfit between both estimates shows that around 2019 the reconstruction shows a slight cool bias compared to the assimilation (\ref{fig:misfit_argo_assi}). But, as the remaining timeseries does not show any clear bias but rather just errors distributed around zero, it can be assumed to be insignificant and not a sign of a larger uncertainty within the network reconstructions. Figure \ref{fig:assi_2019} supports that assumption. It depicts NA OHC as calculated by the EnKF assimilation and the neural network for the relevant timespan from August 2018 until April 2019. The SPG region that is used for the construction of the timeseries is marked by the grey rectangle. The images show that no large scale bias exists during that time but that it is rather caused by several smaller scale differences in different regions. Figure \ref{fig:assi_2019} also shows that not only the network's overall OHC agrees with the EnKF assimilation, but also all major spatial OHC patterns are represented well by the neural network. The cooling of the SPG is well represented as well as the warming of the subtropical gyre (STG) and even such small scale features as the Mediterranean sea. \\
-	
-	\begin{figure}[H]
+	Within the Argo era, the neural network is able to reconstruct assimilations masked with observational patterns within the assimilation's uncertainty range for monthly values. Not only do both uncertainty ranges overlap, the fit is clearly better than just inside of one standard deviation. The neural network's reconstruction even manages to capture monthly trends in the assimilation very well. Analysing this timeseries further, the misfit between both estimates shows that between 2009 and 2014 the reconstruction shows a slight cool bias compared to the assimilation (\ref{fig:misfit_argo_assi}). But, as the remaining timeseries does not show any clear bias but rather just errors distributed around zero, it can be assumed to be insignificant and not a sign of a larger uncertainty within the network reconstructions. Figure \ref{fig:misfit_argo_assi} also shows that even during the Argo era, the uncertainty of the OHC estimates significantly declines in the first few years before the Argo floats reached global coverage. \\	
+	Figure \ref{fig:assi_2019} further underlines the large agreement between both OHC estimates. It shows the NA OHC as calculated by the assimilation and neural network in January 2018. The SPG region that is used for the construction of the timeseries is marked by the grey rectangle. Not only does the network's overall OHC agree with the EnKF assimilation, but also all major spatial OHC patterns are represented well by the neural network. The cooling of the SPG is well represented as well as the warming of the subtropical gyre (STG). Additionally, even for a monthly image, the neural network is able to capture small scale features, for example at the North African coast or in the North-Western NA. \\
+			
+	\begin{figure}[h]
 		\centering
-		\includegraphics[width=1.0\linewidth]{plots/ohc_images/OHC_assi_2019.pdf}
-		\caption{Map of EnKF assimilation (left) and neural network reconstruction of NA upper 700m anomaly OHC estimate.}
+		\includegraphics[width=1.0\linewidth]{plots/images/hc_2008_01_argo_assi.pdf}
+		\caption{Map of EnKF assimilation (left) and neural network reconstruction of NA upper 700m anomaly OHC estimate in the year 2019.}
 		\label{fig:assi_2019}
 	\end{figure}
-	
+
 	To further analyse the neural network's capability to capture the assimilation's spatial patterns, the pattern correlation between both OHC estimates can be taken. The pattern correlation is calculated by flattening both OHC images to a one-dimensional array and taking the anomaly correlation coefficient of both arrays. Thus, the similarities between spatial patterns for both OHC images can be estimated. Figure \ref{fig:patterncorr_assi_argo} depicts this pattern correlation during the Argo era. During the first years of the Argo era both OHC estimates show a slightly lower pattern correlation while with rising observations during the Argo era the pattern correlation reaches a constant value of over 0.8. The first 5 years also show higher month-to-month variability in pattern correlation. This can also be attributed to the higher inconsistencies in data coverage during the first years of the Argo project. \\
 	
-	\begin{figure}
+	\begin{figure}[h]
 		\centering
-		\includegraphics[width=1.0\linewidth]{plots/timeseries/Pattern_corr_assi_argo}
+		\includegraphics[width=1.0\linewidth]{plots/timeseries/patcor_assi_argo}
 		\caption{Pattern correlation for monthly estimates of anomaly NA OHC of one EnKF assimilation ensemble member and neural network reconstructions of masked assimilations.}
 		\label{fig:patterncorr_assi_argo}
 	\end{figure}
@@ -59,60 +80,97 @@
 	\section{Past: Extension to pre-Argo Era} \label{analysis_preargo}
 	
 	
-	The next step to evaluating, if the neural network has the potential to replace EnKF data assimilation, consists of extending the time window of reconstruction to the pre-Argo Era. In order to prepare the neural network for the reconstruction of the observational patterns of the pre-Argo era, the training process has to include pre-Argo masks. Therefore, the training data, which still only stems from the Argo era, is masked with observational patterns from the entire period from 1958--2020. Otherwise, the neural network's parameters are kept constant and trained with single layer depth training. Again, the training is stopped after 1.000.000 iterations of normal training and 200.000 additional iterations of finetuning. The training curves of the relevant hole and valid loss are shown in figure \ref{fig:error_preargo}.\\
+	The next step to evaluating, if the neural network has the potential to replace EnKF data assimilation, consists of extending the time window of reconstruction to the pre-Argo Era. In order to prepare the neural network for the reconstruction of the observational patterns of the pre-Argo era, the training process has to include pre-Argo masks. Therefore, the training data, which still only stems from the Argo era, is masked with observational patterns from the entire period from 1958--2020. Otherwise, the neural network's parameters are kept constant and trained with single layer depth training. Again, the training is evaluated after 1.000.000 iterations. The training curves of the relevant hole and valid loss are shown in figure \ref{fig:loss_full}.\\
 	
-	
-	[description of training errors]\\
+		
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/Loss/Training_loss_full}
+		\caption{Hole and Valid training loss for the first 1.000.000 training iterations of the neural network.}
+		\label{fig:loss_full}
+	\end{figure}
+		
+	Even after 1.000.000 training iterations, the network's loss functions are still decreasing significantly. Especially the valid loss, which depicts the mismatch between the neural network and the assimilation at the points without observations is clearly still on the decline. The valid loss is similarly also declining overall, although it shows a much higher variability in its loss value over the training time. The loss developments of the other depth layers show very similar behavior and can be further examined in chapter \ref{anhang}. Usually, these training curves would indicate that the training should be resumed until a stable plateau is reached. The overall validation error in figure \ref{fig:val_error_full} however suggests that no further improvement in the reconstruction accuracy occurs. Instead, utilizing a network state around iteration 550.000 might yield the best reconstruction results. This stopping point also agrees with the loss minimum in the hole loss function. Thus, this network state after 550.000 iterations is utilized for the following analysis.\\
 	
 	\begin{figure}[h]
 		\centering
-		\includegraphics[width=1.0\linewidth]{plots/timeseries/Timeseries_full_assi_maskfull}
+		\includegraphics[width=1.0\linewidth]{plots/timeseries/Timeseries_assi_full}
 		\caption{Estimates of monthly upper 700 m North Atlantic OHC of one EnKF assimilation's ensemble member (red) and its neural network reconstruction (blue) during the pre-Argo and Argo era. The shaded areas represent the uncertainty caused by the corresponding ensemble spread.}
 		\label{fig:timeseriesfullassimaskfull}
 	\end{figure}
-	
-	
-	
-	To test the reconstruction capabilities of this trained neural network, it is given the masked assimilations from the held back ensemble member (r2i1p1f1) for the entire period. Figure \ref{fig:full_timeseries_assi} shows a comparison of the full SPG OHC timeseries of EnKF assimilation and the neural network reconstructions of masked assimilations. Clearly, the timeseries show less agreement during the pre-Argo era than they do later on. Figure \ref{fig:timeseriesfullassimaskfull} also shows, that both that both timeseries do not follow the same trend for each month anymore unlike in section \ref{argo}, even though the general monthly variability is of similar extent. Thus, it makes sense to take the running mean of both timeseries to better analyse their differences on annual timescales. This way, outlying months, which are results of very low amounts of observations in unusual regions, distort the image less. 
-	
-	\begin{figure}
+
+	\begin{figure}[h]
 		\centering
-		\includegraphics[width=1.0\linewidth]{plots/timeseries/Timeseries_full_assi_annual}
+		\includegraphics[width=1.0\linewidth]{plots/timeseries/patcor_assi_full_annual}
+		\caption{Pattern correlation between EnKF assimilation and the neural network indirect reconstructions during the pre-Argo and Argo era.}
+		\label{fig:patcorassifullannual}
+	\end{figure}
+	
+	
+	To test the reconstruction capabilities of this trained neural network, it is given the masked assimilations from the held back ensemble member (r2i1p1f1) for the entire period. Figure \ref{fig:timeseriesfullassimaskfull} shows a comparison of the full SPG OHC timeseries of EnKF assimilation and the neural network reconstructions of masked assimilations. Clearly, the timeseries show less agreement during the pre-Argo era than they do later on. Figure \ref{fig:timeseriesfullassimaskfull} also shows, that both timeseries do not follow the same trend for each month anymore unlike in section \ref{analysis_argo}, even though the general monthly variability is of similar extent. The larger differences both in monthly variability and overall trend are underlined by the two timeseries pattern correlation shown in figure \ref{fig:patcorassifullannual}. It shows a much lower pattern correlation during the pre-Argo era where it mostly varies around a value of 0.6 before rising with the around the start of the new century to over 0.8 in the Argo era. Taking the running mean of both timeseries helps in the analysis of their differences on annual timescales. This way, outlying months, which are results of very low amounts of observations in unusual regions, distort the image less. 
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/timeseries/Timeseries_assi_full_annual}
 		\caption{Estimates of annual running means of upper 700 m North Atlantic OHC of one EnKF assimilation's ensemble member (red) and its neural network reconstruction (blue) during the pre-Argo and Argo era. The shaded areas represent the uncertainty caused by the corresponding ensemble spread.}
 		\label{fig:timeseriesfullassiannual}
 	\end{figure}
 	
-	\begin{figure}[h]
+	\begin{figure}[H]
 		\centering
-		\includegraphics[width=1.0\textwidth]{plots/timeseries/Misfit_argo_assi.pdf}
+		\includegraphics[width=1.0\textwidth]{plots/timeseries/Misfit_assi_full_annual.pdf}
 		\caption{Misfit between EnKF assimilation NA upper 700m OHC and the neural network's reconstruction during pre-Argo and Argo era.}
 		\label{fig:misfit_full_assi}
 	\end{figure}
+
 	
+	Figure \ref{fig:timeseriesfullassiannual} depicts these annual running means. Supported by the depiction of the misfit between both timeseries in figure \ref{fig:misfit_full_assi}, it becomes obvious that the difference between both timeseries consists of more than just increased variability due to higher uncertainty caused by less observations. Instead, some trends become obvious in this annual timeseries. Firstly, the assimilation shows much higher interannual variability and a clear peak in OHC that the reconstruction does not capture during the first ten years of the timeseries. Secondly, the neural network shows a consistent warm bias during the following 20 years. The two main options as causes for these differences are on the one hand an overfitting of the neural network to the training period. The possibility that the neural network does not recognize assimilation patterns from the beginning of the pre-Argo era, if they do not resemble those of the training period, has to be considered. On the other hand, it is also possible that the differences are caused just by the shift in observational density between the Argo and pre-Argo era. Then, these differences could be utilized as indicators of uncertainties in the assimilation beyond its ensemble spread. 
 	
-	
-	Figure \ref{fig:full_timeseries_assi_annual} depicts these annual running means. Supported by the depiction of the misfit between both timeseries in figure \ref{fig:misfit_full_assi}, it becomes obvious that the difference between both timeseries consists of more than just increased variability due to higher uncertainty caused by less observations. Instead, some trends become obvious in this annual timeseries. Firstly, the assimilation shows much higher interannual variability during the first ten years of the timeseries. Secondly, the neural network shows a consistent warm bias during the following ten years. The two main options as causes for these differences are on the one hand an overfitting of the neural network to the training period. It has to be considered a possibility that the neural network does not recognize assimilation patterns from the beginning of the pre-Argo era, if they resemble those of the training period too little. On the other hand, it is also possible that the differences are caused just by the difference in observational density between the Argo and pre-Argo era. Then, these differences could be utilized as indicators of uncertainties in the assimilation beyond its ensemble spread. 
-	
-	\begin{figure}
+	\begin{figure}[h]
 		\centering
 		\includegraphics[width=1.0\linewidth]{plots/timeseries/Timeseries_full_assi_maskargo}
 		\caption{Estimates of monthly upper 700 m North Atlantic OHC of one EnKF assimilation's ensemble member (red) and its neural network reconstruction (blue) during the pre-Argo and Argo era. For the reconstruction, the assimilation member has only been masked with Argo era observational patterns. The shaded areas represent the uncertainty caused by the corresponding ensemble spread.}
-		\label{fig:timeseriesfullassimaskargo}
+		\label{fig:timeseries_assi_full_maskargo}
+	\end{figure}
+
+	
+	Figure \ref{fig:timeseries_assi_full_maskargo} supports this second hypothesis. It shows reconstructions over the same period, with the difference that the observational patterns of the Argo era are also used during the pre-Argo era to mask the assimilations. Therefore, this reconstruction gives an estimate on how much of the reconstruction uncertainty comes from the amount of observations. However, it also prevents the neural network from implementing assimilation patterns from the Argo era in the reconstruction of the pre-Argo assimilations. By using the Argo era observational patterns, the high observational density pushes the neural network very close to the assimilation without leaving it its own room for interpretation. One of the main assumption of this thesis is that the assimilation is more accurate over the training period. Therefore, the difference between reconstruction and assimilation cannot be interpreted as a fault of the neural network. Instead, it rather shows the uncertainty the assimilation incorporates, if the underlying model cannot be supported and nudged by sufficient observations. \\
+	Closer examination of the reconstructions and assimilation during the first decade of the timeseries can help explain the observed uncertainty in that time period. In figure \ref{fig:timeseriesfullassiannual} the assimilation shows much stronger interannual variations in SPG OHC at the start of the 1960s than the neural network reconstructions. \cite{koul_personal_2022} has already examined similar EnKF assimilations during that period and found that the assimilation seems to possess much higher uncertainty during that time than its ensemble spread suggests. The biggest reason for this uncertainty is the dependence of the assimilation on observational input to correct for biases in the model, for example due to its positioning of the North Atlantic current. But also other uncertainties in the model get highlighted when there are no observations available to assist the assimilation in its estimate. The differences between both timeseries support that assumption. They show that the assimilation's behavior during this period is not consistent to the spatial patterns and geophysical processes during the neural network's training period.\\
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/images/hc_1960s_full_assi}
+		\caption{Map of EnKF assimilation (left) and neural network reconstruction of NA upper 700m anomaly OHC estimate in the first ten assimilation years 1958 -- 1968.}
+		\label{fig:ohcfullassi1960s}
 	\end{figure}
 	
 	
-	Figure \ref{fig:full_timeseries_assi_argomask} supports this second hypothesis. It shows reconstructions over the same period, with the difference that the observational patterns of the Argo era are also used during the pre-Argo era to mask the assimilations. Therefore, this reconstruction gives an estimate on how much of the reconstruction uncertainty comes from the amount of observations. However, it also prevents the neural network from implementing assimilation patterns from the Argo era in the reconstruction of the pre-Argo assimilations. By using the Argo era observational patterns, the high observational density pushes the neural network very close to the assimilation without leaving it its own room for interpretation. As it is assumed that the assimilation is more accurate over the training period, the difference between reconstruction and assimilation thus cannot be interpreted as a fault of the neural network. Instead, it rather shows the uncertainty the assimilation incorporates, if the underlying model cannot be supported and nudged by sufficient observations. \\
-	Closer examination of the reconstructions and assimilation during the first decade of the timeseries can help explain the observed uncertainty in that time period. In figure \ref{fig:full_timeseries_assi} the assimilation shows much stronger interannual variations in SPG OHC at the start of the 1960s than the neural network reconstructions. \cite{vimal_personal} has already examined similar EnKF assimilations during that period and found that the assimilation seems to possess much higher uncertainty during that time than its ensemble spread suggests. The biggest reason for this uncertainty is the dependence of the assimilation on observational input to correct for biases in the model, for example due to its positioning of the North Atlantic current. But also other uncertainties in the model get highlighted when there are no observations available to assist the assimilation in its estimate.	
-	The differences between both timeseries support that assumption. It shows that the assimilation's behavior during this period is not consistent to the spatial patterns and geophysical processes during the neural network's training period.\\
+	Figure \ref{fig:ohcfullassi1960s} visualizes the OHC of both the assimilation and reconstruction during that time period in the form of a 10 year mean. Both versions differ most notably in the central NA, where the assimilation shows strong negative anomalies, while the neural network reconstruction depicts close to no anomalies in that region. Similar differences have already been described in other publications and can be related to what is known as the North Atlantic current's \textit{North-West corner}. Many climate models, such as the MPI-ESM underlying this EnKF assimilation, are known to represent the gulf stream in the central NA further south than its observed flow. Therefore, the assimilation shows strong negative anomalies in the region of this North-West corner whenever there are no observations available to nudge the underlying model towards a correct representation of the gulf stream's flow. As the neural network is only trained in a period with high observational density in the entire NA, it only learns a correct representation of the gulf streams flow. Correspondingly, the reconstructions do not show the same negative anomalies in this region, when there are no observations available to suggest anything different.\\
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/images/hc_1970s_full_assi}
+		\caption{Map of EnKF assimilation (left) and neural network reconstruction (right) of NA upper 700m anomaly OHC estimate in the years 1970--1975.}
+		\label{fig:ohcfullassi1970s}
+	\end{figure}
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/images/correlation_preargo_full}
+		\caption{Grid-wise anomaly correlation between the EnKF assimilation and the neural network reconstruction of NA OHC for the years 1958 -- 1968 (left) and 1968 -- 2004 (right).}
+		\label{fig:correlation}
+	\end{figure}
 	
 	
-	Figure \ref{fig:1965_assi} visualizes the OHC of both the assimilation and reconstruction during that time period in the form of a 10 year mean. Both versions differ most notably in the central NA, where the assimilation shows strong negative anomalies, while the neural network reconstruction depicts close to no anomalies in that region. Similar differences have already been described in other publications and can be related to what is known as the North Atlantic current's \textit{North-West corner}. Many climate models, such as the MPI-ESM underlying this EnKF assimilation, are known to represent the gulf stream in the central NA further south than its observed flow. Therefore, the assimilation shows strong negative anomalies in the region of this North-West corner whenever there are no observations available to nudge the underlying model towards a correct representation of the gulf stream's flow. As the neural network is only trained in a period with high observational density in the entire NA, it only learns a correct representation of the gulf streams flow. Correspondingly, the reconstructions do not show the same negative anomalies in this region, when there are no observations available to suggest anything different.\\
+	Thus, it can also be assumed that parts of the differences between assimilation and neural network reconstruction during the first years can be attributed to model uncertainties similar to the false representation of the North-West corner. From the 1970s onward at least sporadic observations are available in the entire North Atlantic causing assimilation outputs more consistent with the neural network reconstruction. Figure \ref{fig:correlation} supports this analysis, as it shows that the gridwise correlation between reconstruction and assimilation is especially low in the region of the North-West corner during the first 10 years, while it depicts higher correlation in the rest of the pre-Argo era with the steady rise of observations. This whole representation of the North-West corner and its corresponding effects on the SPG OHC timeseries are only a symptom and not the reason for the larger differences in the first ten years. The mismatch between both estimates suggests that during a time with such a low amount of observations the assimilation can be subject to model uncertainties and misrepresentations also outside of the North-West corner region. This conclusion would then mean that a neural network trained with assimilation data during a time with high observational density can be able to detect model uncertainties in specific regions. Additionally, it can provide an estimate of the overall uncertainty not contained within the assimilation's ensemble spread. \\
+	During the remainder of the 20th century reconstruction and assimilation mostly agree within their respective uncertainty ranges. Nonetheless, the reconstruction shows a positive bias until the beginning of the 1990s. This positive bias could still be a remainder of similar model uncertainties related to the observational density. Afterwards, the differences vanish slowly but steadily until the beginning of the Argo era. From thereon out, both timeseries are again in good agreement within one standard deviation of their ensemble spreads. \\
 	
-	Thus, it can also be assumed that parts of the differences between assimilation and neural network reconstruction during the early 1960s can be attributed to a false representation of the North-West corner, while from the 1970s onwards at least sporadic observations are available in this region causing a different assimilation output. Figure \ref{fig:corr_start_assi} supports this analysis, as it shows that the gridwise correlation between reconstruction and assimilation is especially low in the region of the North-West corner during the first 10 years, while it depicts higher correlation in the rest of the pre-Argo era with the steady rise of observations. This whole representation of the North-West and its corresponding effects on the SPG OHC timeseries suggests that a neural network trained with assimilation data during a time with high observational density can be able to detect model uncertainties in specific regions. Additionally, it can provide an estimate of the overall uncertainty not contained within the assimilation's ensemble spread. \\
-	During the remainder of the 20th century reconstruction and assimilation mostly agree within their respective uncertainty ranges. Nonetheless, the reconstruction shows a positive bias until the beginning of the 1980s. This positive bias could still be a remainder of the North-West corner depiction and vanishes slowly but steadily in the 1970s and 1980s. Figure \ref{fig:assi_1970s} shows that during the first half of the 1970s the assimilation still shows negative anomalies characteristic to the North-West corner. Afterwards, both timeseries agree with each other until and throughout the argo era. \\
-	
-	
-	Nontheless, figure \ref{fig:assi_1990_full} shows that during the late pre-Argo, the neural network does not capture spatial patterns as well as previously shown in section \ref{results_argo}.	Given the still existing scarcity of observations during this late pre-Argo era, theses differences are not surprising. However, the large scale structures agree with the EnKF assimilation.\\
+	\begin{figure}
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/images/OHC_assi_2019}
+		\caption{Map of EnKF assimilation (left) and neural network reconstruction of NA upper 700m anomaly OHC estimate in the year 2019.}
+		\label{fig:assi_2019_full}
+	\end{figure}
 	
 	
 	During the Argo era, the neural network reconstruction also shows less agreement with the assimilation OHC estimate. Figure \ref{fig:assi_2019_full} depicts a comparison between the OHC reconstruction of the neural network trained with all masks and the one trained only with Argo era masks for the year 2019. This comparison shows that even though the network trained with all masks has also been trained with Argo era masks, it has greater difficulties reproducing the exact smaller scale structures of the assimilation. The differences between both neural network reconstructions show that there is a tradeoff between reproducing the pre-Argo and Argo era assimilations. The inclusion of pre-Argo masks creates more freedom for the network to change the model reality, while giving only high observational density masks into the training pushes the neural networks reconstructions very close towards the assimilation. However, it has to be put into the context that on larger scales the neural network trained with all masks still reproduces the assimilation within its uncertainty for every month in the Argo era. \\
@@ -123,73 +181,110 @@
 	
 	\begin{figure}[h]
 		\centering
-		\includegraphics[width=1.0\linewidth]{plots/timeseries/Timeseries_full_obs}
-		\caption{Estimates of monthly upper 700 m SPG OHC of one EnKF assimilation's ensemble member (red) and direct neural network reconstruction (blue) during the pre-Argo and Argo era. The shaded areas represent the uncertainty caused by the corresponding ensemble spread.}
+		\includegraphics[width=1.0\linewidth]{plots/timeseries/Timeseries_obs_full}
+		\caption{Estimates of monthly upper 700 m SPG OHC of one EnKF assimilation's ensemble member (red) and direct neural network reconstruction (green) during the pre-Argo and Argo era. The shaded areas represent the uncertainty caused by the corresponding ensemble spread.}
 		\label{fig:timeseriesfullobs}
 	\end{figure}
 	
 	
-	Figure \ref{fig:timeseriesfullobs} depicts the OHC timeseries as calculated by the EnKF assimilations and the direct neural network reconstructions during the pre-Argo and Argo era. In this case, the monthly variability of of the neural network reconstructions is significantly larger than that of the assimilation. The reconstruction possesses a monthly standard deviation of [values] compared to the [values] of the utilized EnKF assimilation member. Additionally, especially during the peak around the year 2007, the direct reconstruction shows a higher deviation from the assimilation timeseries compared to the indirect reconstruction. In general, the direct reconstructions show a cool bias compared to the assimilation during the Argo era. To examine the reason for this bias and to put the direct reconstruction into the context of the EN4 observations, it is useful to compare the assimilation and the observations at the points of observations. 
+	Figure \ref{fig:timeseriesfullobs} depicts the OHC timeseries as calculated by the EnKF assimilations and the direct neural network reconstructions during the pre-Argo and Argo era. Two time periods stand out in particular in this figure. At first, the direct reconstruction shows clear disagreement with the assimilation during the first 10 years from 1958 -- 1968. This behavior can again be related to the uncertainty of the assimilation with very few observational input already discussed in \ref{analysis_preargo}. \\
 	
-	\begin{figure}
+	\begin{figure}[h]
 		\centering
 		\includegraphics[width=1.0\linewidth]{plots/timeseries/Timeseries_masked_full}
 		\caption{Estimates of upper 700m SPG OHC at the points of observations. Displayed are the EnKF assimilations (blue), the observations (green), the direct reconstructions of observations (red) and the indirect reconstructions of masked assimilations (orange).}
 		\label{fig:timeseriesmaskedfull}
 	\end{figure}
 	
-	The OHC timeseries at the points of observations depicted in figure \ref{fig:timeseriesmaskedfull} shows that the observations possess a significant cool bias compared to the assimilation. The neural network reproduces its corresponding input very closely and thus it is not surprising that the bias from its input is then transferred to its overall estimation. However, the bias of the neural networks input has a smaller effect on its overall output during the pre-Argo era due to he smaller percentage of input points compared to the output. Furthermore, the bias between assimilation and observations is less distinct during the pre-Argo era. This bias is not unusual. Most assimilations show small biases towards the observations, which are caused by the model dynamics in the background. As the assimilation regards model and observations as uncertain it does not just integrate the exact observations value but finds a compromise between both factors \cite{brune_personal_2020}. In order to better interpret this bias it has to be put into the context of other OHC estimates.  \\
+	
+	Additionally, especially during the peak around the year 2007, the direct reconstruction shows a higher deviation from the assimilation timeseries compared to the indirect reconstruction. In general, the direct reconstructions show a cool bias compared to the assimilation during most of the Argo era. To examine the reason for this bias and to put the direct reconstruction into the context of the EN4 observations, it is useful to compare the assimilation and the observations at the points of observations. \\	
+	The OHC timeseries at the points of observations depicted in figure \ref{fig:timeseriesmaskedfull} shows that the observations possess a significant cool bias compared to the assimilation. The neural network reproduces its corresponding input very closely and thus it is not surprising that the bias from its input is then transferred to its overall estimation. However, the bias of the neural networks input has a smaller effect on its overall output during the pre-Argo era due to he smaller percentage of input points compared to the output. Furthermore, the bias between assimilation and observations is less distinct during the pre-Argo era. This bias is not unusual. Most assimilations show small biases towards the observations, which are caused by the model dynamics in the background. As the assimilation regards model and observations as uncertain it does not just integrate the exact observations value but finds a compromise between both factors \cite{brune_personal_2022}. In order to better interpret this bias it has to be put into the context of other OHC estimates.  \\
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/timeseries/Timeseries_obs_full_annual}
+		\caption{Estimates of annual upper 700 m SPG OHC of one EnKF assimilation's ensemble member (red) and direct neural network reconstruction (green) during the pre-Argo and Argo era. The shaded areas represent the uncertainty caused by the corresponding ensemble spread. In addition, the estimates of the IAP (orange) and EN4 (purple) are provided.}
+		\label{fig:timeseriesobsfullannual}
+	\end{figure}
+	
+		
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/timeseries/patcor_obs_full_annual}
+		\caption{Pattern correlation of the annual running means of the EnKF assimilation and the direct neural network reconstruction (orange) and indirect neural network reconstruction (blue).}
+		\label{fig:patcorobsfullannual}
+	\end{figure}
 	
 	
-	Figure \ref{fig:timeseriesfullobsannual} shows the annual running mean of the same SPG OHC estimates to better analyze larger trends and cancel out monthly noise. Furthermore, two additional OHC estimates are added to put the differences between the timeseries into the context of other OHC estimates. The [orange] line depicts the OHC estimate of the EN4 reanalysis. It represents a numerical interpolation that works with the same observational input as the neural network. The [purple] line represents the IAP's SPG OHC estimate. 
+	Figure \ref{fig:timeseriesobsfullannual} shows the annual running mean of the same SPG OHC estimates to better analyze larger trends and cancel out monthly noise. In addition to the assimilation and neural network timeseries, two additional OHC estimates are added in order to contextualize the differences in figure \ref{fig:timeseriesfullobs}. The purple line depicts the OHC estimate of the EN4 reanalysis. It represents a numerical interpolation that works with the same observational input as the neural network. The orange line represents the IAP's SPG OHC estimate. \\
 	
 	[description different lines]\\
 	
+	When visualizing the pattern correlation between observations reconstruction and the EnKF assimilations, it becomes obvious that there are more differences between both OHC estimates than a pure bias. Figure \ref{fig:patcorobsfullannual} depicts much lower correlations in the direct compared to the indirect reconstructions. A look into the pattern correlation between observations and assimilation at the points of observations shows that this behavior can be interpreted as an amplification of the differences between assimilation and observations. Figure \ref{fig:patterncorr_masked} depicts the pattern correlation between the assimilation and observations and shows similar trends as \ref{fig:patcorobsfullannual}. Thus, it can be assumed that the neural network transfers the spatial patterns that the observations indicate to its overall OHC estimate. \\
 	
-	When visualizing the pattern correlation between observations reconstruction and the EnKF assimilations, it becomes obvious that there are more differences between both OHC estimates than a pure bias. Figure \ref{fig:pattern_corr_obs} depicts much lower correlations than figure \ref{fig:patterncorr_assi} does. A look into the pattern correlation between observations and assimilation at the points of observations shows that this behavior can be interpreted as an amplification of the differences between assimilation and observations. Figure \ref{fig:patterncorr_masked} depicts the pattern correlation between the assimilation and observations and shows similar trends as \ref{fig:patterncorr_obs}. Thus, it can be assumed that the neural network transfers the spatial patterns that the observations indicate to its overall OHC estimate. \\
+	\begin{figure}
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/images/hc_200801_full_obs}
+		\caption{Map of the EN4 observations (left), the EnKF assimilation (middle) and neural network direct reconstruction estimates of NA upper 700m anomaly OHC estimate in January 2008.}
+		\label{fig:hc200801fullobs}
+	\end{figure}
 	
 	
-	
-	Figure \ref{fig:obs_2009} supports this thesis. It depicts the neural network's direct reconstruction of observations in January 2009. However, the observations show clear regional differences compared to the assimilation. Even though the overall OHC estimates of reconstruction and assimilation agree very closely at that time, the regional patterns of the observations are incorporated more by the neural network. But, the image of the direct OHC reconstruction also shows that the neural network produces less pronounced spatial patterns on smaller scales. Beyond larger structures, such as the SPG cooling and the warming of the STG it shows very few smooth small scale patterns. So even though the neural network seems to replicate large scale observational patterns, it has difficulties in the resolution of smaller scale structures. 
+	Figure \ref{fig:hc200801fullobs} supports this thesis. It depicts the neural network's direct reconstruction of observations in 2018. However, the observations show clear regional differences compared to the assimilation. Even though the overall OHC estimates of reconstruction and assimilation agree very closely at that time, the regional patterns of the observations are incorporated more by the neural network. But, the image of the direct OHC reconstruction also shows that the neural network produces less pronounced spatial patterns on smaller scales. Beyond larger structures, such as the SPG cooling and the warming of the STG it shows very few smooth small scale patterns. So even though the neural network seems to replicate large scale observational patterns, it has difficulties in the resolution of smaller scale structures. 
 	\\
 	
 	\section{Future: Reconstructing New Timesteps} \label{analysis_future}
 	
-	In a final analysis step, it will now be examined, in how far the neural network can also be used to reconstruct data from more recent time periods. The same trained neural network will now be given observations from October 2020 until October 2021. As the training data of the neural network only runs until October 2020, it has never see the observational patterns as well as data assimilations from that period. Therefore, this part is a test of the neural network's ability to replace the EnKF assimilations in its application as a reanalysis for present day timesteps. 
+	In a final analysis step, it will now be examined, in how far the neural network can also be used to reconstruct data from more recent time periods. The same trained neural network will now be given observations from October 2020 until October 2021. As the training data of the neural network only runs until October 2020, it has never see the observational patterns as well as data assimilations from that period. Therefore, this part is a test of the neural network's ability to replace the EnKF assimilations in its application as a reanalysis for present day timesteps. \\
+	Figure \ref{fig:timeseriesobsanhang} depicts the resulting reconstruction. The start of the new observation input in October 2020 is marked by the red line. It can be seen that nearly all monthly values lie within the uncertainty of the assimilation's ensemble spread. More importantly, the agreement between both timeseries does not deteriorate once the training period ends. The neural network's estimate even lies closer to the assimilation than just previously. Again, the negative bias of the direct reconstruction can be explained by the assimilation's bias at the grid points of observations. The misfit between both timeseries shows these developments even clearer. Figure \ref{fig:misfitobsanhang} shows that the differences between both OHC estimates go down, even though the reconstruction period lies outside of the training period. \\
 	
+		
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/timeseries/Timeseries_obs_anhang}
+		\caption{Estimates of annual upper 700 m SPG OHC of one EnKF assimilation's ensemble member (red) and direct neural network reconstruction (green) during the Argo era. In addition to the training period 2004 -- 2020, which is marked by the red line, a year of additional more recent observations has been given as input to the neural network.}
+		\label{fig:timeseriesobsanhang}
+	\end{figure}
 	
-	Figure \ref{fig:timeseries_anhang_obs} depicts the resulting reconstruction. The start of the new observation input in October 2020 is marked by the red line. It can be seen that each single monthly OHC value lies within the uncertainty of the assimilation's ensemble spread. The neural network's estimate even lies closer to the assimilation than just one standard deviation would suggest. 
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1.0\linewidth]{plots/timeseries/Misfit_obs_anhang}
+		\caption{Misfit between EnKF assimilation NA upper 700m OHC and the neural network's reconstruction during pre-Argo and Argo era.}
+		\label{fig:misfitobsanhang}
+	\end{figure}
 	
-	
-	The misfit between both timeseries supports that assumption. Figure \ref{fig:misfit_anhang_obs} shows that the differences between both OHC estimates go down, even though the reconstruction period lies outside of the training period. The pattern correlation from the period shown in figure \ref{fig:patterncorr_anhang_obs} agrees with that impression.
 	
 	\section{Neural Network Uncertainty} \label{uncertainty}
 	
-	The analyses of the Argo and pre-Argo era reconstructions of the neural network have already described several sources of uncertainty in the use of neural networks. The first and most obvious source of uncertainty consists of the amount of points of observations. The neural network does come much closer to reproducing the assimilation during the pre-Argo era if the assimilation is masked with Argo era masks (figure \ref{fig:timeseriesfullassimaskargo}). As discussed in section \ref{analysis_preargo}, this difference cannot be interpreted as a fault of the neural network but rather as a measure of uncertainty within the neural network's training data during times with low observational density. However, other sources of uncertainty, which stem directly from the neural network setup, have not been discussed yet. \\
-	The first source of uncertainty inherent to the neural network is the length of its training. Even though there is a validation error considered in the choice of stopping point, it is only a rough estimation of the most accurate version of the neural network. This point can only be evaluated every 5000 iterations, when the model state is saved during the training process. Evaluating the network more often during the training process prolongs the training significantly and would thus not be sensible under a efficiency standpoint. Nonetheless, the remaining uncertainty stemming from the final iteration can be estimated. Figure \ref{fig:uncertainty} shows the neural network reconstruction of Assimilation ensemble member r2i1p1f1 again after 575000 training iterations. However, the uncertainty range around the OHC timeseries includes additional terms. A 16 member machine learning ensemble is created by saving the model at 16 different points around 575000 iterations with each member 500 iterations apart from the next. The standard deviation of the resulting reconstructions is then shown as the second part of the reconstruction's uncertainty range. As previously, the first part depicts the ensemble spread of the 16 reconstructed assimilation members.\\
-	The neural network's second source of uncertainty is the training process itself. The utilized training data is randomly sampled at each training iteration in order to prevent any biases stemming from its selection. Due to this random sampling the neural network develops slightly different at each training iteration. Therefore, the network could move into different local loss minima and consequentially into different network states. In order to estimate this uncertainty, the training process has been repeated five times. The resulting standard deviation of the five reconstruction of this ensemble member is depicted as the third fracture of the uncertainty range shown in figure \ref{fig:uncertainty}.
+	[Hier fehlt noch Figure uncertainty]
 	
-	\section{Time and Computational Resources}
+	The analyses of the Argo and pre-Argo era reconstructions of the neural network have already described several sources of uncertainty in the use of neural networks. The first and most obvious source of uncertainty consists of the amount of points of observations. The neural network does come much closer to reproducing the assimilation during the pre-Argo era if the assimilation is masked with Argo era masks (figure \ref{fig:timeseries_assi_full_maskargo}). As discussed in section \ref{analysis_preargo}, this difference cannot be interpreted as a fault of the neural network but rather as a measure of uncertainty within the neural network's training data during times with low observational density. However, other sources of uncertainty, which stem directly from the neural network setup, have not been discussed yet. \\
+	The first source of uncertainty inherent to the neural network is the length of its training. Even though there is a validation error considered in the choice of stopping point, it is only a rough estimation of the most accurate version of the neural network. This point can only be evaluated every 5000 iterations, when the model state is saved during the training process. Evaluating the network more often during the training process prolongs the training significantly and would thus not be sensible under a efficiency standpoint. Nonetheless, the remaining uncertainty stemming from the final iteration can be estimated. Figure \ref{fig:uncertainty} shows the neural network reconstruction of Assimilation ensemble member r2i1p1f1 again after 575000 training iterations. However, the uncertainty range around the OHC timeseries includes additional terms. A 16 member machine learning ensemble is created by saving the model at 16 different points around 575000 iterations with each member 500 iterations apart from the next. The standard deviation of the resulting reconstructions is then shown as the second part of the reconstruction's uncertainty range. As previously, the first part depicts the ensemble spread of the 16 reconstructed assimilation members.\\
+	The neural network's second source of uncertainty is the training process itself. The utilized training data is randomly sampled at each training iteration in order to prevent any biases stemming from its selection. Due to this random sampling the neural network develops slightly different at each training iteration. Therefore, the network could move into different local loss minima and consequentially into different network states. In order to estimate this uncertainty, the training process has been repeated five times. The resulting standard deviation of the five reconstructions of this ensemble member is depicted as the third part of the uncertainty range shown in figure \ref{fig:uncertainty}.
+	
+	\section{Time and Computational Resources} \label{resources}
 	
 	One of the main reasons to utilize machine learning in the context of data assimilation are the differences in computational resources used. In this section, the actual time and computational resources of the utilized partial convolutional U-net are evaluated and put into the context of the EnKF assimilation. The computational resources needed for all processes are measured in node hours at the high performance computing (HPC) system \textit{Levante} run by the \textit{Deutsche Klimarechenzentrum} (DKRZ). The neural network is run on NVIDIA's A100 gpu nodes, while the assimilation's node hours are assumed to run on AMD EPYC CPUs (Milan). Further information on the Levante HPC system as well as detailed documentation of its technical setup can be viewed under \url{https://docs.dkrz.de}.\\
 	The computational resources needed by both approaches have to be put into the context of different applications. Table \ref{table:resources} summarizes the computation times required by the neural network and the EnKF assimilation for different tasks or scenarios. The computational requirements are once estimated in node hours (NH) to approximate the overall computational costs. Additionally, the overall computation time (OCT) is estimated in hours, which allows for the running of parallel processes and thus approximates the time between start of all computations and the availability of the results. This estimate of the OCT assumes optimal node availability, which in the case of the neural network means 20 gpu nodes, while the assimilation requires 128 cpu nodes to run simultaneously. All resources required by the EnKF assimilations are estimated by \cite{brune_personal_2022}. The estimates given for the machine learning approach do not include the generation of training data. Thus, it has to be kept in mind that the neural network is dependent on the availability of assimilation or other similar model data in order to perform any reconstruction task. All estimates are rough approximations aiming at showcasing only the dimension of the time required. \\
 	
-	\begin{center}
-		\begin{tabular}{ c|c|c|c|c }
-			\title{Comparison of Required Computational Resources}
-			Application & NH ML & NH EnKF & OCT ML & OCT EnKF \\ 
-			\hline
-			Assimilation of a new year of observations & 0.5 & 2 & 0.1 & 0.25\\ 
-			\hline
-			Generation of an entire 16 member ensemble (1958 -- 2022) & 400 & 2048 & 30 & 64  \\ 
-			\hline
-			Generation of a new ensemble member & 2 & - (2048 + 128) & 0.3 & - (64 + 4)\\
-			\hline
-			Adjustment for changes in observations & 2 & 2048 & 0.3 & 64 \\
-			\label{table:resources}
-		\end{tabular}
-	\end{center}
-	
+	\begin{table}[h]
+		\begin{center}
+			\caption{Comparison: Computational costs}
+			\begin{tabularx}{\linewidth}{ p{0.3\linewidth}|c|c|c|c }
+				Application & NH ML & NH EnKF & OCT ML & OCT EnKF \\ 
+				\hline
+				Assimilation of a new year of observations & 0.5 & 2 & 0.1 & 0.25\\ 
+				\hline
+				Generation of an entire 16 member ensemble (1958 -- 2022) & 400 & 2048 & 30 & 64  \\ 
+				\hline
+				Generation of a new ensemble member & 2 & - (2048 + 128) & 0.3 & - (64 + 4)\\
+				\hline
+				Adjustment for changes in observations & 2 & 2048 & 0.3 & 64 \\
+				\label{table:resources}
+			\end{tabularx}
+		\end{center}
+		\label{Tab:costs}
+	\end{table}
 	
 	
 	One of the largest differences in computational requirements between both approaches is the adjustment of the reconstruction with changes in observational data. These changes could include new bias corrections for measurements or the inclusion additional and elimination of existing observations. In the case of the machine learning, the trained network would just be required to reconstruct the adjusted observational data. Training the neural network again would be unnecessary, because small differences between training and testing datasets are to expected for example due to assimilation biases. Thus, an adjustment in observations would not significantly impact the performance of an already trained network. Therefore, it would preform such an adjustment very efficiently. The assimilation however would be required to generate an entirely new ensemble, which leads to significantly larger computational requirements. Another aspect in which both approaches differ significantly is the generation of new ensemble members. Due to the fact that EnKF assimilations work only as an ensemble approach, the generation of one new ensemble member requires the recalculation of the entire ensemble. \\
