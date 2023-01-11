@@ -497,9 +497,21 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
     cmap_2.set_bad(color="black")
 
     if obs == False:
-        fig = plt.figure(figsize=(12, 5), constrained_layout=True)
+        fig = plt.figure(figsize=(16, 7), constrained_layout=True)
         fig.suptitle("North Atlantic Heat Content Comparison")
-        plt.subplot(1, 2, 1)
+        plt.subplot(1, 3, 1)
+        plt.title(f"EN4 Reanalysis at Points of Observation")
+        plt.imshow(
+            np.where(en4_mask == 0, 1, 0) * hc_gt * coastlines * spg,
+            cmap=cmap_1,
+            vmin=-3e9,
+            vmax=3e9,
+            aspect="auto",
+            interpolation=None,
+        )
+        plt.xlabel("Transformed Longitudes")
+        plt.ylabel("Transformed Latitudes")
+        plt.subplot(1, 3, 2)
         plt.title("Assimilation Heat Content")
         plt.imshow(
             coastlines * spg * hc_gt,
@@ -511,7 +523,7 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
         )
         plt.xlabel("Transformed Longitudes")
         plt.ylabel("Transformed Latitudes")
-        plt.subplot(1, 2, 2)
+        plt.subplot(1, 3, 3)
         plt.title("Network Output Heat Content")
         plt.imshow(
             hc_assi * spg * coastlines,
@@ -525,7 +537,7 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
         plt.ylabel("Transformed Latitudes")
         plt.colorbar(label="Heat Content in J")
         plt.savefig(
-            f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{mask_argo}_{cfg.eval_im_year}.pdf",
+            f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{mask_argo}_{cfg.eval_im_year}_mask.pdf",
             dpi=fig.dpi,
         )
         plt.show()
