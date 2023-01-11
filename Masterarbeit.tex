@@ -1,6 +1,6 @@
 %HEADER
 
-\documentclass[11pt,a4paper]{scrreprt}	%artikeltyp
+\documentclass[11pt,a4paper, bibliography=totocnumbered]{scrreport}
 
 \usepackage[english]{babel}	%sprache
 \usepackage[utf8]{inputenc}%utf8, für zeichen, umlaute etc.
@@ -23,7 +23,28 @@
 \usepackage{subfiles}
 \usepackage{tabularx}
 \usepackage{mhchem}
-\usepackage[round]{natbib}
+%\usepackage[round]{natbib}
+\usepackage[format=plain, indention=0cm, labelfont=bf, font=normalsize]{caption}
+\PassOptionsToPackage{
+	natbib=true,
+	style=authoryear-comp,
+	hyperref=true,
+	backend=bibtex,
+	maxbibnames=3,
+	giveninits=true,
+	uniquename=init,
+	maxcitenames=2,
+	parentracker=true,
+	url=false,
+	doi=false,
+	isbn=false,
+	eprint=false,
+	backref=true,
+}{biblatex}
+\usepackage{biblatex}
+\bibliography{Masterbib.bib} % when using backend=bibtex
+%\addbibresource{Masterbib.bib} % when using backend=biber
+\usepackage{acronym} % acronyms
 
 %..............Kopf und Fußzeilengestaltung:.................
 \usepackage{fancyhdr}
@@ -58,7 +79,7 @@
 		\vspace{10 cm}
 		\begin{figure}
 			\centering
-			\includegraphics*[width=0.55\linewidth]{Bilder/Uni_logo.pdf}
+			\includegraphics*[width=0.55\linewidth]{plots/Uni_logo.pdf}
 		\end{figure}
 	
 		
@@ -94,35 +115,66 @@
 	\end{titlepage}
 	
 	\pagenumbering{gobble}
+	\newpage
+	\onehalfspacing
+	\subfile{./subfiles/Abstract.tex}
+	
+	\newpage
 	
 	%\addtocounter{page}{-5}
 	\thispagestyle{empty}
 	\clearpage\mbox{}\clearpage
 	
-	\onehalfspacing
+	
 	\tableofcontents %inhaltsverzeichnis
-	\listoffigures
-	\listoftables
+
 	
 	\newpage
 	\pagenumbering{arabic}
 	\setlength\parindent{0cm}
 	
-	\subfile{./Subfiles/Abstract.tex}
+	\subfile{./subfiles/Introduction.tex}
 	
-	\subfile{./Subfiles/Introduction.tex}
+	\subfile{./subfiles/Data_Methods.tex}
 	
-	\subfile{./Subfiles/Data_Methods.tex}
+	\subfile{./subfiles/Results.tex}
 	
-	\subfile{./Subfiles/Results.tex}
+	\subfile{./subfiles/Discussion.tex}	
 	
-	%\subfile{Diskussion.tex}	
-	
-	\bibliographystyle{apalike}
-	\bibliography{Masterbib}
-	
+	\subfile{./subfiles/Conclusions.tex}		
 
-	%\subfile{Anhang.tex}
+	
+	% --- Bibliography 	---------------------------------------------------------------------
+
+	\printbibliography[title=References]
+	
+	
+	% --- Bibliography ---------------------------------------------------------------------
+	\newpage
+	\subfile{subfiles/Acronyms.tex}
+
+	% --- List of Figures/Tables -----------------------------------------------------------
+
+	% \doublespacing
+	\listoffigures
+	\pagenumbering{gobble}
+	\listoftables
+	\pagenumbering{gobble}
+	\singlespacing
+	\newpage
+	
+	\appendix
+	\subfile{./subfiles/Anhang.tex}
+	\newpage
+
+	\thispagestyle{empty}
+	\clearpage\mbox{}\clearpage
+	
+	
+	\chapter*{Eidesstaatliche Versicherung}
+	
+	Hiermit versichere ich an Eides statt, dass ich diese Arbeit eigenständig verfasst habe. Ich habe keine anderen als die angegebenen Quellen und Hilfsmittel benutzt sowie wörtliche und sinngemäße Zitate kenntlich gemacht. Die Arbeit hat in gleicher oder ähnlicher Form noch keiner Prüfungsbehörde vorgelegen und die eingereichte schriftliche Fassung entspricht der auf dem elektronischen Speichermedium.
+	
 
 
 \end{document}
