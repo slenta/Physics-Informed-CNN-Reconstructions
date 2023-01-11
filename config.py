@@ -199,7 +199,7 @@ def set_train_args(arg_file=None):
     arg_parser.add_argument("--attention", action="store_true")
     arg_parser.add_argument("--disable_skip_layers", action="store_true")
     arg_parser.add_argument("--vis_interval", type=int, default=50000)
-    arg_parser.add_argument("--eval_im_year", type=str, default="r2_newgrid")
+    arg_parser.add_argument("--eval_im_year", type=str, default="r2_full_newgrid")
     arg_parser.add_argument("--prepro_mode", type=str, default="none")
     arg_parser.add_argument("--attribute_anomaly", type=str, default="anomalies")
     arg_parser.add_argument("--attribute_depth", type=str, default="depth")

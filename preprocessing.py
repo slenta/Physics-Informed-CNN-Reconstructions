@@ -52,11 +52,11 @@ class preprocessing:
             time_var = ds.time
             if cfg.mask_argo == "argo":
                 ds = ds.sel(time=slice(200400, 202011))
-            elif cfg.attribute_argo == "preargo":
+            elif cfg.mask_argo == "preargo":
                 ds = ds.sel(time=slice(195800, 200400))
-            elif cfg.attribute_argo == "full":
+            elif cfg.mask_argo == "full":
                 ds = ds.sel(time=slice(195800, 202011))
-            if cfg.attribute_argo == "anhang":
+            if cfg.mask_argo == "anhang":
                 ds = ds.sel(time=slice(195800, 202112))
 
             tos = ds.tho.values
@@ -199,11 +199,11 @@ class preprocessing:
         # plot variable for quick check
         tos_new = self.__getitem__()
         plt.figure()
-        plt.imshow(tos_new[0, :, :])
+        plt.imshow(tos_new[0, 0, :, :])
         plt.colorbar()
         plt.show()
 
-        plt.plot(np.nanmean(tos_new, axis=(2, 1)))
+        plt.plot(np.nanmean(tos_new, axis=(3, 2, 1)))
         plt.show()
 
     def depths(self):

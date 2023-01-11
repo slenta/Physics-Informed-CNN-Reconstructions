@@ -366,21 +366,21 @@ cfg.set_train_args()
 #        )
 #    f.close()
 
-# Calculate Assimilation Ensemble Spread
+##Calculate Assimilation Ensemble Spread
 # depth = cfg.in_channels
-# argo = "full"
+# argo = "anhang"
 # for member in range(1, 17):
 #    print(member)
 #
 #    # ifile = f"/work/uo1075/decadal_system_mpi-esm-lr_enkf/data/MPI-ESM1-2-LR/asSEIKERAf/Omon/thetao/r{member}i8p4/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r{member}i8p4_195801-202010.nc"
-#    ofile = f"../Asi_maskiert/original_image/Image_r{member}_newgrid.nc"
+#    ofile = f"../Asi_maskiert/original_image/Image_r{member}_full_newgrid.nc"
 #
 #    # cdo.sellonlatbox(-65, -5, 20, 69, input=ifile, output=ofile)
 #
 #    ds = xr.load_dataset(ofile, decode_times=False)
 #
-#    f = h5py.File("../Asi_maskiert/original_image/baseline_climatologyfull.hdf5", "r")
-#    tos_mean = f.get("sst_mean")
+#    f = h5py.File("../Asi_maskiert/original_image/baseline_climatologyargo.hdf5", "r")
+#    tos_mean = f.get("sst_mean_newgrid")
 #
 #    tos = ds.thetao.values
 #
@@ -388,39 +388,11 @@ cfg.set_train_args()
 #        tos[i] = tos[i] - tos_mean[i % 12]
 #
 #    tos = np.nan_to_num(tos, nan=0)
-#
 #    tos = tos[:, :depth, :, :]
+#    n = tos.shape
 #
 #    # val_cut
-#    ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_newgrid.nc")
-#
-#    lat = np.array(ds_compare.lat.values)
-#    lon = np.array(ds_compare.lon.values)
-#    time = np.array(ds.time)
-#
-#    n = tos.shape
-#    lon_out = np.arange(cfg.lon1, cfg.lon2)
-#    lat_out = np.arange(cfg.lat1, cfg.lat2)
-#    tos_new = np.zeros(shape=(n[0], n[1], len(lat_out), len(lon_out)), dtype="float32")
-#
-#    for la in lat_out:
-#        for lo in lon_out:
-#            x_lon, y_lon = np.where(np.round(lon) == lo)
-#            x_lat, y_lat = np.where(np.round(lat) == la)
-#            x_out = []
-#            y_out = []
-#            for x, y in zip(x_lon, y_lon):
-#                for a, b in zip(x_lat, y_lat):
-#                    if (x, y) == (a, b):
-#                        x_out.append(x)
-#                        y_out.append(y)
-#            for i in range(len(time)):
-#                for j in range(depth):
-#                    tos_new[i, j, la - min(lat_out), lo - min(lon_out)] = np.mean(
-#                        [tos[i, j, x, y] for x, y in zip(x_out, y_out)]
-#                    )
-#
-#    tos_new = tos_new[:, :, ::-1, :]
+#    tos_cut = evalu.area_cutting_single(tos)
 #
 #    prepo = preprocessing(
 #        cfg.im_dir,
@@ -432,10 +404,10 @@ cfg.set_train_args()
 #    )
 #    depth_steps = prepo.depths()
 #
-#    continent_mask_cut = np.where(tos_new[0, 0, :, :] == 0, np.nan, 1)
+#    continent_mask_cut = np.where(tos_cut[0, 0, :, :] == 0, np.nan, 1)
 #    continent_mask = np.where(tos[0, 0, :, :] == 0, np.nan, 1)
 #
-#    tos_new = np.nansum(tos_new * continent_mask_cut, axis=(3, 2))
+#    tos_new = np.nansum(tos_cut * continent_mask_cut, axis=(3, 2))
 #    tos = np.nansum(tos * continent_mask, axis=(3, 2))
 #
 #    hc_cut = np.zeros(n[0])
@@ -851,11 +823,11 @@ cfg.set_train_args()
 #    "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
 #    "r",
 # )
-# tos_mean = f.get("sst_mean")
+# tos_mean = f.get("sst_mean_newgrid")
 # for i in range(len(tos)):
 #    tos[i] = tos[i] - tos_mean[i % 12]
 #
-## adjust shape of variables to fit quadratic input
+### adjust shape of variables to fit quadratic input
 # n = tos.shape
 # rest = np.zeros((n[0], n[1], 128 - n[2], n[3]))
 # tos = np.concatenate((tos, rest), axis=2)
@@ -878,13 +850,13 @@ cfg.set_train_args()
 # f.create_dataset(name="ohc", shape=ohc_en4.shape, data=ohc_en4)
 # f.close()
 #
-# ohc_newgrid = evalu.area_cutting_single(ohc_en4)
+# ohc_newgrid = np.array(evalu.area_cutting_single(ohc_en4))
 # plt.plot(np.nansum(ohc_newgrid, axis=(1, 2)))
 # plt.show()
 #
-# f = h5py.File(f"{file}_cut.hdf5", "w")
-# f.create_dataset(name="ohc", shape=ohc_newgrid.shape, data=ohc_newgrid)
-# f.close()
+# f_2 = h5py.File(f"{file}_cut.hdf5", "w")
+# f_2.create_dataset(name="ohc", shape=ohc_newgrid.shape, data=ohc_newgrid)
+# f_2.close()
 
 
 ################ Valerror plotting
@@ -928,7 +900,7 @@ cfg.set_train_args()
 # f = h5py.File(f"{file}.hdf5", "w")
 # f.create_dataset(name="ohc", shape=ohc_iap.shape, data=ohc_iap)
 # f.close()
-
+#
 # ohc_newgrid = evalu.area_cutting_single(ohc_iap)
 # plt.plot(np.nansum(ohc_newgrid, axis=(1, 2)))
 # plt.show()
@@ -938,42 +910,128 @@ cfg.set_train_args()
 # f.close()
 
 ############# Create cut baseline_climatology
-ds = xr.load_dataset(f"{cfg.im_dir}Image_r3_14_newgrid.nc", decode_times=False)
-time_var = ds.time
-ds["time"] = netCDF4.num2date(time_var[:], time_var.units)
-ds = ds.sel(time=slice("1958-01", "2020-10"))
-ds = ds.groupby("time.month").mean("time")
+# ds = xr.load_dataset(f"{cfg.im_dir}Image_r3_14_newgrid.nc", decode_times=False)
+# time_var = ds.time
+# ds["time"] = netCDF4.num2date(time_var[:], time_var.units)
+# ds = ds.sel(time=slice("1958-01", "2020-10"))
+# ds = ds.groupby("time.month").mean("time")
+#
+# tos = np.array(ds.thetao.values)
+# print(tos.shape)
+#
+#### adjust shape of variables to fit quadratic input
+# n = tos.shape
+# print(n)
+# rest = np.zeros((n[0], n[1], 128 - n[2], n[3]))
+# tos_new = np.concatenate((tos, rest), axis=2)
+# n = tos_new.shape
+# rest2 = np.zeros((n[0], n[1], n[2], 128 - n[3]))
+# tos_new = np.concatenate((tos_new, rest2), axis=3)
+# print(tos_new.shape, tos.shape)
+#
+#
+# plt.plot(np.nanmean(tos_new, axis=(3, 2, 1)))
+# plt.show()
+#
+# tos_cut = evalu.area_cutting_single(tos_new)
+#
+# f2 = h5py.File(
+#    "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
+#    "w",
+# )
+# f2.create_dataset(name="sst_mean_newgrid", shape=tos.shape, data=tos)
+# f2.create_dataset(name="sst_mean", shape=tos_new.shape, data=tos_new)
+# f2.close()
+#
+# f = h5py.File(
+#    "../Asi_maskiert/original_image/baseline_climatologyargo_cut.hdf5",
+#    "w",
+# )
+# f.create_dataset(name="sst_mean", shape=tos_cut.shape, data=tos_cut)
+# f.close()
 
-tos = np.array(ds.thetao.values)
-print(tos.shape)
+######### plotting comparison image
 
-### adjust shape of variables to fit quadratic input
-n = tos.shape
-print(n)
-rest = np.zeros((n[0], n[1], 128 - n[2], n[3]))
-tos_new = np.concatenate((tos, rest), axis=2)
-n = tos_new.shape
-rest2 = np.zeros((n[0], n[1], n[2], 128 - n[3]))
-tos_new = np.concatenate((tos_new, rest2), axis=3)
-print(tos_new.shape, tos.shape)
-
-
-plt.plot(np.nanmean(tos_new, axis=(3, 2, 1)))
-plt.show()
-
-tos_cut = evalu.area_cutting_single(tos_new)
-
-f2 = h5py.File(
-    "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
-    "w",
-)
-f2.create_dataset(name="sst_mean_newgrid", shape=tos.shape, data=tos)
-f2.create_dataset(name="sst_mean", shape=tos_new.shape, data=tos_new)
-f2.close()
 
 f = h5py.File(
-    "../Asi_maskiert/original_image/baseline_climatologyargo_cut.hdf5",
-    "w",
+    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
 )
-f.create_dataset(name="sst_mean", shape=tos_cut.shape, data=tos_cut)
-f.close()
+f_a = h5py.File(
+    f"{cfg.val_dir}part_18/heatcontent_585000_observations_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
+)
+
+f_cm = h5py.File(f"{cfg.mask_dir}Kontinent_newgrid.hdf5")
+f_spg = h5py.File(f"{cfg.mask_dir}SPG_Maske.hdf5")
+spg = f_spg.get("SPG")
+continent_mask = np.array(f_cm.get("continent_mask"))
+coastlines = np.array(f_cm.get("coastlines"))
+
+
+time_1 = 732
+time_2 = 744
+
+hc_assi = np.nanmean(
+    np.nan_to_num(np.array(f.get("hc_net"))[time_1:time_2, :, :], nan=1),
+    axis=0,
+)
+hc_argo = np.nanmean(
+    np.nan_to_num(np.array(f_a.get("hc_net"))[time_1:time_2, :, :], nan=1),
+    axis=0,
+)
+hc_gt = np.nanmean(
+    np.nan_to_num(np.array(f.get("hc_gt"))[time_1:time_2, :, :], nan=1),
+    axis=0,
+)
+
+
+cmap_1 = plt.cm.get_cmap("coolwarm").copy()
+cmap_1.set_bad(color="darkgrey")
+cmap_2 = plt.cm.get_cmap("bwr").copy()
+cmap_2.set_bad(color="black")
+
+fig = plt.figure(figsize=(15, 8), constrained_layout=True)
+fig.suptitle("North Atlantic Heat Content Comparison")
+plt.subplot(1, 3, 1)
+plt.title(f"Assimilation Heat Content")
+plt.imshow(
+    hc_gt * coastlines * spg,
+    cmap=cmap_1,
+    vmin=-3e9,
+    vmax=3e9,
+    aspect="auto",
+    interpolation=None,
+)
+plt.xlabel("Transformed Longitudes")
+plt.ylabel("Transformed Latitudes")
+plt.subplot(1, 3, 2)
+plt.title("Network OHC (Argo Mask Training)")
+plt.imshow(
+    hc_argo * spg * coastlines,
+    cmap=cmap_1,
+    vmin=-3e9,
+    vmax=3e9,
+    aspect="auto",
+    interpolation=None,
+)
+plt.xlabel("Transformed Longitudes")
+plt.ylabel("Transformed Latitudes")
+plt.subplot(1, 3, 3)
+plt.title("Network OHC (Full Mask Training)")
+plt.imshow(
+    hc_assi * spg * coastlines,
+    cmap=cmap_1,
+    vmin=-3e9,
+    vmax=3e9,
+    aspect="auto",
+    interpolation=None,
+)
+plt.xlabel("Transformed Longitudes")
+plt.ylabel("Transformed Latitudes")
+plt.colorbar(label="Heat Content in J")
+plt.savefig(
+    f"../Asi_maskiert/pdfs/validation/part_19/heat_content_2019_550000_comparison.pdf",
+    dpi=fig.dpi,
+)
+plt.show()

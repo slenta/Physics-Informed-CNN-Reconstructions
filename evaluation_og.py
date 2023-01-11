@@ -11,14 +11,15 @@ import config as cfg
 from numpy import ma
 import sys
 import os
-from utils.corr_2d_ttest import corr_2d_ttest
+
+# from utils.corr_2d_ttest import corr_2d_ttest
 from collections import namedtuple
-from scipy.stats import pearsonr
+
+# from scipy.stats import pearsonr
 from preprocessing import preprocessing
 import xarray as xr
 import netCDF4 as nc
 import cdo
-from sklearn.metrics import mean_squared_error
 
 cdo = cdo.Cdo()
 
@@ -144,6 +145,7 @@ def infill(model, dataset, partitions, iter, name):
     mask = torch.cat(mask)
     gt = torch.cat(gt)
     output = torch.cat(output)
+    print(output.shape, mask.shape, gt.shape, image.shape)
 
     # create output_comp
     output_comp = mask * image + (1 - mask) * output
@@ -283,12 +285,17 @@ def heat_content_timeseries(depth_steps, iteration, name, anomalies=True):
 def correlation(var_1, var_2):
 
     SET = namedtuple("SET", "nsim method alpha")
-    corr, significance = corr_2d_ttest(
-        var_1, var_2, options=SET(nsim=1000, method="ttest", alpha=0.01), nd=3
-    )
-    sig = np.where(significance == True)
+    n = var_1.shape
+    corr = np.zeros(shape=(n[1], n[2]))
+    for i in range(n[1]):
+        for j in range(n[2]):
+            corr[i, j] = pearsonr(var_1[:, i, j], var_2[:, i, j])[0]
+    # corr, significance = corr_2d_ttest(
+    #    var_1, var_2, options=SET(nsim=1000, method="ttest", alpha=0.01), nd=3
+    # )
+    # sig = np.where(significance == True)
 
-    return corr, significance
+    return corr
 
 
 # function to calculate running standard deviation or mean
@@ -585,6 +592,7 @@ def area_cutting_single(var):
 
     lon_out = np.arange(cfg.lon1, cfg.lon2)
     lat_out = np.arange(cfg.lat1, cfg.lat2)
+    print(lon_out, lat_out)
 
     if len(var.shape) == 4:
 
@@ -646,10 +654,10 @@ def area_cutting(mode, depth):
 
     # cdo.sellonlatbox(-65, -5, 20, 69, input = ifile, output = ofile)
 
-    ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_newgrid.nc")
+    ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_full_newgrid.nc")
 
     if cfg.attribute_argo == "anhang":
-        length = 12
+        length = 764
     else:
         length = 752
 
@@ -823,6 +831,36 @@ def combine_layers(parts):
     f_o.close()
 
 
+def ml_ensemble_iteration(members, part, iteration, length=754):
+
+    hc_all_a, hc_all_o = np.zeros(shape=(2, members, length))
+    members = np.arange(1, members + 1)
+    print(members)
+
+    for member in members:
+        it = iteration + 500 * member
+        if cfg.val_cut:
+            file_a = f"{cfg.val_dir}{part}/timeseries_{it}_assimilation_anhang_r2_full_newgrid_cut.hdf5"
+            file_o = f"{cfg.val_dir}{part}/timeseries_{it}_observations_anhang_r2_full_newgrid_cut.hdf5"
+        else:
+            file_a = f"{cfg.val_dir}{part}/timeseries_{it}_assimilation_anhang_r2_full_newgrid.hdf5"
+            file_o = f"{cfg.val_dir}{part}/timeseries_{it}_observations_anhang_r2_full_newgrid.hdf5"
+
+        f_a = h5py.File(file_a, "r")
+        f_o = h5py.File(file_o, "r")
+
+        hc_a = np.array(f_a.get("net_ts"))
+        hc_o = np.array(f_o.get("net_ts"))
+
+        hc_all_a[member - 1, :] = hc_a
+        hc_all_o[member - 1, :] = hc_o
+
+    hc_all_a = np.array(hc_all_a)
+    hc_all_o = np.array(hc_all_o)
+
+    return hc_all_a, hc_all_o
+
+
 def hc_ml_ensemble(members, part, iteration, length=754):
 
     hc_all_a, hc_all_o = np.zeros(shape=(2, members, length))
@@ -851,13 +889,13 @@ def hc_ml_ensemble(members, part, iteration, length=754):
     return hc_all_a, hc_all_o
 
 
-def hc_ensemble_mean_std(path, name, members, length=768):
+def hc_ensemble_mean_std(path=cfg.im_dir, name=cfg.im_name, members=15, length=767):
 
     hc_all, hc_cut_all = np.zeros(shape=(2, members, length))
 
     for i in range(1, members + 1):
 
-        file = f"{path}/{name}{i}_full_newgrid_depth_0_anomalies_anhang_20.hdf5"
+        file = f"{path}/{name}{i}_anomalies_depth_anhang_20.hdf5"
         f = h5py.File(file, "r")
         hc = f.get("hc")
         hc_cut = f.get("hc_cut")
