@@ -24,7 +24,11 @@
 \usepackage{tabularx}
 \usepackage{mhchem}
 %\usepackage[round]{natbib}
-\usepackage[format=plain, indention=0cm, labelfont=bf, font=normalsize]{caption}
+\DeclareCaptionFormat{custom}
+{%
+	\textbf{#1#2}\textit{#3}
+}
+\usepackage[format=custom, indention=0cm, labelfont=bf, font=normalsize]{caption}
 \PassOptionsToPackage{
 	natbib=true,
 	style=authoryear-comp,
@@ -49,6 +53,7 @@
 %..............Kopf und Fußzeilengestaltung:.................
 \usepackage{fancyhdr}
 \pagestyle{headings}
+\usepackage{pdfpages} % add individual pages from pdf files
 
 %\lhead{\nouppercase{\leftmark}}
 %\rhead{\thepage}
@@ -106,7 +111,7 @@
 			University Hamburg \\
 			Master of Integrated Climate System Sciences \\
 			Faculty for Mathematics, Informatics and Natural Sciences \\
-			Supervisors: Prof. Dr. Johanna Baehr, Dr. Christopher Kadow \\
+			Supervisors: Prof. Dr. Johanna Baehr, (Reviewer) Dr. Christopher Kadow, (Reviewer) Dr. Sebastian Brune \\
 			Deadline: 16.01.2023\\
 			\vspace{5 cm}
 		\end{center}
@@ -117,6 +122,10 @@
 	\pagenumbering{gobble}
 	\newpage
 	\onehalfspacing
+	
+	\thispagestyle{empty}
+	\clearpage\mbox{}\clearpage
+	
 	\subfile{./subfiles/Abstract.tex}
 	
 	\newpage
@@ -127,6 +136,9 @@
 	
 	
 	\tableofcontents %inhaltsverzeichnis
+	\newpage
+	\thispagestyle{empty}
+	\clearpage\mbox{}\clearpage
 
 	
 	\newpage
@@ -171,9 +183,7 @@
 	\clearpage\mbox{}\clearpage
 	
 	
-	\chapter*{Eidesstaatliche Versicherung}
-	
-	Hiermit versichere ich an Eides statt, dass ich diese Arbeit eigenständig verfasst habe. Ich habe keine anderen als die angegebenen Quellen und Hilfsmittel benutzt sowie wörtliche und sinngemäße Zitate kenntlich gemacht. Die Arbeit hat in gleicher oder ähnlicher Form noch keiner Prüfungsbehörde vorgelegen und die eingereichte schriftliche Fassung entspricht der auf dem elektronischen Speichermedium.
+	\includepdf{Unterschriebene_versicherung.pdf}
 	
 
 
