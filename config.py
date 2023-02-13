@@ -157,6 +157,7 @@ combine_layers = None
 vis_step = None
 combine_start = None
 eval_full = None
+nw_corner = None
 
 
 def set_train_args(arg_file=None):
@@ -222,6 +223,7 @@ def set_train_args(arg_file=None):
     arg_parser.add_argument("--combine_layers", action="store_true")
     arg_parser.add_argument("--eval_full", action="store_true")
     arg_parser.add_argument("--combine_start", type=int, default=60)
+    arg_parser.add_argument("--nw_corner", action="store_true")
     global_args(arg_parser, arg_file)
     args = arg_parser.parse_args()
 
@@ -283,6 +285,7 @@ def set_train_args(arg_file=None):
     global combine_start
     global eval_full
     global vis_step
+    global nw_corner
 
     im_name = args.im_name
     mask_name = args.mask_name
@@ -348,6 +351,7 @@ def set_train_args(arg_file=None):
     vis_step = args.vis_step
     combine_start = args.combine_start
     eval_full = args.eval_full
+    nw_corner = args.nw_corner
 
 
 def set_evaluation_args(arg_file=None):

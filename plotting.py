@@ -18,7 +18,14 @@ plotting = "special"
 
 if plotting == "special":
 
-    vs.hc_plotting(part_argo, resume_argo, time=600, obs=False, mask_argo="anhang")
+    vs.timeseries_plotting(
+        "part_13",
+        cfg.resume_iter,
+        obs=False,
+        del_t=12,
+        argo="full",
+        mask_argo="full",
+    )
 
 elif plotting == "argo":
     # Argo plot masked assimilation
@@ -31,9 +38,10 @@ elif plotting == "argo":
     vs.timeseries_plotting(
         part_argo, resume_argo, obs=False, del_t=12, argo="argo", mask_argo="anhang"
     )
-    # vs.timeseries_plotting(
-    #    part_depth, resume_depth, del_t=1, argo="argo", mask_argo="anhang"
-    # )
+    vs.timeseries_plotting(
+        part_depth, resume_depth, del_t=1, argo="full", mask_argo="anhang"
+    )
+
     vs.hc_plotting(part_argo, resume_argo, time=600, obs=False, mask_argo="anhang")
     vs.hc_plotting(
         part_argo, resume_argo, time=[720, 732], obs=False, mask_argo="anhang"

@@ -316,7 +316,7 @@ def running_mean_std(var, mode, del_t):
 
 
 # calculating heat content gridpoint wise
-def heat_content_single(image, depths=False):
+def heat_content_single(image, depths=False, anomalies=False, month=13):
 
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
@@ -324,9 +324,11 @@ def heat_content_single(image, depths=False):
     if cfg.val_cut:
         fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid_cut.hdf5", "r")
         continent_mask = fm.get("continent_mask")
+        valcut = "_cut"
     else:
         fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5", "r")
         continent_mask = fm.get("continent_mask")
+        valcut = ""
 
     n = image.shape
 
@@ -341,6 +343,21 @@ def heat_content_single(image, depths=False):
     depth_steps = prepo.depths()
     if type(depths) != bool:
         depth_steps = depths
+
+    if anomalies == True:
+        fb = h5py.File(
+            f"../Asi_maskiert/original_image/baseline_climatologyargo{valcut}.hdf5",
+            "r",
+        )
+        thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
+        print(image.shape)
+        print(thetao_mean.shape)
+
+        if month != 13:
+            image = image + thetao_mean[month]
+        else:
+            for i in range(n[0]):
+                image[i] = image[i] + thetao_mean[i % 12]
 
     if cfg.val_cut:
         image = image

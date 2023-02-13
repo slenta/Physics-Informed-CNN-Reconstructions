@@ -70,24 +70,30 @@ depth = ds.depth.values[:20]
 ds = ds.sel(time=slice("1958-01", "2021-12"))
 
 tos = np.array(ds.thetao.values)[:, :, :, :]
+tos_a = np.zeros(tos.shape)
 print(tos.shape)
 
 ds_monthly = ds.groupby("time.month").mean("time")
 tos_mean = ds_monthly.thetao.values
 for i in range(len(tos)):
-    tos[i] = tos[i] - tos_mean[i % 12]
+    tos_a[i] = tos[i] - tos_mean[i % 12]
 
 ### adjust shape of variables to fit quadratic input
 n = tos.shape
 rest = np.zeros((n[0], n[1], 128 - n[2], n[3]))
 tos = np.concatenate((tos, rest), axis=2)
+tos_a = np.concatenate((tos_a, rest), axis=2)
 n = tos.shape
 rest2 = np.zeros((n[0], n[1], n[2], 128 - n[3]))
 tos = np.concatenate((tos, rest2), axis=3)
-
+tos_a = np.concatenate((tos_a, rest2), axis=3)
+print(tos_a.shape)
 ohc_en4 = evalu.heat_content_single(tos[:, :20, :, :], depth)
+print(ohc_en4.shape)
+ohc_en4_a = evalu.heat_content_single(tos_a[:, :20, :, :], depth)
 
 plt.imshow(np.nanmean(ohc_en4[:120, :, :], axis=0), cmap="coolwarm")
+plt.colorbar()
 plt.show()
 
 plt.plot(np.nansum(ohc_en4, axis=(1, 2)))
@@ -95,6 +101,10 @@ plt.show()
 
 f = h5py.File(f"{file}_own.hdf5", "w")
 f.create_dataset(name="ohc", shape=ohc_en4.shape, data=ohc_en4)
+f.close()
+
+f = h5py.File(f"{file}_own_anomalies.hdf5", "w")
+f.create_dataset(name="ohc", shape=ohc_en4_a.shape, data=ohc_en4_a)
 f.close()
 
 ohc_newgrid = np.array(evalu.area_cutting_single(ohc_en4))

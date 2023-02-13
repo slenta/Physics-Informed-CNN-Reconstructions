@@ -81,12 +81,14 @@ cfg.set_train_args()
 #
 #
 #### Assimilation Ensemble Spread
-# gt_mean, std_gt, hc_all = evalu.hc_ensemble_mean_std(
+
+#gt_mean, std_gt, hc_all = evalu.hc_ensemble_mean_std(
 #    cfg.im_dir, name="Image_r", members=16
-# )
-# length = hc_all.shape[1]
-# ticks = np.arange(0, length, 12 * 5)
-# labels = np.arange(1958, 2021, 5)
+#)
+#length = hc_all.shape[1]
+#ticks = np.arange(0, length, 12 * 5)
+#labels = np.arange(1958, 2021, 5)
+
 # plt.figure(figsize=(10, 6))
 # for i in range(16):
 #    globals()[f"r{i}"] = hc_all[i, :]
@@ -101,6 +103,33 @@ cfg.set_train_args()
 # plt.ylabel("Heat Content [J]")
 # plt.xlabel("Time [years]")
 # plt.savefig(f"../Asi_maskiert/pdfs/validation/part_16/Ensemble_spread.pdf")
+# plt.show()
+
+
+#plt.figure(figsize=(10, 6))
+# plt.fill_between(
+#    range(len(gt_mean)),
+#    gt_mean + 2 * std_gt,
+#    gt_mean - 2 * std_gt,
+#    label="Ensemble Spread Reconstruction",
+#    color="lightcoral",
+# )
+# for i in range(16):
+#     globals()[f"r{i}"] = hc_all[i, :]
+#     globals()[f"r{i}"] = evalu.running_mean_std(
+#         globals()[f"r{i}"], mode="mean", del_t=12
+#     )
+#     plt.plot(globals()[f"r{i}"], alpha=0.5)
+# plt.plot(
+#     evalu.running_mean_std(gt_mean, mode="mean", del_t=12), color="darkred", linewidth=2
+# )
+# plt.xticks(ticks=ticks, labels=labels)
+# plt.xlim(0, len(gt_mean))
+# plt.title("Assimilation Ensemble NA OHC")
+# plt.grid()
+# plt.ylabel("Heat Content [J]")
+# plt.xlabel("Time [years]")
+# plt.savefig(f"../Asi_maskiert/pdfs/validation/part_19/Ensemble_mean.pdf")
 # plt.show()
 
 ######## Uncertainty schlauch + Vorhersage argo masken
@@ -950,17 +979,123 @@ cfg.set_train_args()
 # f.create_dataset(name="sst_mean", shape=tos_cut.shape, data=tos_cut)
 # f.close()
 
-######### plotting comparison image
+########## plotting comparison image
+#
+#
+# f = h5py.File(
+#    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+#    "r",
+# )
+# f_a = h5py.File(
+#    f"{cfg.val_dir}part_18/heatcontent_585000_observations_anhang_{cfg.eval_im_year}.hdf5",
+#    "r",
+# )
+#
+# f_cm = h5py.File(f"{cfg.mask_dir}Kontinent_newgrid.hdf5")
+# f_spg = h5py.File(f"{cfg.mask_dir}SPG_Maske.hdf5")
+# spg = f_spg.get("SPG")
+# continent_mask = np.array(f_cm.get("continent_mask"))
+# coastlines = np.array(f_cm.get("coastlines"))
+#
+#
+# time_1 = 732
+# time_2 = 744
+#
+# hc_assi = np.nanmean(
+#    np.nan_to_num(np.array(f.get("hc_net"))[time_1:time_2, :, :], nan=1),
+#    axis=0,
+# )
+# hc_argo = np.nanmean(
+#    np.nan_to_num(np.array(f_a.get("hc_net"))[time_1:time_2, :, :], nan=1),
+#    axis=0,
+# )
+# hc_gt = np.nanmean(
+#    np.nan_to_num(np.array(f.get("hc_gt"))[time_1:time_2, :, :], nan=1),
+#    axis=0,
+# )
+#
+#
+# cmap_1 = plt.cm.get_cmap("coolwarm").copy()
+# cmap_1.set_bad(color="darkgrey")
+# cmap_2 = plt.cm.get_cmap("bwr").copy()
+# cmap_2.set_bad(color="black")
+#
+# fig = plt.figure(figsize=(15, 8), constrained_layout=True)
+# fig.suptitle("North Atlantic Heat Content Comparison")
+# plt.subplot(1, 3, 1)
+# plt.title(f"Assimilation Heat Content")
+# plt.imshow(
+#    hc_gt * coastlines * spg,
+#    cmap=cmap_1,
+#    vmin=-3e9,
+#    vmax=3e9,
+#    aspect="auto",
+#    interpolation=None,
+# )
+# plt.xlabel("Transformed Longitudes")
+# plt.ylabel("Transformed Latitudes")
+# plt.subplot(1, 3, 2)
+# plt.title("Network OHC (Argo Mask Training)")
+# plt.imshow(
+#    hc_argo * spg * coastlines,
+#    cmap=cmap_1,
+#    vmin=-3e9,
+#    vmax=3e9,
+#    aspect="auto",
+#    interpolation=None,
+# )
+# plt.xlabel("Transformed Longitudes")
+# plt.ylabel("Transformed Latitudes")
+# plt.subplot(1, 3, 3)
+# plt.title("Network OHC (Full Mask Training)")
+# plt.imshow(
+#    hc_assi * spg * coastlines,
+#    cmap=cmap_1,
+#    vmin=-3e9,
+#    vmax=3e9,
+#    aspect="auto",
+#    interpolation=None,
+# )
+# plt.xlabel("Transformed Longitudes")
+# plt.ylabel("Transformed Latitudes")
+# plt.colorbar(label="Heat Content in J")
+# plt.savefig(
+#    f"../Asi_maskiert/pdfs/validation/part_19/heat_content_2019_550000_comparison.pdf",
+#    dpi=fig.dpi,
+# )
+# plt.show()
 
+########## mask comparison plotting
+######### non anomaly plots, north west corner
 
-f = h5py.File(
-    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
-    "r",
+time = 744
+
+fc = h5py.File(
+   f"{cfg.val_dir}part_19/validation_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+   "r",
 )
-f_a = h5py.File(
-    f"{cfg.val_dir}part_18/heatcontent_585000_observations_anhang_{cfg.eval_im_year}.hdf5",
-    "r",
+fc_2 = h5py.File(
+   f"{cfg.val_dir}part_18/validation_585000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+   "r",
 )
+fc_o = h5py.File(
+   f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
+   "r",
+)
+fc_o2 = h5py.File(
+   f"{cfg.val_dir}part_18/validation_585000_observations_anhang_{cfg.eval_im_year}.hdf5",
+   "r",
+)
+fa = h5py.File(
+   f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+   "r",
+)
+f_en4 = h5py.File(f"{cfg.im_dir}EN4_1950_2021_NA_own.hdf5")
+en4 = np.nan_to_num(np.array(f_en4.get("ohc")), nan=1)
+
+print(en4.shape)
+time_1 = 0
+time_2 = 120
 
 f_cm = h5py.File(f"{cfg.mask_dir}Kontinent_newgrid.hdf5")
 f_spg = h5py.File(f"{cfg.mask_dir}SPG_Maske.hdf5")
@@ -968,70 +1103,252 @@ spg = f_spg.get("SPG")
 continent_mask = np.array(f_cm.get("continent_mask"))
 coastlines = np.array(f_cm.get("coastlines"))
 
+#### anomaly heatcontent
+hc_a = np.array(fa.get("hc_net"))
+hc_gt = np.array(fa.get("hc_gt"))
 
-time_1 = 732
-time_2 = 744
+#############try to construct nw corner mask
+nw_corner = np.zeros(shape=(128, 128))
+nw_corner[55:70, 50:70] = 1
+nw_mask = np.where(nw_corner==1, np.nan, 1)
 
-hc_assi = np.nanmean(
-    np.nan_to_num(np.array(f.get("hc_net"))[time_1:time_2, :, :], nan=1),
-    axis=0,
-)
-hc_argo = np.nanmean(
-    np.nan_to_num(np.array(f_a.get("hc_net"))[time_1:time_2, :, :], nan=1),
-    axis=0,
-)
-hc_gt = np.nanmean(
-    np.nan_to_num(np.array(f.get("hc_gt"))[time_1:time_2, :, :], nan=1),
-    axis=0,
-)
+plt.figure(figsize=(10, 6))
+plt.subplot(1, 2, 1)
+plt.imshow(nw_mask)
+plt.subplot(1, 2, 2)
+plt.imshow(spg * coastlines * nw_corner)
+plt.show()
+
+fnw = h5py.File(f"{cfg.mask_dir}nw_mask.hdf5", "w")
+fnw.create_dataset(name="nw_mask", shape=nw_mask.shape, data=nw_mask)
+fnw.close()
 
 
-cmap_1 = plt.cm.get_cmap("coolwarm").copy()
+
+#### full reconstructions part 19
+image_o = np.array(fc_o.get("image"))
+mask = np.nan_to_num(np.array(fc.get("mask")), nan=0)[:, 0, :, :]
+image_o = np.array(fc_o.get("image"))
+output = np.array(fc.get("output"))
+gt = np.array(fc.get("gt"))
+output_o = np.array(fc_o.get("output"))
+
+#### argo reconstructions part 18
+output_argo = np.array(fc_2.get("output"))
+output_argo_o = np.array(fc_o2.get("output"))
+
+# hc_a_full = evalu.heat_content_single(output, depths=True, anomalies=True, month=13)
+# hc_gt_full = evalu.heat_content_single(gt, depths=True, anomalies=True, month=13)
+# hc_o_full = evalu.heat_content_single(output_o, depths=True, anomalies=True, month=13)
+# hc_a_full_argo = evalu.heat_content_single(
+#    output_argo, depths=True, anomalies=True, month=13
+# )
+# hc_o_full_argo = evalu.heat_content_single(
+#    output_argo_o, depths=True, anomalies=True, month=13
+# )
+# 
+# f_full = h5py.File(f"{cfg.val_dir}part_19/hc_550000_full.hdf5", "w")
+# f_full.create_dataset(name="gt", shape=hc_gt_full.shape, data=hc_gt_full)
+# f_full.create_dataset(name="output", shape=hc_a_full.shape, data=hc_a_full)
+# f_full.create_dataset(name="output_o", shape=hc_o_full.shape, data=hc_o_full)
+# f_full.create_dataset(
+#    name="output_argo", shape=hc_a_full_argo.shape, data=hc_a_full_argo
+# )
+# f_full.create_dataset(
+#    name="output_argo_o", shape=hc_o_full_argo.shape, data=hc_o_full_argo
+# )
+# f_full.close()
+
+f_full = h5py.File(f"{cfg.val_dir}part_19/hc_550000_full.hdf5", "r")
+hc_a_full = np.array(f_full.get("output"))
+hc_gt_full = np.array(f_full.get("gt"))
+hc_o_full = np.array(f_full.get("output_o"))
+hc_a_full_argo = np.array(f_full.get("output_argo"))
+hc_o_full_argo = np.array(f_full.get("output_argo_o"))
+f_full.close()
+
+print(image_o.shape)
+image_1 = image_o[0, 0, :, :]
+image_2 = image_o[time, 0, :, :]
+hc_a = np.nanmean(hc_a_full[time_1:time_2, :, :], axis=0)
+hc_gt = np.nanmean(hc_gt_full[time_1:time_2, :, :], axis=0)
+
+
+cmap_1 = plt.cm.get_cmap("seismic").copy()
 cmap_1.set_bad(color="darkgrey")
 cmap_2 = plt.cm.get_cmap("bwr").copy()
 cmap_2.set_bad(color="black")
+lines = spg * coastlines * nw_mask
+lines = np.nan_to_num(lines, nan=3)
+line = np.where(lines == 3)
+mask_none = np.where(mask == 0, np.nan, 1)
 
-fig = plt.figure(figsize=(15, 8), constrained_layout=True)
-fig.suptitle("North Atlantic Heat Content Comparison")
-plt.subplot(1, 3, 1)
-plt.title(f"Assimilation Heat Content")
-plt.imshow(
-    hc_gt * coastlines * spg,
-    cmap=cmap_1,
-    vmin=-3e9,
-    vmax=3e9,
-    aspect="auto",
-    interpolation=None,
+
+fig = plt.figure(figsize=(12, 12), constrained_layout=True)
+fig.suptitle("Comparison: Observational Density")
+plt.subplot(2, 2, 1)
+plt.title("Neural Network OHC 1960s")
+im_1 = plt.imshow(
+   np.nanmean(hc_a_full[0:60, :, :], axis=0) * spg * coastlines * continent_mask,
+   cmap=cmap_1,
+   vmin=1e10,
+   vmax=3e10,
+   aspect="auto",
+   interpolation=None,
 )
+plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
 plt.xlabel("Transformed Longitudes")
 plt.ylabel("Transformed Latitudes")
-plt.subplot(1, 3, 2)
-plt.title("Network OHC (Argo Mask Training)")
+plt.colorbar(mappable=im_1, label="Heat Content in J")
+plt.subplot(2, 2, 2)
+plt.title("Assimilation OHC 1960s")
 plt.imshow(
-    hc_argo * spg * coastlines,
-    cmap=cmap_1,
-    vmin=-3e9,
-    vmax=3e9,
-    aspect="auto",
-    interpolation=None,
+   np.nanmean(hc_gt_full[0:60, :, :], axis=0) * spg * coastlines * continent_mask,
+   cmap=cmap_1,
+   vmin=1e10,
+   vmax=3e10,
+   aspect="auto",
+   interpolation=None,
 )
+plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
 plt.xlabel("Transformed Longitudes")
 plt.ylabel("Transformed Latitudes")
-plt.subplot(1, 3, 3)
-plt.title("Network OHC (Full Mask Training)")
+plt.colorbar(mappable=im_1, label="Heat Content in J")
+plt.subplot(2, 2, 3)
+plt.title("Neural Network OHC 2010s")
 plt.imshow(
-    hc_assi * spg * coastlines,
-    cmap=cmap_1,
-    vmin=-3e9,
-    vmax=3e9,
-    aspect="auto",
-    interpolation=None,
+   np.nanmean(hc_a_full[680:740, :, :], axis=0) * spg * coastlines * continent_mask,
+   cmap=cmap_1,
+   vmin=1e10,
+   vmax=3e10,
+   aspect="auto",
+   interpolation=None,
 )
+plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
 plt.xlabel("Transformed Longitudes")
 plt.ylabel("Transformed Latitudes")
-plt.colorbar(label="Heat Content in J")
+plt.colorbar(mappable=im_1, label="Heat Content in J")
+plt.subplot(2, 2, 4)
+plt.title("Assimilation OHC 2010s")
+plt.imshow(
+   np.nanmean(hc_gt_full[680:740, :, :], axis=0) * spg * coastlines * continent_mask,
+   cmap=cmap_1,
+   vmin=1e10,
+   vmax=3e10,
+   aspect="auto",
+   interpolation=None,
+)
+plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
+plt.xlabel("Transformed Longitudes")
+plt.ylabel("Transformed Latitudes")
+plt.colorbar(mappable=im_1, label="Heat Content in J")
 plt.savefig(
-    f"../Asi_maskiert/pdfs/validation/part_19/heat_content_2019_550000_comparison.pdf",
-    dpi=fig.dpi,
+   f"../Asi_maskiert/pdfs/validation/part_19/nw_corner.pdf",
+   dpi=fig.dpi,
 )
 plt.show()
+
+
+
+###### full values at 2020
+
+# fig = plt.figure(figsize=(12, 11), constrained_layout=True)
+# fig.suptitle("Comparison: Observational Density")
+# plt.subplot(2, 2, 1)
+# plt.title("EN4 OHC at Points of Observations")
+# im_1 = plt.imshow(
+#    en4[744] * mask_none[744] * continent_mask,
+#    cmap=cmap_1,
+#    vmin=0e10,
+#    vmax=6e10,
+#    aspect="auto",
+#    interpolation=None,
+# )
+# plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
+# plt.xlabel("Transformed Longitudes")
+# plt.ylabel("Transformed Latitudes")
+# plt.colorbar(mappable=im_1, label="Heat Content in J")
+# plt.subplot(2, 2, 2)
+# plt.title("Assimilation Heat Content")
+# plt.imshow(
+#    hc_gt_full[744] * spg * coastlines * continent_mask,
+#    cmap=cmap_1,
+#    vmin=0e10,
+#    vmax=6e10,
+#    aspect="auto",
+#    interpolation=None,
+# )
+# plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
+# plt.xlabel("Transformed Longitudes")
+# plt.ylabel("Transformed Latitudes")
+# plt.colorbar(mappable=im_1, label="Heat Content in J")
+# plt.subplot(2, 2, 3)
+# plt.title("Neural Network Reconstruction OHC")
+# plt.imshow(
+#    hc_a_full_argo[744] * spg * coastlines * continent_mask,
+#    cmap=cmap_1,
+#    vmin=0e10,
+#    vmax=6e10,
+#    aspect="auto",
+#    interpolation=None,
+# )
+# plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
+# plt.xlabel("Transformed Longitudes")
+# plt.ylabel("Transformed Latitudes")
+# plt.colorbar(mappable=im_1, label="Heat Content in J")
+# plt.subplot(2, 2, 4)
+# plt.title("Neural Network Direct Reconstruction OHC")
+# plt.imshow(
+#    hc_o_full_argo[744] * spg * coastlines * continent_mask,
+#    cmap=cmap_1,
+#    vmin=0e10,
+#    vmax=6e10,
+#    aspect="auto",
+#    interpolation=None,
+# )
+# plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
+# plt.xlabel("Transformed Longitudes")
+# plt.ylabel("Transformed Latitudes")
+# plt.colorbar(mappable=im_1, label="Heat Content in J")
+# plt.savefig(
+#    f"../Asi_maskiert/pdfs/validation/part_19/744_all.pdf",
+#    dpi=fig.dpi,
+# )
+# plt.show()
+#
+#
+# fig = plt.figure(figsize=(12, 6), constrained_layout=True)
+# fig.suptitle("Comparison: Observational Density")
+# plt.subplot(1, 2, 1)
+# plt.title("OHC at Observations Points: January 1958")
+# plt.imshow(
+#    en4[0] * mask_none[0] * spg * coastlines * continent_mask,
+#    cmap=cmap_1,
+#    vmin=0e10,
+#    vmax=6e10,
+#    aspect="auto",
+#    interpolation=None,
+# )
+# plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
+# plt.xlabel("Transformed Longitudes")
+# plt.ylabel("Transformed Latitudes")
+# plt.colorbar(mappable=im_1, label="Heat Content in J")
+# plt.subplot(1, 2, 2)
+# plt.title("OHC at Observation Points: January 2020")
+# plt.imshow(
+#    en4[744] * mask_none[744] * spg * coastlines * continent_mask,
+#    cmap=cmap_1,
+#    vmin=0e10,
+#    vmax=6e10,
+#    aspect="auto",
+#    interpolation=None,
+# )
+# plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
+# plt.xlabel("Transformed Longitudes")
+# plt.ylabel("Transformed Latitudes")
+# plt.colorbar(mappable=im_1, label="Heat Content in J")
+# plt.savefig(
+#    f"../Asi_maskiert/pdfs/validation/part_19/mask_comparison.pdf",
+#    dpi=fig.dpi,
+# )
+# plt.show()

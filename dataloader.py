@@ -27,24 +27,24 @@ class MaskDataset(Dataset):
     def __getitem__(self, index):
 
         # get h5 file for image, mask, image plus mask and define relevant variables (tos)
+
         if cfg.lstm_steps != 0:
-            f_image = h5py.File(
-                f"{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}.hdf5",
-                "r",
-            )
-            f_mask = h5py.File(
-                f"{cfg.mask_dir}{cfg.mask_name}{cfg.mask_year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}_lstm_{str(cfg.lstm_steps)}_{str(cfg.ensemble_member)}.hdf5",
-                "r",
-            )
+            lstm = f"_lstm_{cfg.lstm_steps}"
         else:
-            f_image = h5py.File(
-                f"{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}.hdf5",
-                "r",
-            )
-            f_mask = h5py.File(
-                f"{cfg.mask_dir}{cfg.mask_name}{cfg.mask_year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}_{str(cfg.ensemble_member)}.hdf5",
-                "r",
-            )
+            lstm = ""
+        if cfg.nw_corner:
+            nw_corn = "_nw"
+        else:
+            nw_corn = ""
+
+        f_image = h5py.File(
+            f"{cfg.im_dir}{cfg.im_name}{self.im_year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.attribute_argo}_{str(cfg.in_channels)}{lstm}.hdf5",
+            "r",
+        )
+        f_mask = h5py.File(
+            f"{cfg.mask_dir}{cfg.mask_name}{cfg.mask_year}_{cfg.attribute_depth}_{str(cfg.depth)}_{cfg.attribute_anomaly}_{cfg.mask_argo}_{str(cfg.in_channels)}{lstm}_{str(cfg.ensemble_member)}{nw_corn}.hdf5",
+            "r",
+        )
 
         # extract sst data/mask data
         image = f_image.get("tos_sym")
