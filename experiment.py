@@ -1,4 +1,5 @@
 # creating timeseries from all assimilation ensemble members and ensemble mean
+
 import matplotlib
 import numpy as np
 import netCDF4
@@ -82,12 +83,12 @@ cfg.set_train_args()
 #
 #### Assimilation Ensemble Spread
 
-#gt_mean, std_gt, hc_all = evalu.hc_ensemble_mean_std(
+# gt_mean, std_gt, hc_all = evalu.hc_ensemble_mean_std(
 #    cfg.im_dir, name="Image_r", members=16
-#)
-#length = hc_all.shape[1]
-#ticks = np.arange(0, length, 12 * 5)
-#labels = np.arange(1958, 2021, 5)
+# )
+# length = hc_all.shape[1]
+# ticks = np.arange(0, length, 12 * 5)
+# labels = np.arange(1958, 2021, 5)
 
 # plt.figure(figsize=(10, 6))
 # for i in range(16):
@@ -106,7 +107,7 @@ cfg.set_train_args()
 # plt.show()
 
 
-#plt.figure(figsize=(10, 6))
+# plt.figure(figsize=(10, 6))
 # plt.fill_between(
 #    range(len(gt_mean)),
 #    gt_mean + 2 * std_gt,
@@ -1071,24 +1072,24 @@ cfg.set_train_args()
 time = 744
 
 fc = h5py.File(
-   f"{cfg.val_dir}part_19/validation_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
-   "r",
+    f"{cfg.val_dir}part_19/validation_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
 )
 fc_2 = h5py.File(
-   f"{cfg.val_dir}part_18/validation_585000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
-   "r",
+    f"{cfg.val_dir}part_18/validation_585000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
 )
 fc_o = h5py.File(
-   f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
-   "r",
+    f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
 )
 fc_o2 = h5py.File(
-   f"{cfg.val_dir}part_18/validation_585000_observations_anhang_{cfg.eval_im_year}.hdf5",
-   "r",
+    f"{cfg.val_dir}part_18/validation_585000_observations_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
 )
 fa = h5py.File(
-   f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
-   "r",
+    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
 )
 f_en4 = h5py.File(f"{cfg.im_dir}EN4_1950_2021_NA_own.hdf5")
 en4 = np.nan_to_num(np.array(f_en4.get("ohc")), nan=1)
@@ -1110,7 +1111,7 @@ hc_gt = np.array(fa.get("hc_gt"))
 #############try to construct nw corner mask
 nw_corner = np.zeros(shape=(128, 128))
 nw_corner[55:70, 50:70] = 1
-nw_mask = np.where(nw_corner==1, np.nan, 1)
+nw_mask = np.where(nw_corner == 1, np.nan, 1)
 
 plt.figure(figsize=(10, 6))
 plt.subplot(1, 2, 1)
@@ -1122,7 +1123,6 @@ plt.show()
 fnw = h5py.File(f"{cfg.mask_dir}nw_mask.hdf5", "w")
 fnw.create_dataset(name="nw_mask", shape=nw_mask.shape, data=nw_mask)
 fnw.close()
-
 
 
 #### full reconstructions part 19
@@ -1146,7 +1146,7 @@ output_argo_o = np.array(fc_o2.get("output"))
 # hc_o_full_argo = evalu.heat_content_single(
 #    output_argo_o, depths=True, anomalies=True, month=13
 # )
-# 
+#
 # f_full = h5py.File(f"{cfg.val_dir}part_19/hc_550000_full.hdf5", "w")
 # f_full.create_dataset(name="gt", shape=hc_gt_full.shape, data=hc_gt_full)
 # f_full.create_dataset(name="output", shape=hc_a_full.shape, data=hc_a_full)
@@ -1189,12 +1189,12 @@ fig.suptitle("Comparison: Observational Density")
 plt.subplot(2, 2, 1)
 plt.title("Neural Network OHC 1960s")
 im_1 = plt.imshow(
-   np.nanmean(hc_a_full[0:60, :, :], axis=0) * spg * coastlines * continent_mask,
-   cmap=cmap_1,
-   vmin=1e10,
-   vmax=3e10,
-   aspect="auto",
-   interpolation=None,
+    np.nanmean(hc_a_full[0:60, :, :], axis=0) * spg * coastlines * continent_mask,
+    cmap=cmap_1,
+    vmin=1e10,
+    vmax=3e10,
+    aspect="auto",
+    interpolation=None,
 )
 plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
 plt.xlabel("Transformed Longitudes")
@@ -1203,12 +1203,12 @@ plt.colorbar(mappable=im_1, label="Heat Content in J")
 plt.subplot(2, 2, 2)
 plt.title("Assimilation OHC 1960s")
 plt.imshow(
-   np.nanmean(hc_gt_full[0:60, :, :], axis=0) * spg * coastlines * continent_mask,
-   cmap=cmap_1,
-   vmin=1e10,
-   vmax=3e10,
-   aspect="auto",
-   interpolation=None,
+    np.nanmean(hc_gt_full[0:60, :, :], axis=0) * spg * coastlines * continent_mask,
+    cmap=cmap_1,
+    vmin=1e10,
+    vmax=3e10,
+    aspect="auto",
+    interpolation=None,
 )
 plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
 plt.xlabel("Transformed Longitudes")
@@ -1217,12 +1217,12 @@ plt.colorbar(mappable=im_1, label="Heat Content in J")
 plt.subplot(2, 2, 3)
 plt.title("Neural Network OHC 2010s")
 plt.imshow(
-   np.nanmean(hc_a_full[680:740, :, :], axis=0) * spg * coastlines * continent_mask,
-   cmap=cmap_1,
-   vmin=1e10,
-   vmax=3e10,
-   aspect="auto",
-   interpolation=None,
+    np.nanmean(hc_a_full[680:740, :, :], axis=0) * spg * coastlines * continent_mask,
+    cmap=cmap_1,
+    vmin=1e10,
+    vmax=3e10,
+    aspect="auto",
+    interpolation=None,
 )
 plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
 plt.xlabel("Transformed Longitudes")
@@ -1231,23 +1231,22 @@ plt.colorbar(mappable=im_1, label="Heat Content in J")
 plt.subplot(2, 2, 4)
 plt.title("Assimilation OHC 2010s")
 plt.imshow(
-   np.nanmean(hc_gt_full[680:740, :, :], axis=0) * spg * coastlines * continent_mask,
-   cmap=cmap_1,
-   vmin=1e10,
-   vmax=3e10,
-   aspect="auto",
-   interpolation=None,
+    np.nanmean(hc_gt_full[680:740, :, :], axis=0) * spg * coastlines * continent_mask,
+    cmap=cmap_1,
+    vmin=1e10,
+    vmax=3e10,
+    aspect="auto",
+    interpolation=None,
 )
 plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
 plt.xlabel("Transformed Longitudes")
 plt.ylabel("Transformed Latitudes")
 plt.colorbar(mappable=im_1, label="Heat Content in J")
 plt.savefig(
-   f"../Asi_maskiert/pdfs/validation/part_19/nw_corner.pdf",
-   dpi=fig.dpi,
+    f"../Asi_maskiert/pdfs/validation/part_19/nw_corner.pdf",
+    dpi=fig.dpi,
 )
 plt.show()
-
 
 
 ###### full values at 2020

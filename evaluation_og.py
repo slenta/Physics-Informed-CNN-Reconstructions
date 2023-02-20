@@ -171,23 +171,18 @@ def heat_content_timeseries(depth_steps, iteration, name, anomalies=True):
     shc = 3850  # specific heat capacity of seawater
 
     if cfg.val_cut:
-        f = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_{cfg.eval_im_year}_cut.hdf5",
-            "r",
-        )
-        fb = h5py.File(
-            "../Asi_maskiert/original_image/baseline_climatologyargo_cut.hdf5",
-            "r",
-        )
+        cut = "_cut"
     else:
-        f = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_{cfg.eval_im_year}.hdf5",
-            "r",
-        )
-        fb = h5py.File(
-            "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
-            "r",
-        )
+        cut = ""
+
+    f = h5py.File(
+        f"{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_{cfg.eval_im_year}{cut}.hdf5",
+        "r",
+    )
+    fb = h5py.File(
+        f"{cfg.im_dir}baseline_climatologyargo{cut}.hdf5",
+        "r",
+    )
 
     output = np.array(f.get("output"))
     gt = np.array(f.get("gt"))
@@ -195,12 +190,17 @@ def heat_content_timeseries(depth_steps, iteration, name, anomalies=True):
     mask = np.array(f.get("mask"))
     cvar = [gt, output, image, mask]
 
-    # if anomalies == True:
-    #    thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
+    if anomalies == False:
+        anomaly = "_full"
+        thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
+        mask = np.where(mask == 0, np.NaN, 1)
+        image = image * mask
 
-    #    for var in cvar:
-    #        for i in range(var.shape[0]):
-    #            var[i] = var[i] + thetao_mean[i % 12]
+        for var in cvar:
+            for i in range(var.shape[0]):
+                var[i] = var[i] + thetao_mean[i % 12]
+    else:
+        anomaly = ""
 
     continent_mask = np.where(gt[0, 0, :, :] == 0, np.NaN, 1)
     mask = np.where(mask == 0, np.NaN, 1)
@@ -258,16 +258,10 @@ def heat_content_timeseries(depth_steps, iteration, name, anomalies=True):
             + depth_steps[0] * masked_gt[i, 0] * rho * shc
         )
 
-    if cfg.val_cut:
-        f_final = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/timeseries_{iteration}_{name}_{cfg.eval_im_year}_cut.hdf5",
-            "w",
-        )
-    else:
-        f_final = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/timeseries_{iteration}_{name}_{cfg.eval_im_year}.hdf5",
-            "w",
-        )
+    f_final = h5py.File(
+        f"{cfg.val_dir}{cfg.save_part}/timeseries_{iteration}_{name}_{cfg.eval_im_year}{anomaly}{cut}.hdf5",
+        "w",
+    )
 
     f_final.create_dataset(name="net_ts", shape=hc_net.shape, dtype=float, data=hc_net)
     f_final.create_dataset(name="gt_ts", shape=hc_gt.shape, dtype=float, data=hc_gt)

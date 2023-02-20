@@ -110,6 +110,12 @@ if cfg.eval_full:
     evalu.heat_content_timeseries(
         depths, str(cfg.resume_iter), name=f"assimilation_{argo}{nw}"
     )
+    evalu.heat_content_timeseries(
+        depths,
+        str(cfg.resume_iter),
+        name=f"assimilation_{argo}",
+        anomalies=False,
+    )
 
     # evaluate observations reconstruction
     evalu.area_cutting(mode=f"observations_{argo}{nw}", depth=cfg.in_channels)
@@ -119,4 +125,10 @@ if cfg.eval_full:
     evalu.pattern_corr_timeseries(name=f"observations_{argo}{nw}", del_t=5 * 12)
     evalu.heat_content_timeseries(
         depths, str(cfg.resume_iter), name=f"observations_{argo}{nw}"
+    )
+    evalu.heat_content_timeseries(
+        depths,
+        str(cfg.resume_iter),
+        name=f"observations_{argo}",
+        anomalies=False,
     )
