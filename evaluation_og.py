@@ -15,7 +15,7 @@ import os
 # from utils.corr_2d_ttest import corr_2d_ttest
 from collections import namedtuple
 
-# from scipy.stats import pearsonr
+from scipy.stats import pearsonr
 from preprocessing import preprocessing
 import xarray as xr
 import netCDF4 as nc
@@ -145,7 +145,6 @@ def infill(model, dataset, partitions, iter, name):
     mask = torch.cat(mask)
     gt = torch.cat(gt)
     output = torch.cat(output)
-    print(output.shape, mask.shape, gt.shape, image.shape)
 
     # create output_comp
     output_comp = mask * image + (1 - mask) * output
@@ -350,8 +349,6 @@ def heat_content_single(image, depths=False, anomalies=False, month=13):
             "r",
         )
         thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
-        print(image.shape)
-        print(thetao_mean.shape)
 
         if month != 13:
             image = image + thetao_mean[month]
@@ -609,7 +606,6 @@ def area_cutting_single(var):
 
     lon_out = np.arange(cfg.lon1, cfg.lon2)
     lat_out = np.arange(cfg.lat1, cfg.lat2)
-    print(lon_out, lat_out)
 
     if len(var.shape) == 4:
 
@@ -800,6 +796,10 @@ def combine_layers(parts):
         length = 764
     else:
         length = 752
+    if cfg.nw_corner:
+        nw = "_nw"
+    else:
+        nw = ""
 
     for name in names:
         globals()[f"{name}_full"] = np.zeros(shape=(length, 20, 128, 128))
@@ -808,11 +808,11 @@ def combine_layers(parts):
     print(cfg.resume_iter)
     for depth, part in zip(range(len(parts)), parts):
         f = h5py.File(
-            f"{cfg.val_dir}part_{str(part)}/validation_{str(cfg.resume_iter)}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
+            f"{cfg.val_dir}part_{str(part)}/validation_{str(cfg.resume_iter)}_assimilation_{cfg.mask_argo}{nw}_{cfg.eval_im_year}.hdf5",
             "r",
         )
         fo = h5py.File(
-            f"{cfg.val_dir}part_{str(part)}/validation_{str(cfg.resume_iter)}_observations_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
+            f"{cfg.val_dir}part_{str(part)}/validation_{str(cfg.resume_iter)}_observations_{cfg.mask_argo}{nw}_{cfg.eval_im_year}.hdf5",
             "r",
         )
 
@@ -826,11 +826,11 @@ def combine_layers(parts):
             ]
 
     f_a = h5py.File(
-        f"{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
+        f"{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_assimilation_{cfg.mask_argo}{nw}_{cfg.eval_im_year}.hdf5",
         "w",
     )
     f_o = h5py.File(
-        f"{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_observations_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
+        f"{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_observations_{cfg.mask_argo}{nw}_{cfg.eval_im_year}.hdf5",
         "w",
     )
     for name in names:

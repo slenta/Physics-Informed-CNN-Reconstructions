@@ -29,6 +29,11 @@ if cfg.lstm_steps == 0:
 else:
     lstm = True
 
+if cfg.nw_corner:
+    nw = "_nw"
+else:
+    nw = ""
+
 if cfg.attribute_depth == "depth":
     depth = True
 else:
@@ -82,7 +87,7 @@ else:
         val_dataset,
         partitions=cfg.batch_size,
         iter=str(cfg.resume_iter),
-        name=f"assimilation_{argo}",
+        name=f"assimilation_{argo}{nw}",
     )
     val_obs_dataset = ValDataset(
         cfg.eval_im_year, cfg.mask_year, depth, cfg.in_channels
@@ -92,26 +97,26 @@ else:
         val_obs_dataset,
         partitions=cfg.batch_size,
         iter=str(cfg.resume_iter),
-        name=f"observations_{argo}",
+        name=f"observations_{argo}{nw}",
     )
 
 if cfg.eval_full:
     # evaluate assimilation reconstruction
-    evalu.area_cutting(mode=f"assimilation_{argo}", depth=cfg.in_channels)
-    evalu.heat_content(depths, str(cfg.resume_iter), name=f"assimilation_{argo}")
-    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=12)
-    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=1)
-    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}", del_t=5 * 12)
+    evalu.area_cutting(mode=f"assimilation_{argo}{nw}", depth=cfg.in_channels)
+    evalu.heat_content(depths, str(cfg.resume_iter), name=f"assimilation_{argo}{nw}")
+    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}{nw}", del_t=12)
+    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}{nw}", del_t=1)
+    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}{nw}", del_t=5 * 12)
     evalu.heat_content_timeseries(
-        depths, str(cfg.resume_iter), name=f"assimilation_{argo}"
+        depths, str(cfg.resume_iter), name=f"assimilation_{argo}{nw}"
     )
 
     # evaluate observations reconstruction
-    evalu.area_cutting(mode=f"observations_{argo}", depth=cfg.in_channels)
-    evalu.heat_content(depths, str(cfg.resume_iter), name=f"observations_{argo}")
-    evalu.pattern_corr_timeseries(name=f"observations_{argo}", del_t=12)
-    evalu.pattern_corr_timeseries(name=f"observations_{argo}", del_t=1)
-    evalu.pattern_corr_timeseries(name=f"observations_{argo}", del_t=5 * 12)
+    evalu.area_cutting(mode=f"observations_{argo}{nw}", depth=cfg.in_channels)
+    evalu.heat_content(depths, str(cfg.resume_iter), name=f"observations_{argo}{nw}")
+    evalu.pattern_corr_timeseries(name=f"observations_{argo}{nw}", del_t=12)
+    evalu.pattern_corr_timeseries(name=f"observations_{argo}{nw}", del_t=1)
+    evalu.pattern_corr_timeseries(name=f"observations_{argo}{nw}", del_t=5 * 12)
     evalu.heat_content_timeseries(
-        depths, str(cfg.resume_iter), name=f"observations_{argo}"
+        depths, str(cfg.resume_iter), name=f"observations_{argo}{nw}"
     )
