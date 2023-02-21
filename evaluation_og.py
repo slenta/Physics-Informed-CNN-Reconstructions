@@ -309,7 +309,7 @@ def running_mean_std(var, mode, del_t):
 
 
 # calculating heat content gridpoint wise
-def heat_content_single(image, depths=False, anomalies=False, month=13):
+def heat_content_single(image, depths=False, anomalies=True, month=13):
 
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
@@ -337,7 +337,7 @@ def heat_content_single(image, depths=False, anomalies=False, month=13):
     if type(depths) != bool:
         depth_steps = depths
 
-    if anomalies == True:
+    if anomalies == False:
         fb = h5py.File(
             f"../Asi_maskiert/original_image/baseline_climatologyargo{valcut}.hdf5",
             "r",
@@ -416,13 +416,10 @@ def heat_content(depth_steps, iteration, name, anomalies=True):
     mask = np.array(f.get("mask"))
 
     if cfg.val_cut:
-        fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid_cut.hdf5", "r")
-        continent_mask = fm.get("continent_mask")
-        fb = h5py.File(
-            "../Asi_maskiert/original_image/baseline_climatologyargo_cut.hdf5",
-            "r",
-        )
+        cut = "_cut"
     else:
+        cut = ""
+
         fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5", "r")
         continent_mask = fm.get("continent_mask")
         fb = h5py.File(
