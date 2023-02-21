@@ -400,45 +400,41 @@ def heat_content(depth_steps, iteration, name, anomalies=True):
     shc = 3850  # specific heat capacity of seawater
 
     if cfg.val_cut:
-        f = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_{cfg.eval_im_year}_cut.hdf5",
-            "r",
-        )
+        cut = "_cut"
     else:
-        f = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_{cfg.eval_im_year}.hdf5",
-            "r",
-        )
+        cut = ""
+
+    f = h5py.File(
+        f"{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_{cfg.eval_im_year}{cut}.hdf5",
+        "r",
+    )
 
     output = np.array(f.get("output"))
     gt = np.array(f.get("gt"))
     image = np.array(f.get("image"))
     mask = np.array(f.get("mask"))
-
-    if cfg.val_cut:
-        cut = "_cut"
-    else:
-        cut = ""
-
-        fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5", "r")
-        continent_mask = fm.get("continent_mask")
-        fb = h5py.File(
-            "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
-            "r",
-        )
-
-    # if anomalies == True:
-    #    thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
-    #    print(thetao_mean.shape)
-
-    #    cvar = [gt, output, image, mask]
-
-    #    for var in cvar:
-    #        for i in range(var.shape[0]):
-    #            var[i] = var[i] + thetao_mean[i % 12]
-
-    continent_mask = np.where(gt[0, 0, :, :] == 0, np.NaN, 1)
     mask = np.where(mask == 0, np.NaN, 1)
+
+    fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5", "r")
+    continent_mask = fm.get("continent_mask")
+    fb = h5py.File(
+        "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
+        "r",
+    )
+    continent_mask = np.where(gt[0, 0, :, :] == 0, np.NaN, 1)
+
+    if anomalies == False:
+        anomaly = "_full"
+        thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
+        print(thetao_mean.shape)
+
+        cvar = [gt, output, image, mask]
+
+        for var in cvar:
+            for i in range(var.shape[0]):
+                var[i] = var[i] + thetao_mean[i % 12]
+    else:
+        anomaly = ""
 
     # take spatial mean of network output and ground truth
     masked_output = output * mask
@@ -504,25 +500,14 @@ def heat_content(depth_steps, iteration, name, anomalies=True):
                     + depth_steps[0] * masked_gt[i, 0, j, l] * rho * shc
                 )
 
-    if cfg.val_cut:
-        f_final = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/heatcontent_{iteration}_{name}_{cfg.eval_im_year}_cut.hdf5",
-            "w",
-        )
-    else:
-        f_final = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/heatcontent_{iteration}_{name}_{cfg.eval_im_year}.hdf5",
-            "w",
-        )
+    final_vars = [hc_net, hc_gt, hc_net_masked, hc_gt_masked]
 
-    f_final.create_dataset(name="hc_net", shape=hc_net.shape, dtype=float, data=hc_net)
-    f_final.create_dataset(name="hc_gt", shape=hc_gt.shape, dtype=float, data=hc_gt)
-    f_final.create_dataset(
-        name="hc_net_masked", shape=hc_net_masked.shape, dtype=float, data=hc_net_masked
+    f_final = h5py.File(
+        f"{cfg.val_dir}{cfg.save_part}/heatcontent_{iteration}_{name}_{cfg.eval_im_year}{cut}{anomaly}.hdf5",
+        "w",
     )
-    f_final.create_dataset(
-        name="hc_gt_masked", shape=hc_gt_masked.shape, dtype=float, data=hc_gt_masked
-    )
+    for var in final_vars:
+        f_final.create_dataset(name=str(var), shape=var.shape, data=var)
     f.close()
 
 

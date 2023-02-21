@@ -70,7 +70,6 @@ if cfg.combine_layers:
     evalu.combine_layers(
         np.arange(cfg.combine_start, cfg.combine_start + cfg.in_channels)
     )
-
 else:
     start_iter = load_ckpt(
         "{}/ckpt/{}/{}.pth".format(cfg.save_dir, cfg.save_part, cfg.resume_iter),
