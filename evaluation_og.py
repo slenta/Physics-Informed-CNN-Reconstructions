@@ -165,7 +165,7 @@ def infill(model, dataset, partitions, iter, name):
     return output, gt
 
 
-def heat_content_timeseries(depth_steps, iteration, name, anomalies=True):
+def heat_content_timeseries(depth_steps, iteration, name, anomalies=""):
 
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
@@ -190,8 +190,7 @@ def heat_content_timeseries(depth_steps, iteration, name, anomalies=True):
     mask = np.array(f.get("mask"))
     cvar = [gt, output, image, mask]
 
-    if anomalies == False:
-        anomaly = "_full"
+    if anomalies == "_full":
         thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
         mask = np.where(mask == 0, np.NaN, 1)
         image = image * mask
@@ -199,8 +198,6 @@ def heat_content_timeseries(depth_steps, iteration, name, anomalies=True):
         for var in cvar:
             for i in range(var.shape[0]):
                 var[i] = var[i] + thetao_mean[i % 12]
-    else:
-        anomaly = ""
 
     continent_mask = np.where(gt[0, 0, :, :] == 0, np.NaN, 1)
     mask = np.where(mask == 0, np.NaN, 1)
@@ -259,7 +256,7 @@ def heat_content_timeseries(depth_steps, iteration, name, anomalies=True):
         )
 
     f_final = h5py.File(
-        f"{cfg.val_dir}{cfg.save_part}/timeseries_{iteration}_{name}_{cfg.eval_im_year}{anomaly}{cut}.hdf5",
+        f"{cfg.val_dir}{cfg.save_part}/timeseries_{iteration}_{name}_{cfg.eval_im_year}{anomalies}{cut}.hdf5",
         "w",
     )
 
@@ -309,7 +306,7 @@ def running_mean_std(var, mode, del_t):
 
 
 # calculating heat content gridpoint wise
-def heat_content_single(image, depths=False, anomalies=True, month=13):
+def heat_content_single(image, depths=False, anomalies="", month=13):
 
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
@@ -337,7 +334,7 @@ def heat_content_single(image, depths=False, anomalies=True, month=13):
     if type(depths) != bool:
         depth_steps = depths
 
-    if anomalies == False:
+    if anomalies == "_full":
         fb = h5py.File(
             f"../Asi_maskiert/original_image/baseline_climatologyargo{valcut}.hdf5",
             "r",
@@ -394,7 +391,7 @@ def heat_content_single(image, depths=False, anomalies=True, month=13):
 
 
 # calculating heat content gridpoint wise
-def heat_content(depth_steps, iteration, name, anomalies=True):
+def heat_content(depth_steps, iteration, name, anomalies=""):
 
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
@@ -423,8 +420,7 @@ def heat_content(depth_steps, iteration, name, anomalies=True):
     )
     continent_mask = np.where(gt[0, 0, :, :] == 0, np.NaN, 1)
 
-    if anomalies == False:
-        anomaly = "_full"
+    if anomalies == "_full":
         thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
         print(thetao_mean.shape)
 
@@ -433,8 +429,6 @@ def heat_content(depth_steps, iteration, name, anomalies=True):
         for var in cvar:
             for i in range(var.shape[0]):
                 var[i] = var[i] + thetao_mean[i % 12]
-    else:
-        anomaly = ""
 
     # take spatial mean of network output and ground truth
     masked_output = output * mask
@@ -503,7 +497,7 @@ def heat_content(depth_steps, iteration, name, anomalies=True):
     final_vars = [hc_net, hc_gt, hc_net_masked, hc_gt_masked]
 
     f_final = h5py.File(
-        f"{cfg.val_dir}{cfg.save_part}/heatcontent_{iteration}_{name}_{cfg.eval_im_year}{cut}{anomaly}.hdf5",
+        f"{cfg.val_dir}{cfg.save_part}/heatcontent_{iteration}_{name}_{cfg.eval_im_year}{cut}{anomalies}.hdf5",
         "w",
     )
     for var in final_vars:
@@ -720,18 +714,22 @@ def pattern_correlation(image_1, image_2):
     return corr
 
 
-def pattern_corr_timeseries(name, del_t=1):
+def pattern_corr_timeseries(name, del_t=1, anomalies=""):
 
     if cfg.val_cut:
-        f = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/heatcontent_{str(cfg.resume_iter)}_{name}_{cfg.eval_im_year}_cut.hdf5",
-            "r",
-        )
+        cut = "_cut"
     else:
-        f = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/heatcontent_{str(cfg.resume_iter)}_{name}_{cfg.eval_im_year}.hdf5",
-            "r",
-        )
+        cut = ""
+
+    if cfg.nw_corner:
+        nw = "_nw"
+    else:
+        nw = ""
+
+    f = h5py.File(
+        f"{cfg.val_dir}{cfg.save_part}/heatcontent_{str(cfg.resume_iter)}_{name}_{cfg.eval_im_year}{cut}{nw}{anomalies}.hdf5",
+        "r",
+    )
 
     output = np.nan_to_num(np.array(f.get("hc_net")), nan=0)
     gt = np.nan_to_num(np.array(f.get("hc_gt")), nan=0)
@@ -747,16 +745,10 @@ def pattern_corr_timeseries(name, del_t=1):
     for i in range(n[0]):
         corr_ts[i] = pattern_correlation(output[i, :, :], gt[i, :, :])
 
-    if cfg.val_cut:
-        f_final = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/pattern_corr_ts_{str(cfg.resume_iter)}_{name}_{cfg.eval_im_year}_mean_{del_t}_cut.hdf5",
-            "w",
-        )
-    else:
-        f_final = h5py.File(
-            f"{cfg.val_dir}{cfg.save_part}/pattern_corr_ts_{str(cfg.resume_iter)}_{name}_{cfg.eval_im_year}_mean_{del_t}.hdf5",
-            "w",
-        )
+    f_final = h5py.File(
+        f"{cfg.val_dir}{cfg.save_part}/pattern_corr_ts_{str(cfg.resume_iter)}_{name}_{cfg.eval_im_year}_mean_{del_t}{cut}{nw}{anomalies}.hdf5",
+        "w",
+    )
 
     f_final.create_dataset(
         name="corr_ts", shape=corr_ts.shape, dtype=float, data=corr_ts
