@@ -413,11 +413,12 @@ def heat_content(depth_steps, iteration, name, anomalies=""):
     mask = np.where(mask == 0, np.NaN, 1)
 
     fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5", "r")
-    continent_mask = fm.get("continent_mask")
     fb = h5py.File(
-        "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
+        "../Asi_maskiert/original_image/baseline_climatologyargo{cut}.hdf5",
         "r",
     )
+
+    continent_mask = fm.get("continent_mask")
     continent_mask = np.where(gt[0, 0, :, :] == 0, np.NaN, 1)
 
     if anomalies == "_full":
