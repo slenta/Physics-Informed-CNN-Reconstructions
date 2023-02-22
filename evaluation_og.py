@@ -728,7 +728,7 @@ def pattern_corr_timeseries(name, del_t=1, anomalies=""):
         nw = ""
 
     f = h5py.File(
-        f"{cfg.val_dir}{cfg.save_part}/heatcontent_{str(cfg.resume_iter)}_{name}_{cfg.eval_im_year}{cut}{nw}{anomalies}.hdf5",
+        f"{cfg.val_dir}{cfg.save_part}/heatcontent_{str(cfg.resume_iter)}_{name}_{cfg.eval_im_year}{cut}{anomalies}.hdf5",
         "r",
     )
 
