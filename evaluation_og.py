@@ -414,7 +414,7 @@ def heat_content(depth_steps, iteration, name, anomalies=""):
 
     fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5", "r")
     fb = h5py.File(
-        "../Asi_maskiert/original_image/baseline_climatologyargo{cut}.hdf5",
+        f"../Asi_maskiert/original_image/baseline_climatologyargo{cut}.hdf5",
         "r",
     )
 
