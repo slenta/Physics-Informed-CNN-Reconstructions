@@ -106,12 +106,12 @@ if cfg.eval_full:
     evalu.heat_content(
         depths, str(cfg.resume_iter), name=f"assimilation_{argo}{nw}", anomalies="_full"
     )
-    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}{nw}", del_t=12)
-    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}{nw}", del_t=1)
-    evalu.pattern_corr_timeseries(name=f"assimilation_{argo}{nw}", del_t=5 * 12)
-    evalu.heat_content_timeseries(
-        depths, str(cfg.resume_iter), name=f"assimilation_{argo}{nw}"
-    )
+    # evalu.pattern_corr_timeseries(name=f"assimilation_{argo}{nw}", del_t=12)
+    # evalu.pattern_corr_timeseries(name=f"assimilation_{argo}{nw}", del_t=1)
+    # evalu.pattern_corr_timeseries(name=f"assimilation_{argo}{nw}", del_t=5 * 12)
+    # evalu.heat_content_timeseries(
+    #     depths, str(cfg.resume_iter), name=f"assimilation_{argo}{nw}"
+    # )
     evalu.heat_content_timeseries(
         depths,
         str(cfg.resume_iter),
@@ -125,12 +125,12 @@ if cfg.eval_full:
     evalu.heat_content(
         depths, str(cfg.resume_iter), name=f"observations_{argo}{nw}", anomalies="_full"
     )
-    evalu.pattern_corr_timeseries(name=f"observations_{argo}{nw}", del_t=12)
-    evalu.pattern_corr_timeseries(name=f"observations_{argo}{nw}", del_t=1)
-    evalu.pattern_corr_timeseries(name=f"observations_{argo}{nw}", del_t=5 * 12)
-    evalu.heat_content_timeseries(
-        depths, str(cfg.resume_iter), name=f"observations_{argo}{nw}"
-    )
+    # evalu.pattern_corr_timeseries(name=f"observations_{argo}{nw}", del_t=12)
+    # evalu.pattern_corr_timeseries(name=f"observations_{argo}{nw}", del_t=1)
+    # evalu.pattern_corr_timeseries(name=f"observations_{argo}{nw}", del_t=5 * 12)
+    # evalu.heat_content_timeseries(
+    #     depths, str(cfg.resume_iter), name=f"observations_{argo}{nw}"
+    # )
     evalu.heat_content_timeseries(
         depths,
         str(cfg.resume_iter),
