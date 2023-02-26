@@ -497,13 +497,15 @@ def heat_content(depth_steps, iteration, name, anomalies=""):
                 )
 
     final_vars = [hc_net, hc_gt, hc_net_masked, hc_gt_masked]
+    final_names = ["hc_net", "hc_gt", "hc_net_masked", "hc_gt_masked"]
 
     f_final = h5py.File(
         f"{cfg.val_dir}{cfg.save_part}/heatcontent_{iteration}_{name}_{cfg.eval_im_year}{cut}{anomalies}.hdf5",
         "w",
     )
-    for var in final_vars:
-        f_final.create_dataset(name=str(var), shape=var.shape, data=var)
+    for nam, var in zip(final_names, final_vars):
+        print(nam)
+        f_final.create_dataset(name=nam, shape=var.shape, data=var)
     f.close()
 
 

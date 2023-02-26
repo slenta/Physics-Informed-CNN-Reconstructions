@@ -420,12 +420,13 @@ def correlation_plotting(
 
 def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
 
+
     f = h5py.File(
-        f"{cfg.val_dir}{path}/heatcontent_{str(iteration)}_assimilation_{mask_argo}_{cfg.eval_im_year}.hdf5",
+        f"{cfg.val_dir}{path}/heatcontent_{str(iteration)}_assimilation_{mask_argo}_{cfg.eval_im_year}{cfg.attribute_anomaly}.hdf5",
         "r",
     )
     fo = h5py.File(
-        f"{cfg.val_dir}{path}/heatcontent_{str(iteration)}_observations_{mask_argo}_{cfg.eval_im_year}.hdf5",
+        f"{cfg.val_dir}{path}/heatcontent_{str(iteration)}_observations_{mask_argo}_{cfg.eval_im_year}{cfg.attribute_anomaly}.hdf5",
         "r",
     )
     fc = h5py.File(
