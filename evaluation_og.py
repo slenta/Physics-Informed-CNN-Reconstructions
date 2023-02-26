@@ -504,7 +504,6 @@ def heat_content(depth_steps, iteration, name, anomalies=""):
         "w",
     )
     for nam, var in zip(final_names, final_vars):
-        print(nam)
         f_final.create_dataset(name=nam, shape=var.shape, data=var)
     f.close()
 
