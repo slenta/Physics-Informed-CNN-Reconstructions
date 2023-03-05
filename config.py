@@ -223,7 +223,7 @@ def set_train_args(arg_file=None):
     arg_parser.add_argument("--combine_layers", action="store_true")
     arg_parser.add_argument("--eval_full", action="store_true")
     arg_parser.add_argument("--combine_start", type=int, default=60)
-    arg_parser.add_argument("--nw_corner", action="store_true")
+    arg_parser.add_argument("--nw_corner", type=str, default=None)
     global_args(arg_parser, arg_file)
     args = arg_parser.parse_args()
 

@@ -169,7 +169,6 @@ class preprocessing:
         rest2 = np.zeros((n[0], n[1], n[2], self.new_im_size - n[3]))
         tos = np.concatenate((tos, rest2), axis=3)
 
-
         if self.mode == "mask":
             if cfg.nw_corner:
                 fnw = h5py.File(f"{self.path}nw_mask.hdf5", "r")
@@ -229,7 +228,7 @@ class preprocessing:
 
         # save variable data in hdf5 format
         tos_new = self.__getitem__()
-        
+
         if cfg.lstm_steps != 0:
             lstm = f"_lstm_{cfg.lstm_steps}"
         else:

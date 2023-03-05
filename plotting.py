@@ -18,18 +18,6 @@ plotting = "special"
 
 if plotting == "special":
 
-    vs.timeseries_plotting(
-        part_full, resume_full, obs=False, del_t=12, argo="full", mask_argo="anhang"
-    )
-
-    vs.timeseries_plotting(
-        part_full, resume_full, obs=False, del_t=1, argo="full", mask_argo="anhang"
-    )
-
-    vs.timeseries_plotting(
-        part_full, resume_full, obs=False, del_t=12, argo="full", mask_argo="anhang_nw"
-    )
-
     vs.hc_plotting(
         part_full, resume_full, time=[0,60], obs=False, mask_argo="anhang_nw"
     )

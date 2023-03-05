@@ -11,8 +11,6 @@ import evaluation_og as evalu
 from sklearn.metrics import mean_squared_error
 from scipy.stats import pearsonr, norm
 
-cfg.set_evaluation_args()
-
 if not os.path.exists(f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/"):
     os.makedirs(f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/")
 
@@ -420,7 +418,6 @@ def correlation_plotting(
 
 def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
 
-
     f = h5py.File(
         f"{cfg.val_dir}{path}/heatcontent_{str(iteration)}_assimilation_{mask_argo}_{cfg.eval_im_year}{cfg.attribute_anomaly}.hdf5",
         "r",
@@ -496,49 +493,62 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
     cmap_1.set_bad(color="darkgrey")
     cmap_2 = plt.cm.get_cmap("bwr").copy()
     cmap_2.set_bad(color="black")
+    if cfg.attribute_anomaly == "_full":
+        mini = 1.5e10
+        maxi = 2.5e10
+    else:
+        mini = -3e9
+        maxi = 3e9
+    
+    lines = np.nan_to_num(spg * coastlines, nan=3)
+    line = np.where(lines == 3)
+    mask_nan = np.where(mask == 0, np.nan, 1)
 
     if obs == False:
         fig = plt.figure(figsize=(16, 7), constrained_layout=True)
         fig.suptitle("North Atlantic Heat Content Comparison")
         plt.subplot(1, 3, 1)
         plt.title(f"Assimilation Mask")
-        plt.imshow(
-            mask[60, 0, :, :] * hc_gt * coastlines * spg,
+        im1 = plt.imshow(
+            mask_nan[60, 0, :, :] * hc_gt * coastlines * spg * continent_mask,
             cmap=cmap_1,
-            vmin=-3e9,
-            vmax=3e9,
+            vmin=mini,
+            vmax=maxi,
             aspect="auto",
             interpolation=None,
         )
+        plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
         plt.xlabel("Transformed Longitudes")
         plt.ylabel("Transformed Latitudes")
         plt.subplot(1, 3, 2)
         plt.title("Assimilation Heat Content")
         plt.imshow(
-            coastlines * spg * hc_gt,
+            coastlines * spg * hc_gt * continent_mask,
             cmap=cmap_1,
-            vmin=-3e9,
-            vmax=3e9,
+            vmin=mini,
+            vmax=maxi,
             aspect="auto",
             interpolation=None,
         )
+        plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
         plt.xlabel("Transformed Longitudes")
         plt.ylabel("Transformed Latitudes")
         plt.subplot(1, 3, 3)
         plt.title("Network Output Heat Content")
         plt.imshow(
-            hc_assi * spg * coastlines,
+            hc_assi * spg * coastlines * continent_mask,
             cmap=cmap_1,
-            vmin=-3e9,
-            vmax=3e9,
+            vmin=mini,
+            vmax=maxi,
             aspect="auto",
             interpolation=None,
         )
+        plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
         plt.xlabel("Transformed Longitudes")
         plt.ylabel("Transformed Latitudes")
-        plt.colorbar(label="Heat Content in J")
+        plt.colorbar(mappable = im1, label="Heat Content in J")
         plt.savefig(
-            f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{mask_argo}_{cfg.eval_im_year}_mask.pdf",
+            f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{mask_argo}_{cfg.eval_im_year}{cfg.attribute_anomaly}.pdf",
             dpi=fig.dpi,
         )
         plt.show()
@@ -551,8 +561,8 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
         plt.imshow(
             en4_mask * coastlines * spg,
             cmap=cmap_1,
-            vmin=-3e9,
-            vmax=3e9,
+            vmin=mini,
+            vmax=maxi,
             aspect="auto",
             interpolation=None,
         )
@@ -563,8 +573,8 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
         plt.imshow(
             hc_gt * spg * coastlines,
             cmap=cmap_1,
-            vmin=-3e9,
-            vmax=3e9,
+            vmin=mini,
+            vmax=maxi,
             aspect="auto",
             interpolation=None,
         )
@@ -575,8 +585,8 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
         plt.imshow(
             hc_obs * spg * coastlines,
             cmap=cmap_1,
-            vmin=-3e9,
-            vmax=3e9,
+            vmin=mini,
+            vmax=maxi,
             aspect="auto",
             interpolation=None,
         )
@@ -584,7 +594,7 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
         plt.ylabel("Transformed Latitudes")
         plt.colorbar(label="Heat Content in J")
         plt.savefig(
-            f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{mask_argo}_{cfg.eval_im_year}_obs.pdf",
+            f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{mask_argo}_{cfg.eval_im_year}_obs{cfg.attribute_anomaly}.pdf",
             dpi=fig.dpi,
         )
         plt.show()
@@ -1128,33 +1138,3 @@ def error_pdf(argo, n_windows=1, del_t=1):
     plt.show()
 
 
-cfg.set_train_args()
-# obs = False
-# masked_output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=0)
-# output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=0, mode='Observations')
-# output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=0, mode='Assimilation')
-# output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=9, mode='Observations')
-# output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=9, mode='Assimilation')
-# output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=19, mode='Observations')
-# output_vis(cfg.save_part, str(cfg.resume_iter), time=cfg.val_interval, depth=19, mode='Assimilation')
-# hc_plotting(
-#    cfg.save_part,
-#    cfg.resume_iter,
-#    time=[0, 120],
-# )
-# correlation_plotting(cfg.save_part, str(cfg.resume_iter), depth=0)
-# timeseries_plotting(
-#    cfg.save_part,
-#    cfg.resume_iter,
-#    obs=obs,
-#    del_t=12,
-# )
-# pattern_corr_plot(cfg.save_part, del_t=12, obs=obs)
-# error_pdf(argo=cfg.mask_argo, n_windows=4, del_t=12)
-# std_plotting(del_t=1*12)
-
-
-# vis_single(753, '../Asi_maskiert/original_image/', 'Image_3d_newgrid', 'r1011_shuffle_newgrid/short_val/Maske_1970_1985r1011_shuffle_newgrid/short_val/Maske_1970_1985Argo-era', 'image', 'image', 'North Atlantic Assimilation October 2020')
-# vis_single(9, '../Asi_maskiert/original_masks/', 'Maske_2020_newgrid', 'pre-Argo-era', 'mask', 'mask', 'North Atlantic Observations October 2020')
-
-# vis_single(1, '../Asi_maskiert/results/images/r1011_shuffle_newgrid/short_val/Maske_1970_1985/', 'test_700000', 'pre-argo-era', 'output', 'mask', 'Pre-Argo-Era Masks')

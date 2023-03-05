@@ -422,10 +422,7 @@ def heat_content(depth_steps, iteration, name, anomalies=""):
     continent_mask = np.where(gt[0, 0, :, :] == 0, np.NaN, 1)
 
     if anomalies == "_full":
-        print("anomalies")
         thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
-        print(thetao_mean.shape)
-
         cvar = [gt, output, image, mask]
 
         for var in cvar:
