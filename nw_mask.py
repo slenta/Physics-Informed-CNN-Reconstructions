@@ -33,7 +33,7 @@ hc_gt = np.array(fa.get("hc_gt"))
 
 #############try to construct nw corner mask
 nw_corner = np.zeros(shape=(128, 128))
-nw_corner[60:75, 53:70] = 1
+nw_corner[60:75, 50:70] = 1
 nw_mask_2 = np.where(nw_corner == 1, np.nan, 1)
 nw_name = "_5768_5568"
 
@@ -42,21 +42,21 @@ plt.subplot(2, 2, 1)
 plt.imshow(nw_mask_2)
 plt.subplot(2, 2, 2)
 plt.imshow(
-    np.nanmean(hc_a[670:720, :, :], axis=0) * spg * coastlines,
+    np.nanmean(hc_a[400:500, :, :], axis=0) * spg * coastlines,
     vmin=-3e9,
     vmax=3e9,
     cmap="coolwarm",
 )
 plt.subplot(2, 2, 3)
 plt.imshow(
-    np.nanmean(hc_gt[670:720, :, :], axis=0) * spg * coastlines,
+    np.nanmean(hc_gt[400:500, :, :], axis=0) * spg * coastlines,
     vmin=-3e9,
     vmax=3e9,
     cmap="coolwarm",
 )
 plt.subplot(2, 2, 4)
 plt.imshow(
-    np.nanmean(hc_gt[670:720, :, :], axis=0) * nw_corner * spg * coastlines,
+    np.nanmean(hc_gt[400:500, :, :], axis=0) * nw_corner * spg * coastlines,
     vmin=-3e9,
     vmax=3e9,
     cmap="coolwarm",
@@ -88,7 +88,7 @@ out_a = fa.get("hc_net")
 gt_a = fa.get("hc_gt")
 
 nw_corner = np.zeros(shape=(128, 128))
-nw_corner[30:105, 33:100] = 1
+nw_corner[60:75, 50:70] = 1
 nw_mask = np.where(nw_corner == 1, 1, np.nan)
 nw_inverse = np.where(nw_corner == 1, np.nan, 1)
 
@@ -106,25 +106,57 @@ continent_mask = np.array(f_cm.get("continent_mask"))
 coastlines = np.array(f_cm.get("coastlines"))
 mini = 1.5e10
 maxi = 2.5e10
+cmap_1 = plt.cm.get_cmap("coolwarm").copy()
+cmap_1.set_bad(color="darkgrey")
+lines = np.nan_to_num(spg * coastlines, nan=3)
+line = np.where(lines == 3)
+time1 = 0
+time2 = 60
 
-plt.figure(figsize=(16, 16))
+fig = plt.figure(figsize=(16, 16), constrained_layout=True)
+fig.suptitle("North Atlantic Heat Content Comparison")
 plt.subplot(2, 2, 1)
 plt.title("NN Output")
 plt.imshow(
-    np.nanmean(output[0:60, :, :], axis=0) * spg * coastlines, vmin=mini, vmax=maxi
+    np.nanmean(output[time1:time2, :, :], axis=0) * spg * coastlines * continent_mask,
+    cmap=cmap_1,
+    vmin=mini,
+    vmax=maxi,
 )
+plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
 plt.subplot(2, 2, 2)
 plt.title("Assimilation")
-plt.imshow(np.nanmean(gt[0:60, :, :], axis=0) * spg * coastlines, vmin=mini, vmax=maxi)
+plt.imshow(
+    np.nanmean(gt[time1:time2, :, :], axis=0) * spg * coastlines * continent_mask,
+    cmap=cmap_1,
+    vmin=mini,
+    vmax=maxi,
+)
+plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
 plt.subplot(2, 2, 3)
 plt.title("Assimilation + NN Nw corner")
 plt.imshow(
-    np.nanmean(nw_gt[0:60, :, :], axis=0) * spg * coastlines, vmin=mini, vmax=maxi
+    np.nanmean(nw_gt[time1:time2, :, :], axis=0) * spg * coastlines * continent_mask,
+    cmap=cmap_1,
+    vmin=mini,
+    vmax=maxi,
 )
+plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
 plt.subplot(2, 2, 4)
 plt.title("NN Nw corner")
-plt.imshow(
-    np.nanmean(nw_output[0:60, :, :], axis=0) * spg * coastlines, vmin=mini, vmax=maxi
+im1 = plt.imshow(
+    np.nanmean((output * nw_mask)[time1:time2, :, :], axis=0)
+    * spg
+    * coastlines
+    * continent_mask,
+    cmap=cmap_1,
+    vmin=mini,
+    vmax=maxi,
+)
+plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
+plt.colorbar(mappable=im1)
+plt.savefig(
+    f"../Asi_maskiert/pdfs/validation/part_19/nw_images/hc_comparison_nw_{time1}.pdf"
 )
 plt.show()
 
@@ -172,6 +204,9 @@ plt.grid()
 plt.legend()
 plt.xlabel("Time in years")
 plt.ylabel("Heat Content [J]")
+plt.savefig(
+    f"../Asi_maskiert/pdfs/validation/part_19/nw_images/timeseries_assimilation_correction.pdf"
+)
 plt.show()
 
 
@@ -191,19 +226,24 @@ misfit_nw = ts_gt_nw_annual - ts_net_annual
 
 plt.figure(figsize=(10, 6))
 plt.title("Differences NWC Correction")
-plt.plot(ts_gt_annual - ts_net_annual, color="darkred", label="Misfit Assimilation, NN")
-plt.plot(
-    ts_gt_nw_annual - ts_net_annual,
-    color="blue",
-    label="Misfit NWC Corrected Assimilation, NN",
-)
-# plt.fill_between(
-#    range(len(misfit)),
-#    misfit + del_total,
-#    misfit - del_total,
-#    label="Combined Uncertainty",
-#    color="lightsteelblue",
+# plt.plot(ts_gt_annual - ts_net_annual, color="darkred", label="Misfit Assimilation, NN")
+# plt.plot(
+#    ts_gt_nw_annual - ts_net_annual,
+#    color="royalblue",
+#    label="Misfit NWC Corrected Assimilation, NN",
 # )
+plt.plot(
+    ts_gt_annual - ts_gt_nw_annual,
+    color="darkred",
+    label="Misfit Assimilation, NWC Corrected Assimilation",
+)
+plt.fill_between(
+    range(len(misfit)),
+    misfit + del_a[:743],
+    misfit - del_a[:743],
+    label="Combined Uncertainty",
+    color="lightcoral",
+)
 # plt.fill_between(
 #    range(len(misfit)),
 #    misfit_nw + del_total,
@@ -213,4 +253,7 @@ plt.plot(
 # )
 plt.grid()
 plt.legend()
+plt.savefig(
+    f"../Asi_maskiert/pdfs/validation/part_19/nw_images/misfit_assimilation_correction.pdf"
+)
 plt.show()

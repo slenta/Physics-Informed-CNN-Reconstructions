@@ -101,7 +101,7 @@ else:
 
 if cfg.eval_full:
     # evaluate assimilation reconstruction
-    evalu.area_cutting(mode=f"assimilation_{argo}{nw}", depth=cfg.in_channels)
+    evalu.area_cutting_nc(mode=f"assimilation_{argo}{nw}", depth=cfg.in_channels)
     evalu.heat_content(depths, str(cfg.resume_iter), name=f"assimilation_{argo}{nw}")
     evalu.heat_content(
         depths, str(cfg.resume_iter), name=f"assimilation_{argo}{nw}", anomalies="_full"
@@ -120,7 +120,7 @@ if cfg.eval_full:
     )
 
     # evaluate observations reconstruction
-    evalu.area_cutting(mode=f"observations_{argo}{nw}", depth=cfg.in_channels)
+    evalu.area_cutting_nc(mode=f"observations_{argo}{nw}", depth=cfg.in_channels)
     evalu.heat_content(depths, str(cfg.resume_iter), name=f"observations_{argo}{nw}")
     evalu.heat_content(
         depths, str(cfg.resume_iter), name=f"observations_{argo}{nw}", anomalies="_full"

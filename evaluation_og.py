@@ -564,67 +564,154 @@ def create_snapshot_image(model, dataset, filename):
     plt.close("all")
 
 
-def area_cutting_single(var):
+def area_cutting_nc(mode):
 
-    ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_newgrid.nc")
+    f = h5py.File(
+        f"{cfg.val_dir}{cfg.save_part}/validation_{cfg.resume_iter}_{mode}_{cfg.eval_im_year}.hdf5",
+        "r",
+    )
 
-    length = var.shape[0]
+    ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_full_newgrid.nc")
 
-    lat = np.array(ds_compare.lat.values)
-    lon = np.array(ds_compare.lon.values)
-    time = np.array(ds_compare.time.values)[:length]
+    # load all variables from file
+    cname = ["gt", "output", "image", "mask"]
+    gt, output, image, mask = [f.get(name) for name in cname]
+    cvar = [gt, output, image, mask]
 
-    lon_out = np.arange(cfg.lon1, cfg.lon2)
-    lat_out = np.arange(cfg.lat1, cfg.lat2)
+    # cut out additional input from nn
+    for var in cvar:
+        var = var[:, :, :107, :124]
+
+    # read out coordinates from compare file
+    lat = ds_compare.lat.values
+    lon = ds_compare.lon.values
+    time = ds_compare.time.values[: var.shape[0]]
+
+    depth = ds_compare.depth.values[: var.shape[1]]
+
+    ds = xr.Dataset(
+        data_vars=dict(
+            image=(["time", "depth", "y", "x"], image),
+            mask=(["time", "depth", "y", "x"], mask),
+            gt=(["time", "depth", "y", "x"], gt),
+            output=(["time", "depth", "y", "x"], output),
+        ),
+        coords=dict(
+            time=(["time"], time),
+            depth=(["depth"], depth),
+            lon=(["y", "x"], lon),
+            lat=(["y", "x"], lat),
+        ),
+        attrs=dict(description=f"NA cut of {mode} infilled"),
+    )
+
+    # assign regular lonlat coordinates
+    lon = ds_compare.lon
+    lat = ds_compare.lat
+    depth = ds_compare.depth
+
+    depth_sub = depth.where(depth.isin(ds.depth)).dropna(dim="depth")
+    ds = ds.assign_coords({"lon": lon, "lat": lat, "depth": depth_sub})
+
+    # save as nc and cut with cdo
+    ifile = f"{cfg.im_dir}{mode}.nc"
+    ds.to_netcdf(ifile)
+    ofile = f"{cfg.im_dir}{mode}_cut.nc"
+    cdo.sellonlatbox(cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2, input=ifile, output=ofile)
+
+    # load cut variable from nc out file
+    cname_new = ["gt_new", "output_new", "image_new", "mask_new"]
+    ds_out = xr.load_dataset(ofile)
+    gt_new, output_new, image_new, mask_new = [ds_out[name] for name in cname_new]
+    cvar_new = [gt_new, output_new, image_new, mask_new]
+
+    # save all variables in hdf5 File
+    h5 = h5py.File(
+        f"{cfg.val_dir}{cfg.save_part}/validation_{cfg.resume_iter}_{mode}_{cfg.eval_im_year}_cut.hdf5",
+        "w",
+    )
+    for newname, name, varnew in zip(cname_new, cname, cvar_new):
+        h5.create_dataset(
+            name=name,
+            shape=varnew.shape,
+            dtype=float,
+            data=varnew,
+        )
+    h5.close()
+
+    # remove created temporary files
+    os.remove(ifile)
+    os.remove(ofile)
+
+
+def area_cutting_single(var, var_name):
+
+    ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_full_newgrid.nc")
+    var = ds_compare.thetao.values
+    print(var.shape)
+
+    var = var[:, :, :107, :124]
+
+    lat = ds_compare.lat.values
+    lon = ds_compare.lon.values
+    time = ds_compare.time.values[: var.shape[0]]
 
     if len(var.shape) == 4:
 
-        depth = var.shape[1]
-        var_new = np.zeros(
-            shape=(len(time), depth, len(lat_out), len(lon_out)), dtype="float32"
+        depth = ds_compare.depth.values[: var.shape[1]]
+
+        ds = xr.Dataset(
+            data_vars=dict(
+                variable=(["time", "depth", "y", "x"], var),
+            ),
+            coords=dict(
+                time=(["time"], time),
+                depth=(["depth"], depth),
+                lon=(["y", "x"], lon),
+                lat=(["y", "x"], lat),
+            ),
+            attrs=dict(description=f"NA cut of variable {var_name}"),
         )
 
-        for la in lat_out:
-            for lo in lon_out:
-                x_lon, y_lon = np.where(np.round(lon) == lo)
-                x_lat, y_lat = np.where(np.round(lat) == la)
-                x_out = []
-                y_out = []
-                for x, y in zip(x_lon, y_lon):
-                    for a, b in zip(x_lat, y_lat):
-                        if (x, y) == (a, b):
-                            x_out.append(x)
-                            y_out.append(y)
-                for i in range(len(time)):
-                    for j in range(depth):
-                        var_new[i, j, la - min(lat_out), lo - min(lon_out)] = np.mean(
-                            [var[i, j, x, y] for x, y in zip(x_out, y_out)]
-                        )
+        # assign regular lonlat coordinates
+        lon = ds_compare.lon
+        lat = ds_compare.lat
+        depth = ds_compare.depth
+        depth_sub = depth.where(depth.isin(ds.depth)).dropna(dim="depth")
+        ds = ds.assign_coords({"lon": lon, "lat": lat, "depth": depth_sub})
 
-        var_new = var_new[:, :, ::-1, :]
     else:
 
-        var_new = np.zeros(
-            shape=(len(time), len(lat_out), len(lon_out)), dtype="float32"
+        ds = xr.Dataset(
+            data_vars=dict(
+                variable=(["time", "x", "y"], var),
+            ),
+            coords=dict(
+                time=(["time"], time),
+                lon=(["x", "y"], lon),
+                lat=(["x", "y"], lat),
+            ),
+            attrs=dict(description=f"SPG cut of variable {var_name}"),
         )
 
-        for la in lat_out:
-            for lo in lon_out:
-                x_lon, y_lon = np.where(np.round(lon) == lo)
-                x_lat, y_lat = np.where(np.round(lat) == la)
-                x_out = []
-                y_out = []
-                for x, y in zip(x_lon, y_lon):
-                    for a, b in zip(x_lat, y_lat):
-                        if (x, y) == (a, b):
-                            x_out.append(x)
-                            y_out.append(y)
-                for i in range(len(time)):
-                    var_new[i, la - min(lat_out), lo - min(lon_out)] = np.mean(
-                        [var[i, x, y] for x, y in zip(x_out, y_out)]
-                    )
+        # assign regular lonlat coordinates
+        lon = ds_compare.lon
+        lat = ds_compare.lat
+        ds = ds.assign_coords({"lon": lon, "lat": lat})
 
-        var_new = var_new[:, ::-1, :]
+    # save as nc and cut with cdo
+    ifile = f"{cfg.im_dir}{var_name}.nc"
+    ds.to_netcdf(ifile)
+    ofile = f"{cfg.im_dir}{var_name}_cut.nc"
+    cdo.sellonlatbox(cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2, input=ifile, output=ofile)
+
+    # load cut variable from nc out file
+    ds_out = xr.load_dataset(ofile)
+    var_new = ds_out.variable.values
+
+    # remove created temporary files
+    os.remove(ifile)
+    os.remove(ofile)
 
     return var_new
 

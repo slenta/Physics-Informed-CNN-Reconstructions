@@ -499,7 +499,7 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
     else:
         mini = -3e9
         maxi = 3e9
-    
+
     lines = np.nan_to_num(spg * coastlines, nan=3)
     line = np.where(lines == 3)
     mask_nan = np.where(mask == 0, np.nan, 1)
@@ -546,7 +546,7 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
         plt.scatter(line[1], line[0], c="black", s=15, alpha=1)
         plt.xlabel("Transformed Longitudes")
         plt.ylabel("Transformed Latitudes")
-        plt.colorbar(mappable = im1, label="Heat Content in J")
+        plt.colorbar(mappable=im1, label="Heat Content in J")
         plt.savefig(
             f"../Asi_maskiert/pdfs/validation/{path}/heat_content_{time}_{iteration}_{mask_argo}_{cfg.eval_im_year}{cfg.attribute_anomaly}.pdf",
             dpi=fig.dpi,
@@ -657,20 +657,20 @@ def timeseries_plotting(
         summ = ""
 
     f_a = h5py.File(
-       f"{cfg.val_dir}/{part}/validation_{iteration}_assimilation_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
-       "r",
+        f"{cfg.val_dir}/{part}/validation_{iteration}_assimilation_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+        "r",
     )
     f_o = h5py.File(
-       f"{cfg.val_dir}{part}/validation_{iteration}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
-       "r",
+        f"{cfg.val_dir}{part}/validation_{iteration}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+        "r",
     )
     f = h5py.File(
-       f"{cfg.val_dir}{part}/timeseries_{str(iteration)}_assimilation_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
-       "r",
+        f"{cfg.val_dir}{part}/timeseries_{str(iteration)}_assimilation_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+        "r",
     )
     fo = h5py.File(
-       f"{cfg.val_dir}{part}/timeseries_{str(iteration)}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
-       "r",
+        f"{cfg.val_dir}{part}/timeseries_{str(iteration)}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+        "r",
     )
     # f_a = h5py.File(
     #     f"{cfg.val_dir}/{part}/validation_{iteration}_assimilation_full.hdf5",
@@ -799,68 +799,68 @@ def timeseries_plotting(
 
     plt.figure(figsize=(10, 6))
     if argo == "anhang":
-       plt.axvline(x=201, color="red")
+        plt.axvline(x=201, color="red")
     if obs == True:
-       print(pearsonr(hc_gt, hc_obs)[0])
-       o = "_obs"
-       if compare == True:
-           plt.plot(en4, label="EN4 Objective Analysis Heat Content", color="purple")
-           # plt.plot(iap, label="IAP Assimilation Heat Content", color="orange")
-           print(
-               pearsonr(iap, hc_obs[: len(iap)])[0],
-               pearsonr(en4, hc_obs[: len(en4)])[0],
-           )
+        print(pearsonr(hc_gt, hc_obs)[0])
+        o = "_obs"
+        if compare == True:
+            plt.plot(en4, label="EN4 Objective Analysis Heat Content", color="purple")
+            # plt.plot(iap, label="IAP Assimilation Heat Content", color="orange")
+            print(
+                pearsonr(iap, hc_obs[: len(iap)])[0],
+                pearsonr(en4, hc_obs[: len(en4)])[0],
+            )
 
-       plt.plot(hc_gt, label="Assimilation Heat Content", color="darkred")
-       plt.fill_between(
-           range(len(hc_gt)),
-           hc_gt + del_gt,
-           hc_gt - del_gt,
-           label="Ensemble Spread Assimilation",
-           color="lightcoral",
-       )
-       if single == False:
-           plt.plot(hc_obs, label="Directly Reconstructed Observations", color="grey")
-           plt.fill_between(
-               range(len(hc_obs)),
-               hc_obs + del_o,
-               hc_obs - del_o,
-               label="Ensemble Spread Reconstruction",
-               color="lightgrey",
-           )
+        plt.plot(hc_gt, label="Assimilation Heat Content", color="darkred")
+        plt.fill_between(
+            range(len(hc_gt)),
+            hc_gt + del_gt,
+            hc_gt - del_gt,
+            label="Ensemble Spread Assimilation",
+            color="lightcoral",
+        )
+        if single == False:
+            plt.plot(hc_obs, label="Directly Reconstructed Observations", color="grey")
+            plt.fill_between(
+                range(len(hc_obs)),
+                hc_obs + del_o,
+                hc_obs - del_o,
+                label="Ensemble Spread Reconstruction",
+                color="lightgrey",
+            )
     else:
-       print(pearsonr(hc_gt, hc_assi)[0])
-       o = ""
-       plt.plot(hc_gt, label="Assimilation Heat Content", color="darkred")
-       plt.fill_between(
-           range(len(hc_assi)),
-           hc_gt + del_gt,
-           hc_gt - del_gt,
-           label="Ensemble Spread Assimilation",
-           color="lightcoral",
-       )
-       if compare == True:
-           plt.plot(en4, label="EN4 Objective Analysis Heat Content", color="purple")
-       if single == False:
-           plt.plot(
-               hc_assi, label="Network Reconstructed Heat Content", color="royalblue"
-           )
-           plt.fill_between(
-               range(len(hc_assi)),
-               hc_assi + del_a,
-               hc_assi - del_a,
-               label="Ensemble Spread Reconstruction",
-               color="lightsteelblue",
-           )
-       if summary == True:
-           plt.plot(hc_obs, label="Directly Reconstructed Observations", color="grey")
-           plt.fill_between(
-               range(len(hc_obs)),
-               hc_obs + del_o,
-               hc_obs - del_o,
-               label="Ensemble Spread Reconstruction",
-               color="lightgrey",
-           )
+        print(pearsonr(hc_gt, hc_assi)[0])
+        o = ""
+        plt.plot(hc_gt, label="Assimilation Heat Content", color="darkred")
+        plt.fill_between(
+            range(len(hc_assi)),
+            hc_gt + del_gt,
+            hc_gt - del_gt,
+            label="Ensemble Spread Assimilation",
+            color="lightcoral",
+        )
+        if compare == True:
+            plt.plot(en4, label="EN4 Objective Analysis Heat Content", color="purple")
+        if single == False:
+            plt.plot(
+                hc_assi, label="Network Reconstructed Heat Content", color="royalblue"
+            )
+            plt.fill_between(
+                range(len(hc_assi)),
+                hc_assi + del_a,
+                hc_assi - del_a,
+                label="Ensemble Spread Reconstruction",
+                color="lightsteelblue",
+            )
+        if summary == True:
+            plt.plot(hc_obs, label="Directly Reconstructed Observations", color="grey")
+            plt.fill_between(
+                range(len(hc_obs)),
+                hc_obs + del_o,
+                hc_obs - del_o,
+                label="Ensemble Spread Reconstruction",
+                color="lightgrey",
+            )
 
     plt.grid()
     plt.legend()
@@ -869,7 +869,7 @@ def timeseries_plotting(
     plt.xlabel("Time in years")
     plt.ylabel("Heat Content [J]")
     plt.savefig(
-       f"../Asi_maskiert/pdfs/validation/{part}/validation_timeseries_{str(iteration)}_{del_t}_mean{val_cut}{o}_{cfg.eval_im_year}_mask_{mask_argo}_data_{argo}{singl}{compar}{summ}.pdf"
+        f"../Asi_maskiert/pdfs/validation/{part}/validation_timeseries_{str(iteration)}_{del_t}_mean{val_cut}{o}_{cfg.eval_im_year}_mask_{mask_argo}_data_{argo}{singl}{compar}{summ}.pdf"
     )
     plt.show()
 
@@ -1136,5 +1136,3 @@ def error_pdf(argo, n_windows=1, del_t=1):
     plt.legend()
     plt.savefig(f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/error_pdfs.pdf")
     plt.show()
-
-
