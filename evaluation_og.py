@@ -579,15 +579,18 @@ def area_cutting_nc(mode):
     cvar = [gt, output, image, mask]
 
     # cut out additional input from nn
-    for var in cvar:
-        var = var[:, :, :107, :124]
+    image = image[:, :, :107, :124]
+    mask = mask[:, :, :107, :124]
+    gt = gt[:, :, :107, :124]
+    output = output[:, :, :107, :124]
 
     # read out coordinates from compare file
     lat = ds_compare.lat.values
     lon = ds_compare.lon.values
-    time = ds_compare.time.values[: var.shape[0]]
+    time = ds_compare.time.values[: gt.shape[0]]
 
-    depth = ds_compare.depth.values[: var.shape[1]]
+    depth = ds_compare.depth.values[: gt.shape[1]]
+    print(image.shape)
 
     ds = xr.Dataset(
         data_vars=dict(
@@ -614,15 +617,20 @@ def area_cutting_nc(mode):
     ds = ds.assign_coords({"lon": lon, "lat": lat, "depth": depth_sub})
 
     # save as nc and cut with cdo
-    ifile = f"{cfg.im_dir}{mode}.nc"
+    ifile = f"{cfg.im_dir}{cfg.resume_iter}_{mode}_{cfg.eval_im_year}.nc"
     ds.to_netcdf(ifile)
-    ofile = f"{cfg.im_dir}{mode}_cut.nc"
+    ofile = f"{cfg.im_dir}{cfg.resume_iter}_{mode}_{cfg.eval_im_year}_cut.nc"
     cdo.sellonlatbox(cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2, input=ifile, output=ofile)
 
     # load cut variable from nc out file
     cname_new = ["gt_new", "output_new", "image_new", "mask_new"]
     ds_out = xr.load_dataset(ofile)
-    gt_new, output_new, image_new, mask_new = [ds_out[name] for name in cname_new]
+    gt_new, output_new, image_new, mask_new = (
+        ds_out.gt.values,
+        ds_out.output.values,
+        ds_out.image.values,
+        ds_out.mask.values,
+    )
     cvar_new = [gt_new, output_new, image_new, mask_new]
 
     # save all variables in hdf5 File
@@ -630,7 +638,7 @@ def area_cutting_nc(mode):
         f"{cfg.val_dir}{cfg.save_part}/validation_{cfg.resume_iter}_{mode}_{cfg.eval_im_year}_cut.hdf5",
         "w",
     )
-    for newname, name, varnew in zip(cname_new, cname, cvar_new):
+    for name, varnew in zip(cname, cvar_new):
         h5.create_dataset(
             name=name,
             shape=varnew.shape,
@@ -643,8 +651,10 @@ def area_cutting_nc(mode):
     os.remove(ifile)
     os.remove(ofile)
 
+    return gt_new, output_new, image_new, mask_new
 
-def area_cutting_single(var, var_name):
+
+def area_cutting_single(var):
 
     ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_full_newgrid.nc")
     var = ds_compare.thetao.values
@@ -670,7 +680,7 @@ def area_cutting_single(var, var_name):
                 lon=(["y", "x"], lon),
                 lat=(["y", "x"], lat),
             ),
-            attrs=dict(description=f"NA cut of variable {var_name}"),
+            attrs=dict(description=f"NA cut of variable"),
         )
 
         # assign regular lonlat coordinates
@@ -691,7 +701,7 @@ def area_cutting_single(var, var_name):
                 lon=(["x", "y"], lon),
                 lat=(["x", "y"], lat),
             ),
-            attrs=dict(description=f"SPG cut of variable {var_name}"),
+            attrs=dict(description=f"NA cut of variable"),
         )
 
         # assign regular lonlat coordinates
@@ -700,9 +710,9 @@ def area_cutting_single(var, var_name):
         ds = ds.assign_coords({"lon": lon, "lat": lat})
 
     # save as nc and cut with cdo
-    ifile = f"{cfg.im_dir}{var_name}.nc"
+    ifile = f"{cfg.im_dir}ac_tmp.nc"
     ds.to_netcdf(ifile)
-    ofile = f"{cfg.im_dir}{var_name}_cut.nc"
+    ofile = f"{cfg.im_dir}ac_tmp_cut.nc"
     cdo.sellonlatbox(cfg.lon1, cfg.lon2, cfg.lat1, cfg.lat2, input=ifile, output=ofile)
 
     # load cut variable from nc out file
@@ -787,6 +797,76 @@ def area_cutting(mode, depth):
             data=globals()[newname],
         )
     h5.close()
+
+
+def get_coords(val_cut):
+
+    ds = xr.load_dataset(f"{cfg.im_dir}Image_r9_full_newgrid{val_cut}.nc")
+
+    lon = ds.lon.values
+    lat = ds.lat.values
+    depth = ds.depth.values
+    depth_sub = depth.where(depth.isin(ds.depth)).dropna(dim="depth")
+    time = ds.time
+
+    return time, depth_sub, lon, lat
+
+
+def create_dataset(var, val_cut):
+
+    ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_full_newgrid{val_cut}.nc")
+
+    lon = ds_compare.lon.values
+    lat = ds_compare.lat.values
+    depth = ds_compare.depth.values
+    time = ds_compare.time.values
+
+    n = var.shape
+    time = time[: n[0]]
+    if len(var.shape) == 4:
+        var = var[:, :, :107, :124]
+        depth = depth[: n[1]]
+
+        ds = xr.Dataset(
+            data_vars=dict(
+                variable=(["time", "depth", "y", "x"], var),
+            ),
+            coords=dict(
+                time=(["time"], time),
+                depth=(["depth"], depth),
+                lon=(["y", "x"], lon),
+                lat=(["y", "x"], lat),
+            ),
+            attrs=dict(description=f"NA cut of variable"),
+        )
+
+        # assign regular lonlat coordinates
+        lon = ds_compare.lon
+        lat = ds_compare.lat
+        depth = ds_compare.depth
+        depth_sub = depth.where(depth.isin(ds.depth)).dropna(dim="depth")
+        ds = ds.assign_coords({"lon": lon, "lat": lat, "depth": depth_sub})
+
+    else:
+        var = var[:, :107, :124]
+        ds = xr.Dataset(
+            data_vars=dict(
+                variable=(["time", "y", "x"], var),
+            ),
+            coords=dict(
+                time=(["time"], time),
+                lon=(["y", "x"], lon),
+                lat=(["y", "x"], lat),
+            ),
+            attrs=dict(description=f"NA cut of variable"),
+        )
+
+        # assign regular lonlat coordinates
+        lon = ds_compare.lon
+        lat = ds_compare.lat
+        ds = ds.assign_coords({"lon": lon, "lat": lat})
+
+    return ds
 
 
 def pattern_correlation(image_1, image_2):

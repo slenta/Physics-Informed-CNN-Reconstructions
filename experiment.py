@@ -10,6 +10,7 @@ import xarray as xr
 import evaluation_og as evalu
 import cdo
 import os
+import cartopy.crs as ccrs
 from preprocessing import preprocessing
 from scipy.stats import pearsonr, norm
 
@@ -1353,16 +1354,107 @@ cfg.set_train_args()
 # plt.show()
 
 
-fa = h5py.File(
-    f"../Asi_maskiert/results/validation/part_19/validation_550000_assimilation_anhang_r2_full_newgrid.hdf5",
+f = h5py.File(
+    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}_full.hdf5",
     "r",
 )
 
-output = fa.get("output")
-output_new = evalu.area_cutting_single_nc(output, "output_name")
+fc = h5py.File(
+    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}_cut_full.hdf5",
+    "r",
+)
 
+gt = f.get("hc_gt")
+gt_cut = fc.get("hc_gt")
+out = f.get("hc_net")
+out_cut = fc.get("hc_net")
 
-print(output_new.shape)
+ds = evalu.create_dataset(gt, val_cut="")
+ds_cut = evalu.create_dataset(gt_cut, val_cut="_cut")
+dso = evalu.create_dataset(out, val_cut="")
+dso_cut = evalu.create_dataset(out_cut, val_cut="_cut")
 
-plt.imshow(output_new[0, 0, :, :])
+fig = plt.figure(figsize=(16, 6), constrained_layout=True)
+fig.suptitle("NA Ocean Heat Content")
+ax1 = plt.subplot(1, 2, 1, projection=ccrs.PlateCarree())
+ax1.set_global()
+ds.variable[0, :, :].plot.pcolormesh(
+    ax=ax1,
+    transform=ccrs.PlateCarree(),
+    cmap="coolwarm",
+    vmin=1.5e10,
+    vmax=2.5e10,
+    alpha=0.4,
+    x="lon",
+    y="lat",
+    add_colorbar=False,
+)
+ds_cut.variable[0, :, :].plot.pcolormesh(
+    ax=ax1,
+    transform=ccrs.PlateCarree(),
+    cmap="coolwarm",
+    vmin=1.5e10,
+    vmax=2.5e10,
+    x="lon",
+    y="lat",
+    add_colorbar=False,
+)
+ax1.coastlines()
+ax1.set_title("Assimilation January 1958 -- January 1963")
+ax1.set_ylim([20, 80])
+ax1.set_xlim([-90, 30])
+
+ax2 = plt.subplot(1, 2, 2, projection=ccrs.PlateCarree())
+ax2.set_global()
+dso.variable[0, :, :].plot.pcolormesh(
+    ax=ax2,
+    transform=ccrs.PlateCarree(),
+    cmap="coolwarm",
+    vmin=1.5e10,
+    vmax=2.5e10,
+    alpha=0.4,
+    x="lon",
+    y="lat",
+    add_colorbar=False,
+)
+im = dso_cut.variable[0, :, :].plot.pcolormesh(
+    ax=ax2,
+    transform=ccrs.PlateCarree(),
+    cmap="coolwarm",
+    vmin=1.5e10,
+    vmax=2.5e10,
+    x="lon",
+    y="lat",
+    add_colorbar=False,
+)
+cbar = plt.colorbar(im, shrink=0.5)
+cbar.set_label("Heat Content in J")
+ax2.coastlines()
+ax2.set_title("Neural Network January 1958 -- January 1963")
+ax2.set_ylim([20, 80])
+ax2.set_xlim([-90, 30])
 plt.show()
+
+
+# # create figure
+# fig = plt.figure(figsize=(8, 6), dpi=100)
+#
+# # create geo axes
+# projection = ccrs.epsg(32630)
+# geo_axes = plt.subplot(projection=projection)
+#
+# # add open street map background
+# # when commenting the two following lines, the data array is plotted correctly
+# osm_background = cimgt.OSM()
+# geo_axes.add_image(osm_background, 14)
+#
+# # plot dataset
+# plt.imshow(
+#     array,
+#     origin="upper",
+#     extent=(x_coords[0], x_coords[1], y_coords[0], y_coords[1]),
+#     transform=projection,
+# )
+#
+# # show plot
+# plt.show()
