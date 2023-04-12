@@ -2,6 +2,7 @@ from cProfile import label
 import matplotlib
 import os
 import h5py
+import cartopy.crs as ccrs
 from isort import file
 from matplotlib.pyplot import title
 import numpy as np
@@ -16,7 +17,6 @@ if not os.path.exists(f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/"):
 
 
 def uncertainty_plot(part, iteration, length=764, del_t=1):
-
     if cfg.val_cut:
         val_cut = "_cut"
     else:
@@ -96,7 +96,6 @@ def uncertainty_plot(part, iteration, length=764, del_t=1):
 
 
 def masked_output_vis(part, iter, time, depth):
-
     fa = h5py.File(
         f"../Asi_maskiert/results/validation/{part}/validation_{iter}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
         "r",
@@ -171,7 +170,6 @@ def masked_output_vis(part, iter, time, depth):
 
 
 def output_vis(part, iter, time, depth, mode):
-
     if mode == "Assimilation":
         f = h5py.File(
             f"../Asi_maskiert/results/validation/{part}/validation_{iter}_assimilation_{cfg.mask_argo}_{cfg.eval_im_year}.hdf5",
@@ -248,7 +246,6 @@ def output_vis(part, iter, time, depth, mode):
 def correlation_plotting(
     path, iteration, obs=False, starts=[0, 552], ends=[551, 764], mask_argo="anhang"
 ):
-
     f_a = h5py.File(
         f"../Asi_maskiert/results/validation/{path}/validation_{iteration}_assimilation_{mask_argo}_{cfg.eval_im_year}.hdf5",
         "r",
@@ -417,7 +414,6 @@ def correlation_plotting(
 
 
 def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
-
     f = h5py.File(
         f"{cfg.val_dir}{path}/heatcontent_{str(iteration)}_assimilation_{mask_argo}_{cfg.eval_im_year}{cfg.attribute_anomaly}.hdf5",
         "r",
@@ -447,7 +443,6 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
     mask = np.nan_to_num(np.array(fc.get("mask")), nan=0)
 
     if type(time) == int:
-
         image = image[time, :, :, :]
         # image = evalu.heat_content_single(image)
         # image_grey = np.where(image == 0, np.nan, image) * continent_mask
@@ -601,7 +596,6 @@ def hc_plotting(path, iteration, time=600, obs=False, mask_argo="anhang"):
 
 
 def plot_val_error(part, iteration, interval, combine_start, in_channels):
-
     error_overall = np.zeros(shape=(in_channels, iteration // interval - 1))
     print(iteration // interval - 1, iteration, interval)
     for save_part in np.arange(combine_start, combine_start + in_channels):
@@ -638,7 +632,6 @@ def timeseries_plotting(
     single=False,
     summary=False,
 ):
-
     if cfg.val_cut:
         val_cut = "_cut"
     else:
@@ -928,7 +921,6 @@ def timeseries_plotting(
 
 
 def std_plotting(del_t, ensemble=True):
-
     if cfg.val_cut:
         val_cut = "_cut"
         f = h5py.File(
@@ -999,7 +991,6 @@ def std_plotting(del_t, ensemble=True):
 def pattern_corr_plot(
     part, del_t=1, obs=False, resume_iter=550000, argo="full", mask_argo="full"
 ):
-
     if cfg.val_cut:
         val_cut = "_cut"
     else:
@@ -1031,7 +1022,6 @@ def pattern_corr_plot(
 
     # calculate running mean, if necessary
     if del_t != 1:
-
         length = len(corr_o)
 
         ticks = np.arange(0, length, 12 * 5)
@@ -1072,7 +1062,6 @@ def pattern_corr_plot(
 
 
 def error_pdf(argo, n_windows=1, del_t=1):
-
     f = h5py.File(
         f"{cfg.val_dir}{cfg.save_part}/timeseries_{cfg.resume_iter}_assimilation_{argo}.hdf5",
         "r",
@@ -1135,4 +1124,164 @@ def error_pdf(argo, n_windows=1, del_t=1):
     plt.xlabel("Absolute Error of Reconstruction")
     plt.legend()
     plt.savefig(f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/error_pdfs.pdf")
+    plt.show()
+
+
+def new_4_plot(
+    var_1, var_2, var_3, var_4, name_1, name_2, name_3, name_4, title, mini, maxi
+):
+    # create datasets and cut versions for SPG highlighting
+    var_1_cut = evalu.area_cutting_single(var_1)
+    var_2_cut = evalu.area_cutting_single(var_2)
+    var_3_cut = evalu.area_cutting_single(var_3)
+    var_4_cut = evalu.area_cutting_single(var_4)
+
+    var_1 = evalu.create_dataset(var_1, val_cut="")
+    var_1_cut = evalu.create_dataset(var_1_cut, val_cut="_cut")
+    var_2 = evalu.create_dataset(var_2, val_cut="")
+    var_2_cut = evalu.create_dataset(var_2_cut, val_cut="_cut")
+    var_3 = evalu.create_dataset(var_3, val_cut="")
+    var_3_cut = evalu.create_dataset(var_3_cut, val_cut="_cut")
+    var_4 = evalu.create_dataset(var_4, val_cut="")
+    var_4_cut = evalu.create_dataset(var_4_cut, val_cut="_cut")
+
+    # create colormap if necessary
+    cmap_1 = plt.cm.get_cmap("coolwarm").copy()
+    cmap_1.set_bad(color="black")
+
+    # start figure layout and show variables
+    fig = plt.figure(figsize=(18, 9), constrained_layout=True)
+    fig.suptitle(title, fontweight="bold", fontsize=15)
+    ax1 = plt.subplot(2, 2, 1, projection=ccrs.PlateCarree())
+    ax1.set_global()
+    var_1.variable.plot.pcolormesh(
+        ax=ax1,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=mini,
+        vmax=maxi,
+        alpha=0.4,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    var_1_cut.variable.plot.pcolormesh(
+        ax=ax1,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=mini,
+        vmax=maxi,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    ax1.coastlines()
+    ax1.set_title(name_1)
+    ax1.set_ylim([38, 72])
+    ax1.set_xlim([-75, 5])
+    gls1 = ax1.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+    gls1.top_labels = False  # suppress top labels
+    gls1.right_labels = False  # suppress right labels
+
+    ax2 = plt.subplot(2, 2, 2, projection=ccrs.PlateCarree())
+    ax2.set_global()
+    var_2.variable.plot.pcolormesh(
+        ax=ax2,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=mini,
+        vmax=maxi,
+        alpha=0.4,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    im = var_2_cut.variable.plot.pcolormesh(
+        ax=ax2,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=mini,
+        vmax=maxi,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    ax2.coastlines()
+    ax2.set_title(name_2)
+    ax2.set_ylim([38, 72])
+    ax2.set_xlim([-75, 5])
+    gls2 = ax2.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+    gls2.top_labels = False  # suppress top labels
+    gls2.right_labels = False  # suppress right labels
+    gls2.left_labels = False  # suppress right labels
+    cbar = plt.colorbar(im, shrink=0.8)
+    cbar.set_label("Heat Content in J")
+
+    ax3 = plt.subplot(2, 2, 3, projection=ccrs.PlateCarree())
+    ax3.set_global()
+    var_3.variable.plot.pcolormesh(
+        ax=ax3,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=mini,
+        vmax=maxi,
+        alpha=0.4,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    var_3_cut.variable.plot.pcolormesh(
+        ax=ax3,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=mini,
+        vmax=maxi,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    ax3.coastlines()
+    ax3.set_title(name_3)
+    ax3.set_ylim([38, 72])
+    ax3.set_xlim([-75, 5])
+    gls3 = ax3.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+    gls3.top_labels = False  # suppress top labels
+    gls3.right_labels = False  # suppress right labels
+
+    ax4 = plt.subplot(2, 2, 4, projection=ccrs.PlateCarree())
+    ax4.set_global()
+    var_4.variable.plot.pcolormesh(
+        ax=ax4,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=mini,
+        vmax=maxi,
+        alpha=0.4,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    im = var_4_cut.variable.plot.pcolormesh(
+        ax=ax4,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=mini,
+        vmax=maxi,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    ax4.coastlines()
+    ax4.set_title(name_4)
+    ax4.set_ylim([38, 72])
+    ax4.set_xlim([-75, 5])
+    gls4 = ax4.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+    gls4.top_labels = False  # suppress top labels
+    gls4.left_labels = False  # suppress top labels
+    gls4.right_labels = False  # suppress right labels
+    cbar = plt.colorbar(im, shrink=0.8)
+    cbar.set_label("Heat Content in J")
+    plt.savefig(
+        f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/nw_images/{title}.pdf"
+    )
     plt.show()

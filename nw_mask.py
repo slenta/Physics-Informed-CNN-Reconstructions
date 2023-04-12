@@ -257,3 +257,26 @@ plt.savefig(
     f"../Asi_maskiert/pdfs/validation/part_19/nw_images/misfit_assimilation_correction.pdf"
 )
 plt.show()
+
+### create nw ensemble spread
+
+# nw_corner = np.zeros(shape=(128, 128))
+# nw_corner[55:70, 50:70] = 1
+# nw_mask = np.where(nw_corner == 1, np.nan, 1)
+#
+# nw_spread = np.zeros((16, 764))
+#
+# for member in range(1, 17):
+#
+#     f_final = h5py.File(
+#         f"{cfg.val_dir}{cfg.save_part}/heatcontent_assimilation_anhang_r{member}_full_newgrid_cut.hdf5",
+#         "r",
+#     )
+#
+#     hc = f_final.get("hc_gt")
+#     hc_nw = hc * nw_corner
+#     hc_nw = np.nansum(hc_nw, axis=(2, 1))
+#
+#     nw_spread[member, :] = hc_nw
+#
+# print(nw_spread.shape)

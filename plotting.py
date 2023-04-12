@@ -17,14 +17,11 @@ resume_depth = 1000000
 plotting = "special"
 
 if plotting == "special":
-
     vs.hc_plotting(
-        part_full, resume_full, time=[0,60], obs=False, mask_argo="anhang_nw"
+        part_full, resume_full, time=[0, 60], obs=False, mask_argo="anhang_nw"
     )
 
-    vs.hc_plotting(
-        part_full, resume_full, time=[0,60], obs=False, mask_argo="anhang"
-    )
+    vs.hc_plotting(part_full, resume_full, time=[0, 60], obs=False, mask_argo="anhang")
 
 elif plotting == "argo":
     # Argo plot masked assimilation

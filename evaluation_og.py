@@ -20,6 +20,7 @@ from preprocessing import preprocessing
 import xarray as xr
 import netCDF4 as nc
 import cdo
+import cartopy.crs as ccrs
 
 cdo = cdo.Cdo()
 
@@ -117,14 +118,12 @@ def infill(model, dataset, partitions, iter, name):
             output_part = model(image_part.to(cfg.device), mask_part.to(cfg.device))
 
         if cfg.lstm_steps == 0:
-
             image_part = image_part[:, :, :, :].to(torch.device("cpu"))
             mask_part = mask_part[:, :, :, :].to(torch.device("cpu"))
             gt_part = gt_part[:, :, :, :].to(torch.device("cpu"))
             output_part = output_part[:, :, :, :].to(torch.device("cpu"))
 
         else:
-
             image_part = image_part[:, cfg.lstm_steps - 1, :, :, :].to(
                 torch.device("cpu")
             )
@@ -166,7 +165,6 @@ def infill(model, dataset, partitions, iter, name):
 
 
 def heat_content_timeseries(depth_steps, iteration, name, anomalies=""):
-
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
 
@@ -273,7 +271,6 @@ def heat_content_timeseries(depth_steps, iteration, name, anomalies=""):
 
 # simple function to plot point wise correlations between two variables (time, lon, lat)
 def correlation(var_1, var_2):
-
     SET = namedtuple("SET", "nsim method alpha")
     n = var_1.shape
     corr = np.zeros(shape=(n[1], n[2]))
@@ -290,7 +287,6 @@ def correlation(var_1, var_2):
 
 # function to calculate running standard deviation or mean
 def running_mean_std(var, mode, del_t):
-
     n = var.shape
     var_out = np.zeros(n)
     var_out = var_out[: n[0] - (del_t - 1)]
@@ -307,7 +303,6 @@ def running_mean_std(var, mode, del_t):
 
 # calculating heat content gridpoint wise
 def heat_content_single(image, depths=False, anomalies="", month=13):
-
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
 
@@ -392,7 +387,6 @@ def heat_content_single(image, depths=False, anomalies="", month=13):
 
 # calculating heat content gridpoint wise
 def heat_content(depth_steps, iteration, name, anomalies=""):
-
     rho = 1025  # density of seawater
     shc = 3850  # specific heat capacity of seawater
 
@@ -565,7 +559,6 @@ def create_snapshot_image(model, dataset, filename):
 
 
 def area_cutting_nc(mode):
-
     f = h5py.File(
         f"{cfg.val_dir}{cfg.save_part}/validation_{cfg.resume_iter}_{mode}_{cfg.eval_im_year}.hdf5",
         "r",
@@ -655,18 +648,14 @@ def area_cutting_nc(mode):
 
 
 def area_cutting_single(var):
-
     ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_full_newgrid.nc")
-    var = ds_compare.thetao.values
-    print(var.shape)
-
-    var = var[:, :, :107, :124]
 
     lat = ds_compare.lat.values
     lon = ds_compare.lon.values
     time = ds_compare.time.values[: var.shape[0]]
 
     if len(var.shape) == 4:
+        var = var[:, :, :107, :124]
 
         depth = ds_compare.depth.values[: var.shape[1]]
 
@@ -690,16 +679,36 @@ def area_cutting_single(var):
         depth_sub = depth.where(depth.isin(ds.depth)).dropna(dim="depth")
         ds = ds.assign_coords({"lon": lon, "lat": lat, "depth": depth_sub})
 
-    else:
+    elif len(var.shape) == 3:
+        var = var[:, :107, :124]
 
         ds = xr.Dataset(
             data_vars=dict(
-                variable=(["time", "x", "y"], var),
+                variable=(["time", "y", "x"], var),
             ),
             coords=dict(
                 time=(["time"], time),
-                lon=(["x", "y"], lon),
-                lat=(["x", "y"], lat),
+                lon=(["y", "x"], lon),
+                lat=(["y", "x"], lat),
+            ),
+            attrs=dict(description=f"NA cut of variable"),
+        )
+
+        # assign regular lonlat coordinates
+        lon = ds_compare.lon
+        lat = ds_compare.lat
+        ds = ds.assign_coords({"lon": lon, "lat": lat})
+
+    elif len(var.shape) == 2:
+        var = var[:107, :124]
+
+        ds = xr.Dataset(
+            data_vars=dict(
+                variable=(["y", "x"], var),
+            ),
+            coords=dict(
+                lon=(["y", "x"], lon),
+                lat=(["y", "x"], lat),
             ),
             attrs=dict(description=f"NA cut of variable"),
         )
@@ -727,7 +736,6 @@ def area_cutting_single(var):
 
 
 def area_cutting(mode, depth):
-
     ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9.nc")
     ifile = f"{cfg.im_dir}Image_r9.nc"
     ofile = f"{cfg.im_dir}Image_r9_newgrid.nc"
@@ -799,21 +807,7 @@ def area_cutting(mode, depth):
     h5.close()
 
 
-def get_coords(val_cut):
-
-    ds = xr.load_dataset(f"{cfg.im_dir}Image_r9_full_newgrid{val_cut}.nc")
-
-    lon = ds.lon.values
-    lat = ds.lat.values
-    depth = ds.depth.values
-    depth_sub = depth.where(depth.isin(ds.depth)).dropna(dim="depth")
-    time = ds.time
-
-    return time, depth_sub, lon, lat
-
-
 def create_dataset(var, val_cut):
-
     ds_compare = xr.load_dataset(f"{cfg.im_dir}Image_r9_full_newgrid{val_cut}.nc")
 
     lon = ds_compare.lon.values
@@ -847,7 +841,7 @@ def create_dataset(var, val_cut):
         depth_sub = depth.where(depth.isin(ds.depth)).dropna(dim="depth")
         ds = ds.assign_coords({"lon": lon, "lat": lat, "depth": depth_sub})
 
-    else:
+    elif len(var.shape) == 3:
         var = var[:, :107, :124]
         ds = xr.Dataset(
             data_vars=dict(
@@ -866,11 +860,28 @@ def create_dataset(var, val_cut):
         lat = ds_compare.lat
         ds = ds.assign_coords({"lon": lon, "lat": lat})
 
+    elif len(var.shape) == 2:
+        var = var[:107, :124]
+        ds = xr.Dataset(
+            data_vars=dict(
+                variable=(["y", "x"], var),
+            ),
+            coords=dict(
+                lon=(["y", "x"], lon),
+                lat=(["y", "x"], lat),
+            ),
+            attrs=dict(description=f"NA cut of variable"),
+        )
+
+        # assign regular lonlat coordinates
+        lon = ds_compare.lon
+        lat = ds_compare.lat
+        ds = ds.assign_coords({"lon": lon, "lat": lat})
+
     return ds
 
 
 def pattern_correlation(image_1, image_2):
-
     image_1 = np.array(image_1)
     image_2 = np.array(image_2)
 
@@ -882,7 +893,6 @@ def pattern_correlation(image_1, image_2):
 
 
 def pattern_corr_timeseries(name, del_t=1, anomalies=""):
-
     if cfg.val_cut:
         cut = "_cut"
     else:
@@ -923,7 +933,13 @@ def pattern_corr_timeseries(name, del_t=1, anomalies=""):
     f.close()
 
 
-def combine_layers(parts):
+def combine_layers(parts, anomalies=True):
+    fb = h5py.File(
+        f"{cfg.im_dir}baseline_climatologyargo.hdf5",
+        "r",
+    )
+
+    thetao_mean = np.array(fb.get("sst_mean")[:, :20, :, :])
 
     names = ["output", "image", "mask", "gt"]
 
@@ -952,20 +968,34 @@ def combine_layers(parts):
         )
 
         for name in names:
-            globals()[name] = np.array(f.get(name))
+            globals()[f"{name}"] = np.array(f.get(name))
             globals()[f"{name}_obs"] = np.array(fo.get(name))
 
-            globals()[f"{name}_full"][:, depth, :, :] = globals()[name][:, 0, :, :]
+            globals()[f"{name}_full"][:, depth, :, :] = globals()[f"{name}"][:, 0, :, :]
             globals()[f"{name}_obs_full"][:, depth, :, :] = globals()[f"{name}_obs"][
                 :, 0, :, :
             ]
 
+    if anomalies == False:
+        for name in names:
+            for i in range(globals()[f"{name}"].shape[0]):
+                globals()[f"{name}_full"][i, :, :, :] = (
+                    globals()[f"{name}_full"][i, :, :, :] + thetao_mean[i % 12, :, :, :]
+                )
+                globals()[f"{name}_obs_full"][i, :, :, :] = (
+                    globals()[f"{name}_obs_full"][i, :, :, :]
+                    + thetao_mean[i % 12, :, :, :]
+                )
+        ano = "_full"
+    else:
+        ano = ""
+
     f_a = h5py.File(
-        f"{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_assimilation_{cfg.mask_argo}{nw}_{cfg.eval_im_year}.hdf5",
+        f"{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_assimilation_{cfg.mask_argo}{nw}_{cfg.eval_im_year}{ano}.hdf5",
         "w",
     )
     f_o = h5py.File(
-        f"{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_observations_{cfg.mask_argo}{nw}_{cfg.eval_im_year}.hdf5",
+        f"{cfg.val_dir}{cfg.save_part}/validation_{str(cfg.resume_iter)}_observations_{cfg.mask_argo}{nw}_{cfg.eval_im_year}{ano}.hdf5",
         "w",
     )
     for name in names:
@@ -984,7 +1014,6 @@ def combine_layers(parts):
 
 
 def ml_ensemble_iteration(members, part, iteration, length=754):
-
     hc_all_a, hc_all_o = np.zeros(shape=(2, members, length))
     members = np.arange(1, members + 1)
     print(members)
@@ -1014,7 +1043,6 @@ def ml_ensemble_iteration(members, part, iteration, length=754):
 
 
 def hc_ml_ensemble(members, part, iteration, length=754):
-
     hc_all_a, hc_all_o = np.zeros(shape=(2, members, length))
     members = np.arange(1, members + 1)
 
@@ -1042,11 +1070,9 @@ def hc_ml_ensemble(members, part, iteration, length=754):
 
 
 def hc_ensemble_mean_std(path=cfg.im_dir, name=cfg.im_name, members=15, length=767):
-
     hc_all, hc_cut_all = np.zeros(shape=(2, members, length))
 
     for i in range(1, members + 1):
-
         file = f"{path}/{name}{i}_anomalies_depth_anhang_20.hdf5"
         f = h5py.File(file, "r")
         hc = f.get("hc")
@@ -1064,6 +1090,227 @@ def hc_ensemble_mean_std(path=cfg.im_dir, name=cfg.im_name, members=15, length=7
         return mean_cut, std_cut, hc_cut_all
     else:
         return mean, std, hc_all
+
+
+def sst_bias_maps(start=0, end=120, sst="HadIsst", name=""):
+    if cfg.val_cut:
+        val_cut = "_cut"
+    else:
+        val_cut = ""
+
+    # load network output and assimilation data, full data for comparison with HadIsst
+    f = h5py.File(
+        f"{cfg.val_dir}{cfg.save_part}/validation_550000_observations_anhang_{cfg.eval_im_year}_full.hdf5"
+    )
+    fa = h5py.File(
+        f"{cfg.val_dir}{cfg.save_part}/validation_550000_assimilation_anhang_{cfg.eval_im_year}_full.hdf5"
+    )
+    f_cm = h5py.File(f"{cfg.mask_dir}Kontinent_newgrid.hdf5")
+    f_spg = h5py.File(f"{cfg.mask_dir}SPG_Maske.hdf5")
+
+    output = np.array(f.get("output"))[:, 0, :107, :124]
+    assi = np.array(f.get("gt"))[:, 0, :107, :124]
+
+    # load sst reference data
+    if sst == "HadIsst":
+        ds = xr.load_dataset(f"{cfg.im_dir}HadIsst{val_cut}.nc")
+        obs = ds.sst.values
+    elif sst == "obs":
+        obs = np.array(f.get("image"))[:, 0, :107, :124]
+
+    # create means of early times of biased assimilation
+    net_1 = output[start:end, :, :]
+    assi_1 = assi[start:end, :, :]
+    sst_1 = obs[start:end, :, :]
+
+    # create mean fields at comparatively well observed times
+    start_2 = 624
+    end_2 = 744
+    net_2 = output[start_2:end_2, :, :]
+    assi_2 = assi[start_2:end_2, :, :]
+    sst_2 = obs[start_2:end_2, :, :]
+
+    # create bias fields and convert to datasets
+    net_bias_1 = np.nanmean(net_1 - sst_1, axis=0)
+    assi_bias_1 = np.nanmean(assi_1 - sst_1, axis=0)
+    net_bias_2 = np.nanmean(net_2 - sst_2, axis=0)
+    assi_bias_2 = np.nanmean(assi_2 - sst_2, axis=0)
+
+    nb1 = create_dataset(net_bias_1, val_cut="")
+    ab1 = create_dataset(assi_bias_1, val_cut="")
+    nb2 = create_dataset(net_bias_2, val_cut="")
+    ab2 = create_dataset(assi_bias_2, val_cut="")
+
+    # create additional cut dataset for SPG visualization, draw in nw corner region
+    north_nw = 20
+    south_nw = 37
+    west_nw = 25
+    east_nw = 35
+
+    nb1_cut = create_dataset(area_cutting_single(net_bias_1), val_cut="_cut")
+    nb1_cut.variable[north_nw:south_nw, west_nw] = 200
+    nb1_cut.variable[north_nw:south_nw, east_nw] = 200
+    nb1_cut.variable[north_nw, west_nw:east_nw] = 200
+    nb1_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
+    ab1_cut = create_dataset(area_cutting_single(assi_bias_1), val_cut="_cut")
+    ab1_cut.variable[north_nw:south_nw, west_nw] = 200
+    ab1_cut.variable[north_nw:south_nw, east_nw] = 200
+    ab1_cut.variable[north_nw, west_nw:east_nw] = 200
+    ab1_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
+    nb2_cut = create_dataset(area_cutting_single(net_bias_2), val_cut="_cut")
+    nb2_cut.variable[north_nw:south_nw, west_nw] = 200
+    nb2_cut.variable[north_nw:south_nw, east_nw] = 200
+    nb2_cut.variable[north_nw, west_nw:east_nw] = 200
+    nb2_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
+    ab2_cut = create_dataset(area_cutting_single(assi_bias_2), val_cut="_cut")
+    ab2_cut.variable[north_nw:south_nw, west_nw] = 200
+    ab2_cut.variable[north_nw:south_nw, east_nw] = 200
+    ab2_cut.variable[north_nw, west_nw:east_nw] = 200
+    ab2_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
+
+    # define mins and max for colorbar and images
+    cmin = -3
+    cmax = 3
+    ylim = [38, 72]
+    xlim = [-75, -5]
+
+    time = (end - start) // 12
+    End = 1958 + time
+    cmap_1 = plt.cm.get_cmap("coolwarm").copy()
+    cmap_1.set_over(color="black")
+
+    fig = plt.figure(figsize=(18, 9), constrained_layout=True)
+    fig.suptitle("NA SST Bias", fontweight="bold", fontsize=15)
+    ax1 = plt.subplot(2, 2, 3, projection=ccrs.PlateCarree())
+    ax1.set_global()
+    nb1.variable.plot.pcolormesh(
+        ax=ax1,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=cmin,
+        vmax=cmax,
+        alpha=0.4,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    nb1_cut.variable.plot.pcolormesh(
+        ax=ax1,
+        transform=ccrs.PlateCarree(),
+        cmap=cmap_1,
+        vmin=cmin,
+        vmax=cmax,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    ax1.coastlines()
+    ax1.set_title(f"Neural Network SST bias January 1958 -- January {End}")
+    ax1.set_ylim(ylim)
+    ax1.set_xlim(xlim)
+    gls1 = ax1.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+    gls1.top_labels = False  # suppress top labels
+    gls1.right_labels = False  # suppress right labels
+    ax2 = plt.subplot(2, 2, 4, projection=ccrs.PlateCarree())
+    ax2.set_global()
+    ab1.variable.plot.pcolormesh(
+        ax=ax2,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=cmin,
+        vmax=cmax,
+        alpha=0.4,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    im = ab1_cut.variable.plot.pcolormesh(
+        ax=ax2,
+        transform=ccrs.PlateCarree(),
+        cmap=cmap_1,
+        vmin=cmin,
+        vmax=cmax,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    ax2.coastlines()
+    ax2.set_title(f"Assimilation SST bias January 1958 -- January {End}")
+    ax2.set_ylim(ylim)
+    ax2.set_xlim(xlim)
+    gls2 = ax2.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+    gls2.top_labels = False  # suppress top labels
+    gls2.right_labels = False  # suppress right labels
+    gls2.left_labels = False  # suppress right labels
+    cbar = plt.colorbar(im, shrink=0.8)
+    cbar.set_label("SST bias in °C")
+    ax3 = plt.subplot(2, 2, 1, projection=ccrs.PlateCarree())
+    ax3.set_global()
+    nb2.variable.plot.pcolormesh(
+        ax=ax3,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=cmin,
+        vmax=cmax,
+        alpha=0.4,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    nb2_cut.variable.plot.pcolormesh(
+        ax=ax3,
+        transform=ccrs.PlateCarree(),
+        cmap=cmap_1,
+        vmin=cmin,
+        vmax=cmax,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    ax3.coastlines()
+    ax3.set_title("Neural Network SST bias January 2010 -- January 2020")
+    ax3.set_ylim(ylim)
+    ax3.set_xlim(xlim)
+    gls3 = ax3.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+    gls3.top_labels = False  # suppress top labels
+    gls3.right_labels = False  # suppress right labels
+    ax4 = plt.subplot(2, 2, 2, projection=ccrs.PlateCarree())
+    ax4.set_global()
+    ab2.variable.plot.pcolormesh(
+        ax=ax4,
+        transform=ccrs.PlateCarree(),
+        cmap="coolwarm",
+        vmin=cmin,
+        vmax=cmax,
+        alpha=0.4,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    im = ab2_cut.variable.plot.pcolormesh(
+        ax=ax4,
+        transform=ccrs.PlateCarree(),
+        cmap=cmap_1,
+        vmin=cmin,
+        vmax=cmax,
+        x="lon",
+        y="lat",
+        add_colorbar=False,
+    )
+    ax4.coastlines()
+    ax4.set_title("Assimilation SST bias January 2010 -- January 2020")
+    ax4.set_ylim(ylim)
+    ax4.set_xlim(xlim)
+    gls4 = ax4.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+    gls4.top_labels = False  # suppress top labels
+    gls4.left_labels = False  # suppress top labels
+    gls4.right_labels = False  # suppress right labels
+    cbar = plt.colorbar(im, shrink=0.8)
+    cbar.set_label("SST bias in °C")
+    plt.savefig(
+        f"../Asi_maskiert/pdfs/validation/part_19/nw_images/sst_biases_{sst}{name}.pdf"
+    )
+    plt.show()
 
 
 # cfg.set_train_args()

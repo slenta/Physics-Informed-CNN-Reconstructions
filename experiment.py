@@ -9,10 +9,12 @@ import config as cfg
 import xarray as xr
 import evaluation_og as evalu
 import cdo
+import visualisation as vs
 import os
 import cartopy.crs as ccrs
-from preprocessing import preprocessing
-from scipy.stats import pearsonr, norm
+
+# from preprocessing import preprocessing
+# from scipy.stats import pearsonr, norm
 
 cdo = cdo.Cdo()
 
@@ -1353,14 +1355,14 @@ cfg.set_train_args()
 # )
 # plt.show()
 
-
+###### plot new projection of nw images
 f = h5py.File(
-    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}_full.hdf5",
+    f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}_full.hdf5",
     "r",
 )
 
 fc = h5py.File(
-    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}_cut_full.hdf5",
+    f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}_cut_full.hdf5",
     "r",
 )
 
@@ -1369,92 +1371,385 @@ gt_cut = fc.get("hc_gt")
 out = f.get("hc_net")
 out_cut = fc.get("hc_net")
 
+# create nw image
+nw_corner = np.zeros(shape=(128, 128))
+nw_corner[55:70, 50:70] = 1
+nw_mask = np.where(nw_corner == 1, np.nan, 1)
+
+# insert nw corner of nn into gt
+out_nw = np.where(out * nw_corner == 0, 1, out * nw_corner)
+gt_nw = np.nan_to_num(gt * nw_mask, nan=1) * out_nw
+gt_nw_cut = evalu.area_cutting_single(gt_nw)
+print(gt_nw.shape, gt_nw_cut.shape)
+
+# create xr datasets from variables for plotting purposes
+north_nw = 20
+south_nw = 37
+west_nw = 25
+east_nw = 35
+fill_value = np.nan
+print(gt_nw_cut.shape)
+
+ds_nw = evalu.create_dataset(gt_nw, val_cut="")
 ds = evalu.create_dataset(gt, val_cut="")
-ds_cut = evalu.create_dataset(gt_cut, val_cut="_cut")
 dso = evalu.create_dataset(out, val_cut="")
+ds_nw_cut = evalu.create_dataset(gt_nw_cut, val_cut="_cut")
+ds_nw_cut.variable[:, north_nw:south_nw, west_nw] = fill_value
+ds_nw_cut.variable[:, north_nw:south_nw, east_nw] = fill_value
+ds_nw_cut.variable[:, north_nw, west_nw:east_nw] = fill_value
+ds_nw_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
+ds_cut = evalu.create_dataset(gt_cut, val_cut="_cut")
+ds_cut.variable[:, north_nw:south_nw, west_nw] = fill_value
+ds_cut.variable[:, north_nw:south_nw, east_nw] = fill_value
+ds_cut.variable[:, north_nw, west_nw:east_nw] = fill_value
+ds_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
 dso_cut = evalu.create_dataset(out_cut, val_cut="_cut")
+dso_cut.variable[:, north_nw:south_nw, west_nw] = fill_value
+dso_cut.variable[:, north_nw:south_nw, east_nw] = fill_value
+dso_cut.variable[:, north_nw, west_nw:east_nw] = fill_value
+dso_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
 
-fig = plt.figure(figsize=(16, 6), constrained_layout=True)
-fig.suptitle("NA Ocean Heat Content")
-ax1 = plt.subplot(1, 2, 1, projection=ccrs.PlateCarree())
-ax1.set_global()
-ds.variable[0, :, :].plot.pcolormesh(
-    ax=ax1,
-    transform=ccrs.PlateCarree(),
-    cmap="coolwarm",
-    vmin=1.5e10,
-    vmax=2.5e10,
-    alpha=0.4,
-    x="lon",
-    y="lat",
-    add_colorbar=False,
-)
-ds_cut.variable[0, :, :].plot.pcolormesh(
-    ax=ax1,
-    transform=ccrs.PlateCarree(),
-    cmap="coolwarm",
-    vmin=1.5e10,
-    vmax=2.5e10,
-    x="lon",
-    y="lat",
-    add_colorbar=False,
-)
-ax1.coastlines()
-ax1.set_title("Assimilation January 1958 -- January 1963")
-ax1.set_ylim([20, 80])
-ax1.set_xlim([-90, 30])
-
-ax2 = plt.subplot(1, 2, 2, projection=ccrs.PlateCarree())
-ax2.set_global()
-dso.variable[0, :, :].plot.pcolormesh(
-    ax=ax2,
-    transform=ccrs.PlateCarree(),
-    cmap="coolwarm",
-    vmin=1.5e10,
-    vmax=2.5e10,
-    alpha=0.4,
-    x="lon",
-    y="lat",
-    add_colorbar=False,
-)
-im = dso_cut.variable[0, :, :].plot.pcolormesh(
-    ax=ax2,
-    transform=ccrs.PlateCarree(),
-    cmap="coolwarm",
-    vmin=1.5e10,
-    vmax=2.5e10,
-    x="lon",
-    y="lat",
-    add_colorbar=False,
-)
-cbar = plt.colorbar(im, shrink=0.5)
-cbar.set_label("Heat Content in J")
-ax2.coastlines()
-ax2.set_title("Neural Network January 1958 -- January 1963")
-ax2.set_ylim([20, 80])
-ax2.set_xlim([-90, 30])
-plt.show()
-
-
-# # create figure
-# fig = plt.figure(figsize=(8, 6), dpi=100)
+# cmap_1 = plt.cm.get_cmap("coolwarm").copy()
+# cmap_1.set_bad(color="black")
 #
-# # create geo axes
-# projection = ccrs.epsg(32630)
-# geo_axes = plt.subplot(projection=projection)
-#
-# # add open street map background
-# # when commenting the two following lines, the data array is plotted correctly
-# osm_background = cimgt.OSM()
-# geo_axes.add_image(osm_background, 14)
-#
-# # plot dataset
-# plt.imshow(
-#     array,
-#     origin="upper",
-#     extent=(x_coords[0], x_coords[1], y_coords[0], y_coords[1]),
-#     transform=projection,
+# fig = plt.figure(figsize=(18, 9), constrained_layout=True)
+# fig.suptitle("NA Ocean Heat Content", fontweight="bold", fontsize=15)
+# ax1 = plt.subplot(2, 2, 3, projection=ccrs.PlateCarree())
+# ax1.set_global()
+# ds.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
+#     ax=ax1,
+#     transform=ccrs.PlateCarree(),
+#     cmap="coolwarm",
+#     vmin=1.5e10,
+#     vmax=2e10,
+#     alpha=0.4,
+#     x="lon",
+#     y="lat",
+#     add_colorbar=False,
 # )
+# ds_cut.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
+#     ax=ax1,
+#     transform=ccrs.PlateCarree(),
+#     cmap="coolwarm",
+#     vmin=1.5e10,
+#     vmax=2e10,
+#     x="lon",
+#     y="lat",
+#     add_colorbar=False,
+# )
+# ax1.coastlines()
+# ax1.set_title("Assimilation January 1958 -- January 1963")
+# ax1.set_ylim([38, 72])
+# ax1.set_xlim([-75, 5])
+# gls1 = ax1.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+# gls1.top_labels = False  # suppress top labels
+# gls1.right_labels = False  # suppress right labels
 #
-# # show plot
+# ax2 = plt.subplot(2, 2, 4, projection=ccrs.PlateCarree())
+# ax2.set_global()
+# dso.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
+#     ax=ax2,
+#     transform=ccrs.PlateCarree(),
+#     cmap="coolwarm",
+#     vmin=1.5e10,
+#     vmax=2e10,
+#     alpha=0.4,
+#     x="lon",
+#     y="lat",
+#     add_colorbar=False,
+# )
+# im = (
+#     dso_cut.variable[0:60, :, :]
+#     .mean(axis=0)
+#     .plot.pcolormesh(
+#         ax=ax2,
+#         transform=ccrs.PlateCarree(),
+#         cmap="coolwarm",
+#         vmin=1.5e10,
+#         vmax=2e10,
+#         x="lon",
+#         y="lat",
+#         add_colorbar=False,
+#     )
+# )
+# ax2.coastlines()
+# ax2.set_title("Neural Network January 1958 -- January 1963")
+# ax2.set_ylim([38, 72])
+# ax2.set_xlim([-75, 5])
+# gls2 = ax2.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+# gls2.top_labels = False  # suppress top labels
+# gls2.right_labels = False  # suppress right labels
+# gls2.left_labels = False  # suppress right labels
+# cbar = plt.colorbar(im, shrink=0.8)
+# cbar.set_label("Heat Content in J")
+#
+# ax3 = plt.subplot(2, 2, 1, projection=ccrs.PlateCarree())
+# ax3.set_global()
+# ds.variable[600:660, :, :].mean(axis=0).plot.pcolormesh(
+#     ax=ax3,
+#     transform=ccrs.PlateCarree(),
+#     cmap="coolwarm",
+#     vmin=1.5e10,
+#     vmax=2e10,
+#     alpha=0.4,
+#     x="lon",
+#     y="lat",
+#     add_colorbar=False,
+# )
+# ds_cut.variable[600:660, :, :].mean(axis=0).plot.pcolormesh(
+#     ax=ax3,
+#     transform=ccrs.PlateCarree(),
+#     cmap="coolwarm",
+#     vmin=1.5e10,
+#     vmax=2e10,
+#     x="lon",
+#     y="lat",
+#     add_colorbar=False,
+# )
+# ax3.coastlines()
+# ax3.set_title("Assimilation January 2010 -- January 2020")
+# ax3.set_ylim([38, 72])
+# ax3.set_xlim([-75, 5])
+# gls3 = ax3.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+# gls3.top_labels = False  # suppress top labels
+# gls3.right_labels = False  # suppress right labels
+#
+# ax4 = plt.subplot(2, 2, 2, projection=ccrs.PlateCarree())
+# ax4.set_global()
+# dso.variable[600:660, :, :].mean(axis=0).plot.pcolormesh(
+#     ax=ax4,
+#     transform=ccrs.PlateCarree(),
+#     cmap="coolwarm",
+#     vmin=1.5e10,
+#     vmax=2e10,
+#     alpha=0.4,
+#     x="lon",
+#     y="lat",
+#     add_colorbar=False,
+# )
+# im = (
+#     dso_cut.variable[600:660, :, :]
+#     .mean(axis=0)
+#     .plot.pcolormesh(
+#         ax=ax4,
+#         transform=ccrs.PlateCarree(),
+#         cmap="coolwarm",
+#         vmin=1.5e10,
+#         vmax=2e10,
+#         x="lon",
+#         y="lat",
+#         add_colorbar=False,
+#     )
+# )
+# ax4.coastlines()
+# ax4.set_title("Neural Network January 2010 -- January 2020")
+# ax4.set_ylim([38, 72])
+# ax4.set_xlim([-75, 5])
+# gls4 = ax4.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+# gls4.top_labels = False  # suppress top labels
+# gls4.left_labels = False  # suppress top labels
+# gls4.right_labels = False  # suppress right labels
+# cbar = plt.colorbar(im, shrink=0.8)
+# cbar.set_label("Heat Content in J")
+# plt.savefig(
+#     f"../Asi_maskiert/pdfs/validation/part_19/nw_images/nw_comparison__newgrid_4_obs_kontrast.pdf"
+# )
 # plt.show()
+
+# fig = plt.figure(figsize=(17, 5), constrained_layout=True)
+# fig.suptitle("NA Ocean Heat Content", fontweight="bold", fontsize=15)
+# ax1 = plt.subplot(1, 2, 1, projection=ccrs.PlateCarree())
+# ax1.set_global()
+# ds.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
+#     ax=ax1,
+#     transform=ccrs.PlateCarree(),
+#     cmap="coolwarm",
+#     vmin=1.5e10,
+#     vmax=3e10,
+#     alpha=0.4,
+#     x="lon",
+#     y="lat",
+#     add_colorbar=False,
+# )
+# ds_cut.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
+#     ax=ax1,
+#     transform=ccrs.PlateCarree(),
+#     cmap="coolwarm",
+#     vmin=1.5e10,
+#     vmax=3e10,
+#     x="lon",
+#     y="lat",
+#     add_colorbar=False,
+# )
+# ax1.coastlines()
+# ax1.set_title("Assimilation January 1958 -- January 1963")
+# ax1.set_ylim([38, 72])
+# ax1.set_xlim([-75, 5])
+# gls1 = ax1.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+# gls1.top_labels = False  # suppress top labels
+# gls1.right_labels = False  # suppress right labels
+#
+# ax2 = plt.subplot(1, 2, 2, projection=ccrs.PlateCarree())
+# ax2.set_global()
+# ds_nw.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
+#     ax=ax2,
+#     transform=ccrs.PlateCarree(),
+#     cmap="coolwarm",
+#     vmin=1.5e10,
+#     vmax=3e10,
+#     alpha=0.4,
+#     x="lon",
+#     y="lat",
+#     add_colorbar=False,
+# )
+# im = (
+#     ds_nw_cut.variable[0:60, :, :]
+#     .mean(axis=0)
+#     .plot.pcolormesh(
+#         ax=ax2,
+#         transform=ccrs.PlateCarree(),
+#         cmap="coolwarm",
+#         vmin=1.5e10,
+#         vmax=3e10,
+#         x="lon",
+#         y="lat",
+#         add_colorbar=False,
+#     )
+# )
+# ax2.coastlines()
+# ax2.set_title("Neural Network January 1958 -- January 1963")
+# ax2.set_ylim([38, 72])
+# ax2.set_xlim([-75, 5])
+# gls2 = ax2.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
+# gls2.top_labels = False  # suppress top labels
+# gls2.right_labels = False  # suppress right labels
+# gls2.left_labels = False  # suppress right labels
+# cbar = plt.colorbar(im, shrink=0.8)
+# cbar.set_label("Heat Content in J")
+# plt.savefig(
+#     "../Asi_maskiert/pdfs/validation/part_19/nw_images/nw_corner_newgrid_obs.pdf"
+# )
+# plt.show()
+
+
+### create nw ensemble spread
+
+# nw_corner = np.zeros(shape=(128, 128))
+# nw_corner[55:70, 50:70] = 1
+# nw_mask = np.where(nw_corner == 1, np.nan, 1)
+#
+# nw_spread = np.zeros((16, 764))
+#
+# for member in range(1, 17):
+#
+#     f_final = h5py.File(
+#         f"{cfg.val_dir}{cfg.save_part}/heatcontent_assimilation_anhang_r{member}_full_newgrid_cut.hdf5",
+#         "r",
+#     )
+#
+#     hc = f_final.get("hc_gt")
+#     hc_nw = hc * nw_corner
+#     hc_nw = np.nansum(hc_nw, axis=(2, 1))
+#
+#     nw_spread[member, :] = hc_nw
+#
+# print(nw_spread.shape)
+
+
+### sst bias maps
+
+# fc = h5py.File(
+#     f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
+#     "r",
+# )
+# f = h5py.File(
+#     f"{cfg.val_dir}part_19/validation_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+#     "r",
+# )
+
+# HadI_path = "/pool/data/ICDC/ocean/hadisst1/DATA/HadISST_sst.nc"
+# HadIds = xr.load_dataset(HadI_path, decode_times=False)
+#
+# print("third")
+#
+#
+# start = 0
+# end = 180
+#
+# HadIsst = HadIds.sst.values[start:end, :, :]
+# mask = np.array(fc.get("mask"))[start:end, 0, :, :]
+# image = np.array(fc.get("image"))[start:end, 0, :, :]
+# mask = np.where(mask == 0, np.nan, mask)
+# image = np.where(image == 0, np.nan, image)
+# mask = np.nanmean(mask, axis=0)
+# image = np.nanmean(image, axis=0)
+# output = np.nanmean(np.array(fc.get("output"))[start:end, 0, :, :], axis=0)
+# gt = np.nanmean(np.array(fc.get("gt"))[start:end, 0, :, :], axis=0)
+#
+# print("second")
+#
+#
+# plt.figure(figsize=(16, 16), constrained_layout=True)
+# plt.subplot(2, 2, 1)
+# plt.imshow(image, vmin=-3, vmax=3, cmap="coolwarm")
+# plt.subplot(2, 2, 2)
+# plt.imshow(gt, vmin=-3, vmax=3, cmap="coolwarm")
+# plt.subplot(2, 2, 3)
+# plt.imshow(mask * gt - image, vmin=-5, vmax=5, cmap="coolwarm")
+# plt.subplot(2, 2, 4)
+# plt.imshow(mask * output - image, vmin=-5, vmax=5, cmap="coolwarm")
+# plt.savefig("../Asi_maskiert/pdfs/validation/part_19/nw_images/sst_bias_60s_o.pdf")
+# plt.show()
+
+
+# evalu.sst_bias_maps(name="_10year")
+# evalu.sst_bias_maps(sst="obs", name="_10year")
+# evalu.sst_bias_maps(end=60, name="_5year")
+# evalu.sst_bias_maps(end=60, sst="obs", name="_5year")
+
+# vs.new_4_plot(
+#     var_1=np.nanmean(gt[600:660, :, :], axis=0),
+#     var_2=np.nanmean(out[600:660, :, :], axis=0),
+#     var_3=np.nanmean(gt[0:60, :, :], axis=0),
+#     var_4=np.nanmean(out[0:60, :, :], axis=0),
+#     name_1="Assimilation OHC 2008 -- 2013",
+#     name_2="Neural Network OHC 2008 -- 2013",
+#     name_3="Assimilation OHC 1958 -- 1963",
+#     name_4="Neural Network OHC 1958 -- 1963",
+#     title="NA SPG OHC Comparison",
+#     mini=1.5e10,
+#     maxi=2e10,
+# )
+
+
+f = h5py.File(
+    f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
+)
+fc = h5py.File(
+    f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}_full.hdf5",
+    "r",
+)
+
+mask = np.array(f.get("mask"))
+mask = np.where(mask == 0, np.nan, mask)
+image = np.array(f.get("image"))
+hc_net = np.array(fc.get("hc_net"))
+hc_gt = np.array(fc.get("hc_gt"))
+
+masked_gt = hc_gt * mask[:, 0, :, :]
+masked_net = hc_net * mask[:, 0, :, :]
+
+vs.new_4_plot(
+    var_1=masked_gt[0, :, :],
+    var_2=masked_gt[744, :, :],
+    var_3=hc_gt[0, :, :],
+    var_4=hc_gt[744, :, :],
+    name_1="Assimilation OHC at points of sst observations January 1958",
+    name_2="Assimilation OHC at points of sst observations January 2020",
+    name_3="Assimilation OHC January 1958",
+    name_4="Assimilation OHC January 2020",
+    title="masks_images_comparison_1",
+    mini=1e10,
+    maxi=3.5e10,
+)

@@ -70,6 +70,10 @@ if cfg.combine_layers:
     evalu.combine_layers(
         np.arange(cfg.combine_start, cfg.combine_start + cfg.in_channels)
     )
+    evalu.combine_layers(
+        np.arange(cfg.combine_start, cfg.combine_start + cfg.in_channels),
+        anomalies=False,
+    )
 else:
     start_iter = load_ckpt(
         "{}/ckpt/{}/{}.pth".format(cfg.save_dir, cfg.save_part, cfg.resume_iter),
@@ -101,7 +105,7 @@ else:
 
 if cfg.eval_full:
     # evaluate assimilation reconstruction
-    evalu.area_cutting_nc(mode=f"assimilation_{argo}{nw}", depth=cfg.in_channels)
+    evalu.area_cutting_nc(mode=f"assimilation_{argo}{nw}")
     evalu.heat_content(depths, str(cfg.resume_iter), name=f"assimilation_{argo}{nw}")
     evalu.heat_content(
         depths, str(cfg.resume_iter), name=f"assimilation_{argo}{nw}", anomalies="_full"
@@ -120,7 +124,7 @@ if cfg.eval_full:
     )
 
     # evaluate observations reconstruction
-    evalu.area_cutting_nc(mode=f"observations_{argo}{nw}", depth=cfg.in_channels)
+    evalu.area_cutting_nc(mode=f"observations_{argo}{nw}")
     evalu.heat_content(depths, str(cfg.resume_iter), name=f"observations_{argo}{nw}")
     evalu.heat_content(
         depths, str(cfg.resume_iter), name=f"observations_{argo}{nw}", anomalies="_full"
