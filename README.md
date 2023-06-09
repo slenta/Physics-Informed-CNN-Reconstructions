@@ -1,6 +1,4 @@
-# Infilling spatial precipitation recordings with a memory assisted CNN
-
-##At this stage, Observations and Assimilation reconstructions work but with significant differences still
+# Infilling data assimilations with a physics informed CNN
 
 ## Requirements
 - Python 3.7+
@@ -36,7 +34,6 @@ The training process can be started by executing
 
 To specify additional args such as the data root directory, use `--arg arg_value`.
 Here are some important args:
-- `--root_dir` -> root directory of training and validation data
 - `--save_dir` -> directory of training checkpoints
 - `--mask_dir` -> directory of mask files
 - `--img_name` -> comma separated list of training data files stored in the data root directory, have to be same shape! First image is ground truth
@@ -47,22 +44,20 @@ Here are some important args:
 - `--encoding_layers` -> number of encoding layers in the CNN
 - `--pooling_layers` -> number of pooling layers in the CNN
 - `--image_size` -> size of image, must be of shape NxN
+- `--attribute_argo` -> Time period from which the training and evaluation data is taken
+- `--mask_argo` -> Time period from which the observational masks should be taken
+ 
 
 ### Evaluate
 The evaluation process can be started by executing
 
-`python train_and_evaluate/evaluate.py`
+`python evaluate.py`
 
 Important args:
-- `--evaluation-dir` -> directory where evaluations will be stored
-- `--data-root-dir` -> root directory of test data
-- `--mask-dir` -> directory of mask files
-- `--img-names` -> comma separated list of training data files stored in the data root directory, have to be same shape!
-- `--mask-names` -> comma separated list of mask files stored in the mask directory, need to correspond to order in img-names
-- `--data-types` -> comma separated list of types of variable, need to correspond to order in img-names and mask-names
+
 - `--device` -> cuda or cpu
 - `--lstm-steps` -> Number of considered sequences for lstm, set to zero, if lstm module should be deactivated
-- `--infill` -> 'test', if mask order is irrelevant, 'infill', if mask order is relevant
-- `--create-images` -> creates images for time window in format 'YYY-MM-DD-HH:MM,YYYY-MM-DD-HH:MM'
-- `--create-video` -> creates video. Images need to be created as well
-- `--create-report` -> creates evaluation report for total test data set
+- `--val_cut` -> cut the evaluation area to predefined dimensions (e.g. NA SPG)
+- `--combine_layers` -> Evaluate for one depth layer or for all of them
+- `--eval_full` -> Evaluate and create all defined evaluation procedures and plots
+
