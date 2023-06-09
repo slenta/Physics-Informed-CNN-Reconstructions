@@ -658,11 +658,11 @@ def timeseries_plotting(
         "r",
     )
     f = h5py.File(
-        f"{cfg.val_dir}{part}/timeseries_{str(iteration)}_assimilation_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+        f"{cfg.val_dir}{part}/timeseries_{iteration}_assimilation_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
         "r",
     )
     fo = h5py.File(
-        f"{cfg.val_dir}{part}/timeseries_{str(iteration)}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+        f"{cfg.val_dir}{part}/timeseries_{iteration}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
         "r",
     )
     # f_a = h5py.File(
@@ -753,8 +753,10 @@ def timeseries_plotting(
             en4[552:754],
             iap[552:754],
         )
-        start = 2004 + (del_t // 12) // 2
-        end = 2021 - (del_t // 12) // 2
+        # start = 2004 + (del_t // 12) // 2
+        # end = 2021 - (del_t // 12) // 2
+        start = 1958
+        end = 2021
     elif argo == "full":
         hc_gt, hc_obs, hc_assi, del_a, del_o, del_gt, en4, iap = (
             hc_gt[:754],
@@ -787,8 +789,13 @@ def timeseries_plotting(
         end = 2021 - (del_t // 12) // 2
 
     length = len(hc_gt)
-    ticks = np.arange(0, length, 12 * 5)
-    labels = np.arange(start, end, 5)  #
+    if argo == "argo":
+        ticks = np.arange(-46 * 12, length, 12 * 5)
+        labels = np.arange(start, end, 5)  #
+        print(ticks.shape, labels.shape)
+    else:
+        ticks = np.arange(0, length, 12 * 5)
+        labels = np.arange(start, end, 5)  #
 
     plt.figure(figsize=(10, 6))
     if argo == "anhang":
@@ -804,7 +811,7 @@ def timeseries_plotting(
                 pearsonr(en4, hc_obs[: len(en4)])[0],
             )
 
-        plt.plot(hc_gt, label="Assimilation Heat Content", color="darkred")
+        plt.plot(hc_gt, label="Assimilation OHC", color="darkred")
         plt.fill_between(
             range(len(hc_gt)),
             hc_gt + del_gt,
@@ -813,13 +820,13 @@ def timeseries_plotting(
             color="lightcoral",
         )
         if single == False:
-            plt.plot(hc_obs, label="Directly Reconstructed Observations", color="grey")
+            plt.plot(hc_obs, label="Neural Network OHC", color="royalblue")
             plt.fill_between(
                 range(len(hc_obs)),
                 hc_obs + del_o,
                 hc_obs - del_o,
-                label="Ensemble Spread Reconstruction",
-                color="lightgrey",
+                label="Ensemble Spread Neural Network",
+                color="lightsteelblue",
             )
     else:
         print(pearsonr(hc_gt, hc_assi)[0])
@@ -856,7 +863,7 @@ def timeseries_plotting(
             )
 
     plt.grid()
-    plt.legend()
+    plt.legend(loc=9)
     plt.xticks(ticks=ticks, labels=labels)
     plt.title("SPG OHC Estimates")
     plt.xlabel("Time in years")
@@ -866,7 +873,7 @@ def timeseries_plotting(
     )
     plt.show()
 
-    plt.figure(figsize=(10, 6))
+    # plt.figure(figsize=(10, 6))
 
     # plt.plot(hc_assi_masked, label="NN reconstruction", color="blue")
     # plt.plot(hc_gt_masked, label="Assimilation Heat Content", color="darkred")
@@ -1128,7 +1135,18 @@ def error_pdf(argo, n_windows=1, del_t=1):
 
 
 def new_4_plot(
-    var_1, var_2, var_3, var_4, name_1, name_2, name_3, name_4, title, mini, maxi
+    var_1,
+    var_2,
+    var_3,
+    var_4,
+    name_1,
+    name_2,
+    name_3,
+    name_4,
+    title,
+    mini,
+    maxi,
+    cb_unit="Heat Content in J",
 ):
     # create datasets and cut versions for SPG highlighting
     var_1_cut = evalu.area_cutting_single(var_1)
@@ -1150,7 +1168,7 @@ def new_4_plot(
     cmap_1.set_bad(color="black")
 
     # start figure layout and show variables
-    fig = plt.figure(figsize=(18, 9), constrained_layout=True)
+    fig = plt.figure(figsize=(12, 7), constrained_layout=True)
     fig.suptitle(title, fontweight="bold", fontsize=15)
     ax1 = plt.subplot(2, 2, 1, projection=ccrs.PlateCarree())
     ax1.set_global()
@@ -1182,6 +1200,8 @@ def new_4_plot(
     gls1 = ax1.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
     gls1.top_labels = False  # suppress top labels
     gls1.right_labels = False  # suppress right labels
+    gls1.bottom_labels = False  # suppress bottom labels
+    gls1.left_labels = False  # suppress left labels
 
     ax2 = plt.subplot(2, 2, 2, projection=ccrs.PlateCarree())
     ax2.set_global()
@@ -1213,9 +1233,10 @@ def new_4_plot(
     gls2 = ax2.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
     gls2.top_labels = False  # suppress top labels
     gls2.right_labels = False  # suppress right labels
-    gls2.left_labels = False  # suppress right labels
-    cbar = plt.colorbar(im, shrink=0.8)
-    cbar.set_label("Heat Content in J")
+    gls2.bottom_labels = False  # suppress bottom labels
+    gls2.left_labels = False  # suppress left labels
+    cbar = plt.colorbar(im, shrink=0.8, location="bottom")
+    cbar.set_label(cb_unit)
 
     ax3 = plt.subplot(2, 2, 3, projection=ccrs.PlateCarree())
     ax3.set_global()
@@ -1247,6 +1268,8 @@ def new_4_plot(
     gls3 = ax3.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
     gls3.top_labels = False  # suppress top labels
     gls3.right_labels = False  # suppress right labels
+    gls3.bottom_labels = False  # suppress bottom labels
+    gls3.left_labels = False  # suppress left labels
 
     ax4 = plt.subplot(2, 2, 4, projection=ccrs.PlateCarree())
     ax4.set_global()
@@ -1277,10 +1300,11 @@ def new_4_plot(
     ax4.set_xlim([-75, 5])
     gls4 = ax4.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
     gls4.top_labels = False  # suppress top labels
-    gls4.left_labels = False  # suppress top labels
     gls4.right_labels = False  # suppress right labels
+    gls4.bottom_labels = False  # suppress bottom labels
+    gls4.left_labels = False  # suppress left labels
     cbar = plt.colorbar(im, shrink=0.8)
-    cbar.set_label("Heat Content in J")
+    cbar.set_label(cb_unit)
     plt.savefig(
         f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/nw_images/{title}.pdf"
     )

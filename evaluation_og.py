@@ -1124,8 +1124,8 @@ def sst_bias_maps(start=0, end=120, sst="HadIsst", name=""):
     sst_1 = obs[start:end, :, :]
 
     # create mean fields at comparatively well observed times
-    start_2 = 624
-    end_2 = 744
+    start_2 = 552
+    end_2 = 754
     net_2 = output[start_2:end_2, :, :]
     assi_2 = assi[start_2:end_2, :, :]
     sst_2 = obs[start_2:end_2, :, :]
@@ -1148,38 +1148,37 @@ def sst_bias_maps(start=0, end=120, sst="HadIsst", name=""):
     east_nw = 35
 
     nb1_cut = create_dataset(area_cutting_single(net_bias_1), val_cut="_cut")
-    nb1_cut.variable[north_nw:south_nw, west_nw] = 200
-    nb1_cut.variable[north_nw:south_nw, east_nw] = 200
-    nb1_cut.variable[north_nw, west_nw:east_nw] = 200
-    nb1_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
+    # nb1_cut.variable[north_nw:south_nw, west_nw] = 200
+    # nb1_cut.variable[north_nw:south_nw, east_nw] = 200
+    # nb1_cut.variable[north_nw, west_nw:east_nw] = 200
+    # nb1_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
     ab1_cut = create_dataset(area_cutting_single(assi_bias_1), val_cut="_cut")
-    ab1_cut.variable[north_nw:south_nw, west_nw] = 200
-    ab1_cut.variable[north_nw:south_nw, east_nw] = 200
-    ab1_cut.variable[north_nw, west_nw:east_nw] = 200
-    ab1_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
+    # ab1_cut.variable[north_nw:south_nw, west_nw] = 200
+    # ab1_cut.variable[north_nw:south_nw, east_nw] = 200
+    # ab1_cut.variable[north_nw, west_nw:east_nw] = 200
+    # ab1_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
     nb2_cut = create_dataset(area_cutting_single(net_bias_2), val_cut="_cut")
-    nb2_cut.variable[north_nw:south_nw, west_nw] = 200
-    nb2_cut.variable[north_nw:south_nw, east_nw] = 200
-    nb2_cut.variable[north_nw, west_nw:east_nw] = 200
-    nb2_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
+    # nb2_cut.variable[north_nw:south_nw, west_nw] = 200
+    # nb2_cut.variable[north_nw:south_nw, east_nw] = 200
+    # nb2_cut.variable[north_nw, west_nw:east_nw] = 200
+    # nb2_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
     ab2_cut = create_dataset(area_cutting_single(assi_bias_2), val_cut="_cut")
-    ab2_cut.variable[north_nw:south_nw, west_nw] = 200
-    ab2_cut.variable[north_nw:south_nw, east_nw] = 200
-    ab2_cut.variable[north_nw, west_nw:east_nw] = 200
-    ab2_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
+    # ab2_cut.variable[north_nw:south_nw, west_nw] = 200
+    # ab2_cut.variable[north_nw:south_nw, east_nw] = 200
+    # ab2_cut.variable[north_nw, west_nw:east_nw] = 200
+    # ab2_cut.variable[south_nw, west_nw : (east_nw + 1)] = 200
 
     # define mins and max for colorbar and images
-    cmin = -3
-    cmax = 3
+    cmin = -2
+    cmax = 2
     ylim = [38, 72]
     xlim = [-75, -5]
 
     time = (end - start) // 12
     End = 1958 + time
     cmap_1 = plt.cm.get_cmap("coolwarm").copy()
-    cmap_1.set_over(color="black")
 
-    fig = plt.figure(figsize=(18, 9), constrained_layout=True)
+    fig = plt.figure(figsize=(13, 7), constrained_layout=True)
     fig.suptitle("NA SST Bias", fontweight="bold", fontsize=15)
     ax1 = plt.subplot(2, 2, 3, projection=ccrs.PlateCarree())
     ax1.set_global()
@@ -1211,6 +1210,8 @@ def sst_bias_maps(start=0, end=120, sst="HadIsst", name=""):
     gls1 = ax1.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
     gls1.top_labels = False  # suppress top labels
     gls1.right_labels = False  # suppress right labels
+    gls1.bottom_labels = False  # suppress bottom labels
+    gls1.left_labels = False  # suppress left labels
     ax2 = plt.subplot(2, 2, 4, projection=ccrs.PlateCarree())
     ax2.set_global()
     ab1.variable.plot.pcolormesh(
@@ -1241,8 +1242,9 @@ def sst_bias_maps(start=0, end=120, sst="HadIsst", name=""):
     gls2 = ax2.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
     gls2.top_labels = False  # suppress top labels
     gls2.right_labels = False  # suppress right labels
-    gls2.left_labels = False  # suppress right labels
-    cbar = plt.colorbar(im, shrink=0.8)
+    gls2.bottom_labels = False  # suppress bottom labels
+    gls2.left_labels = False  # suppress left labels
+    cbar = plt.colorbar(im, shrink=0.8, location="bottom")
     cbar.set_label("SST bias in °C")
     ax3 = plt.subplot(2, 2, 1, projection=ccrs.PlateCarree())
     ax3.set_global()
@@ -1274,6 +1276,8 @@ def sst_bias_maps(start=0, end=120, sst="HadIsst", name=""):
     gls3 = ax3.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
     gls3.top_labels = False  # suppress top labels
     gls3.right_labels = False  # suppress right labels
+    gls3.bottom_labels = False  # suppress bottom labels
+    gls3.left_labels = False  # suppress left labels
     ax4 = plt.subplot(2, 2, 2, projection=ccrs.PlateCarree())
     ax4.set_global()
     ab2.variable.plot.pcolormesh(
@@ -1303,9 +1307,10 @@ def sst_bias_maps(start=0, end=120, sst="HadIsst", name=""):
     ax4.set_xlim(xlim)
     gls4 = ax4.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
     gls4.top_labels = False  # suppress top labels
-    gls4.left_labels = False  # suppress top labels
     gls4.right_labels = False  # suppress right labels
-    cbar = plt.colorbar(im, shrink=0.8)
+    gls4.bottom_labels = False  # suppress bottom labels
+    gls4.left_labels = False  # suppress left labels
+    cbar = plt.colorbar(im, shrink=0.8, location="bottom")
     cbar.set_label("SST bias in °C")
     plt.savefig(
         f"../Asi_maskiert/pdfs/validation/part_19/nw_images/sst_biases_{sst}{name}.pdf"

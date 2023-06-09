@@ -1666,7 +1666,7 @@ dso_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
 #     f"{cfg.val_dir}part_19/validation_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
 #     "r",
 # )
-
+#
 # HadI_path = "/pool/data/ICDC/ocean/hadisst1/DATA/HadISST_sst.nc"
 # HadIds = xr.load_dataset(HadI_path, decode_times=False)
 #
@@ -1689,67 +1689,205 @@ dso_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
 # print("second")
 #
 #
-# plt.figure(figsize=(16, 16), constrained_layout=True)
-# plt.subplot(2, 2, 1)
-# plt.imshow(image, vmin=-3, vmax=3, cmap="coolwarm")
-# plt.subplot(2, 2, 2)
-# plt.imshow(gt, vmin=-3, vmax=3, cmap="coolwarm")
-# plt.subplot(2, 2, 3)
-# plt.imshow(mask * gt - image, vmin=-5, vmax=5, cmap="coolwarm")
-# plt.subplot(2, 2, 4)
-# plt.imshow(mask * output - image, vmin=-5, vmax=5, cmap="coolwarm")
-# plt.savefig("../Asi_maskiert/pdfs/validation/part_19/nw_images/sst_bias_60s_o.pdf")
-# plt.show()
-
-
-# evalu.sst_bias_maps(name="_10year")
-# evalu.sst_bias_maps(sst="obs", name="_10year")
-# evalu.sst_bias_maps(end=60, name="_5year")
+# # evalu.sst_bias_maps(name="_10year")
+# # evalu.sst_bias_maps(sst="obs", name="_10year")
 # evalu.sst_bias_maps(end=60, sst="obs", name="_5year")
+# evalu.sst_bias_maps(end=120, sst="obs", name="_10year")
+# evalu.sst_bias_maps(end=202, sst="obs", name="_15year")
 
 # vs.new_4_plot(
-#     var_1=np.nanmean(gt[600:660, :, :], axis=0),
-#     var_2=np.nanmean(out[600:660, :, :], axis=0),
-#     var_3=np.nanmean(gt[0:60, :, :], axis=0),
-#     var_4=np.nanmean(out[0:60, :, :], axis=0),
-#     name_1="Assimilation OHC 2008 -- 2013",
-#     name_2="Neural Network OHC 2008 -- 2013",
-#     name_3="Assimilation OHC 1958 -- 1963",
-#     name_4="Neural Network OHC 1958 -- 1963",
-#     title="NA SPG OHC Comparison",
+#     var_1=np.nanmean(gt[552:754, :, :], axis=0),
+#     var_2=np.nanmean(out[552:754, :, :], axis=0),
+#     var_3=np.nanmean(gt[0:202, :, :], axis=0),
+#     var_4=np.nanmean(out[0:202, :, :], axis=0),
+#     name_1="Assimilation 2004 -- 2020",
+#     name_2="Neural Network 2004 -- 2020",
+#     name_3="Assimilation 1958 -- 1974",
+#     name_4="Neural Network 1958 -- 1974",
+#     title="na_spg_nw_corner_comparison",
 #     mini=1.5e10,
 #     maxi=2e10,
 # )
 
 
+# f = h5py.File(
+#     f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
+#     "r",
+# )
+# fc = h5py.File(
+#     f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}_full.hdf5",
+#     "r",
+# )
+#
+# mask = np.array(f.get("mask"))
+# mask = np.where(mask == 0, np.nan, mask)
+# mask_A = np.where(np.mean(mask[552:]) >= 0.1, 1, np.nan)
+# mask_pA = np.mean(mask[0:192])
+# mask_pA = np.where(mask_pA >= 0.1, 1, np.nan)
+# obs = np.array(f.get("image"))
+# obs_sst = np.where(obs == 0, np.nan, obs)[:, 0, :, :]
+# obs_pA = np.nanmean(obs_sst[:192, :, :])
+# obs_A = np.nanmean(obs_sst[552:, :, :])
+# image_pA = obs_pA * mask_pA
+# image_A = obs_A * mask_A
+# image = np.array(f.get("image"))
+# hc_net = np.array(fc.get("hc_net"))
+# hc_gt = np.array(fc.get("hc_gt"))
+# assi_sst = np.array(f.get("gt"))[:, 0, :, :] * mask[:, 0, :, :]
+#
+# masked_gt = hc_gt * mask[:, 0, :, :]
+# masked_net = hc_net * mask[:, 0, :, :]
+#
+# print(image_pA.shape, obs_pA.shape, mask_pA.shape, obs.shape, mask.shape)
+# vs.new_4_plot(
+#     var_1=obs[744, 0, :, :] * mask[744, 0, :, :],
+#     var_2=obs[0, 0, :, :] * mask[0, 0, :, :],
+#     var_3=obs[5, 0, :, :] * mask[0, 0, :, :],
+#     var_4=obs[749, 0, :, :] * mask[0, 0, :, :],
+#     name_1="Observations pre Argo",
+#     name_2="Observations Argo",
+#     name_3="Assimilation Bias pre Argo",
+#     name_4="Assimilation Bias Argo",
+#     title="masks_images_comparison_1",
+#     mini=-2,
+#     maxi=2,
+#     cb_unit="SSTs in °C",
+# )
+
+# vs.new_4_plot(
+#     var_1=image_pA,
+#     var_2=image_A,
+#     var_3=assi_sst[:202, :, :] - obs_sst[:202, :, :],
+#     var_4=assi_sst[552:754, :, :] - obs_sst[552:754, :, :],
+#     name_1="Observations pre Argo",
+#     name_2="Observations Argo",
+#     name_3="Assimilation Bias pre Argo",
+#     name_4="Assimilation Bias Argo",
+#     title="masks_images_comparison_1",
+#     mini=1.0e10,
+#     maxi=3.5e10,
+# )
+
+part = "part_19"
+iteration = 550000
+mask_argo = "anhang"
+argo = "full"
+val_cut = "_cut"
+del_t = 12
+
+profiles_name = f"{cfg.im_dir}en4_profiles.nc"
+ds_profiles = xr.load_dataset(profiles_name, decode_times=False)
+
+profiles = ds_profiles.tho.values
+
+f_o = h5py.File(
+    f"{cfg.val_dir}{part}/validation_{iteration}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+    "r",
+)
+fo = h5py.File(
+    f"{cfg.val_dir}{part}/timeseries_{iteration}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+    "r",
+)
 f = h5py.File(
-    f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
-    "r",
-)
-fc = h5py.File(
-    f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}_full.hdf5",
+    f"{cfg.val_dir}{part}/timeseries_{iteration}_assimilation_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
     "r",
 )
 
-mask = np.array(f.get("mask"))
-mask = np.where(mask == 0, np.nan, mask)
-image = np.array(f.get("image"))
-hc_net = np.array(fc.get("hc_net"))
-hc_gt = np.array(fc.get("hc_gt"))
+hc_assi = np.array(f.get("net_ts"))
+hc_gt = np.array(f.get("gt_ts"))
+hc_obs = np.array(fo.get("net_ts"))
 
-masked_gt = hc_gt * mask[:, 0, :, :]
-masked_net = hc_net * mask[:, 0, :, :]
+print(hc_assi.shape, hc_obs.shape)
 
-vs.new_4_plot(
-    var_1=masked_gt[0, :, :],
-    var_2=masked_gt[744, :, :],
-    var_3=hc_gt[0, :, :],
-    var_4=hc_gt[744, :, :],
-    name_1="Assimilation OHC at points of sst observations January 1958",
-    name_2="Assimilation OHC at points of sst observations January 2020",
-    name_3="Assimilation OHC January 1958",
-    name_4="Assimilation OHC January 2020",
-    title="masks_images_comparison_1",
-    mini=1e10,
-    maxi=3.5e10,
+gt = np.array(f_o.get("gt")[:, 0, :, :])
+continent_mask = np.where(gt == 0, np.NaN, 1)
+gt = gt * continent_mask
+
+# calculate uncertainty through ensemble standard deviations
+std_a = evalu.running_mean_std(hc_assi, mode="std", del_t=del_t)
+std_o = evalu.running_mean_std(hc_obs, mode="std", del_t=del_t)
+std_gt = evalu.running_mean_std(hc_gt, mode="std", del_t=del_t)
+
+gt_mean, std_gt, hc_all = evalu.hc_ensemble_mean_std(
+    cfg.im_dir, name="Image_r", members=16
 )
+
+hc_all_a, hc_all_o = evalu.hc_ml_ensemble(
+    members=15, part="part_18", iteration=585000, length=764
+)
+del_a = evalu.running_mean_std(np.nanstd(hc_all_a, axis=0), mode="mean", del_t=del_t)
+del_o = evalu.running_mean_std(np.nanstd(hc_all_a, axis=0), mode="mean", del_t=del_t)
+std_gt = evalu.running_mean_std(std_gt, mode="mean", del_t=del_t)
+del_gt = std_gt[: len(std_a)]
+
+# calculate running mean, if necessary
+if del_t != 1:
+    hc_assi = evalu.running_mean_std(hc_assi, mode="mean", del_t=del_t)
+    hc_gt = evalu.running_mean_std(hc_gt, mode="mean", del_t=del_t)
+    hc_obs = evalu.running_mean_std(hc_obs, mode="mean", del_t=del_t)
+
+hc_gt, hc_obs, hc_assi, del_a, del_o, del_gt = (
+    hc_gt[:754],
+    hc_obs[:754],
+    hc_assi[:754],
+    del_a[:754],
+    del_o[:754],
+    del_gt[:754],
+)
+start = 1958 + (del_t // 12) // 2
+end = 2021 - (del_t // 12) // 2
+
+length = len(hc_gt)
+ticks = np.arange(0, length, 12 * 5)
+labels = np.arange(start, end, 5)  #
+
+fig, ax = plt.subplots(figsize=(9, 5))
+plt.title("SPG OHC Estimates")
+
+ax2 = ax.twinx()
+ax.set_zorder(10)
+ax.patch.set_visible(False)
+
+o = "_obs"
+# Plot obs histogram
+ax2.bar(
+    np.arange(1, len(profiles) + 1) * 12,
+    profiles,
+    width=5,
+    color="grey",
+)
+ax2.set_ylabel("# of Observations")
+ax2.set_ylim(0, 12000)
+
+# Plot main axis: OHC timeseries
+ax.plot(hc_gt, label="Assimilation OHC", color="darkred", alpha=0.8)
+ax.fill_between(
+    range(len(hc_gt)),
+    hc_gt + del_gt,
+    hc_gt - del_gt,
+    label="Ensemble Spread Assimilation",
+    color="lightcoral",
+    alpha=0.8,
+)
+ax.plot(hc_obs, label="CNN reconstruction OHC", color="royalblue", alpha=0.8)
+ax.fill_between(
+    range(len(hc_gt)),
+    hc_obs + del_o,
+    hc_obs - del_o,
+    label="Ensemble Spread Assimilation",
+    color="lightblue",
+    alpha=0.8,
+)
+ax.grid()
+ax.legend(loc=9)
+ax.set_xticks(ticks=ticks, labels=labels)
+ax.set_xlabel("Time in years")
+ax.set_ylabel("Heat Content [J]")
+ax.set_ylim(-1.5e12, 1.5e12)
+ax.axvline(552, color="red")
+
+
+plt.savefig(
+    f"../Asi_maskiert/pdfs/validation/{part}/nw_images/timeseries_paper_obscount.pdf"
+)
+plt.show()
