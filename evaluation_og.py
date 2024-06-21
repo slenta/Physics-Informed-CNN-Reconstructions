@@ -1043,7 +1043,7 @@ def ml_ensemble_iteration(members, part, iteration, length=754):
 
 
 def hc_ml_ensemble(members, part, iteration, length=754):
-    hc_all_a, hc_all_o = np.zeros(shape=(2, members, length))
+    hc_all_a, hc_all_o, hc_all_gt = np.zeros(shape=(3, members, length))
     members = np.arange(1, members + 1)
 
     for member in members:
@@ -1059,14 +1059,17 @@ def hc_ml_ensemble(members, part, iteration, length=754):
 
         hc_a = np.array(f_a.get("net_ts"))
         hc_o = np.array(f_o.get("net_ts"))
+        hc_gt = np.array(f_a.get("gt_ts"))
 
         hc_all_a[member - 1, :] = hc_a
         hc_all_o[member - 1, :] = hc_o
+        hc_all_gt[member - 1, :] = hc_gt
 
     hc_all_a = np.array(hc_all_a)
     hc_all_o = np.array(hc_all_o)
+    hc_all_gt = np.array(hc_all_gt)
 
-    return hc_all_a, hc_all_o
+    return hc_all_a, hc_all_o, hc_all_gt
 
 
 def hc_ensemble_mean_std(path=cfg.im_dir, name=cfg.im_name, members=15, length=767):

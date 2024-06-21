@@ -81,19 +81,16 @@ class preprocessing:
 
             # change total values to anomalies using calculated baseline climatology
             # (taken from ensemble mean of all assimilation data)
-            f = h5py.File(
-                "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
-                "r",
-            )
-            tos_mean = f.get("sst_mean_newgrid")
-            tos = ds.thetao.values
+            f_clim = h5py.File(f"{cfg.im_dir}{cfg.im_name}clim_argo_ensemble.hdf5", "r")
+            thetao_clim = f_clim.get("clim")
+            thetao = ds.thetao.values
 
             if cfg.attribute_anomaly == "anomalies":
                 for i in range(len(tos)):
-                    tos[i] = tos[i] - tos_mean[i % 12]
+                    thetao[i] = thetao[i] - thetao_clim[i % 12]
 
             # eliminate nan values
-            tos = np.nan_to_num(tos, nan=0)
+            tos = np.nan_to_num(thetao, nan=0)
 
         # adjust observation data for validation purposes
         elif self.mode == "val":

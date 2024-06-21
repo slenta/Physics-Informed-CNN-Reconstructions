@@ -1149,6 +1149,7 @@ def new_4_plot(
     cb_unit="Heat Content in J",
 ):
     # create datasets and cut versions for SPG highlighting
+    print(var_1.shape)
     var_1_cut = evalu.area_cutting_single(var_1)
     var_2_cut = evalu.area_cutting_single(var_2)
     var_3_cut = evalu.area_cutting_single(var_3)

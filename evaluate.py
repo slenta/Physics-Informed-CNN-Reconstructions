@@ -38,6 +38,11 @@ if cfg.attribute_depth == "depth":
     depth = True
 else:
     depth = False
+if cfg.attribute_anomalies == "anomalies":
+    anom = True
+else:
+    anom = False
+
 
 model = PConvLSTM(
     img_size=cfg.image_size,

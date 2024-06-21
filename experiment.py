@@ -12,6 +12,7 @@ import cdo
 import visualisation as vs
 import os
 import cartopy.crs as ccrs
+from scipy.stats import pearsonr
 
 # from preprocessing import preprocessing
 # from scipy.stats import pearsonr, norm
@@ -1357,12 +1358,12 @@ cfg.set_train_args()
 
 ###### plot new projection of nw images
 f = h5py.File(
-    f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}_full.hdf5",
+    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}_full.hdf5",
     "r",
 )
 
 fc = h5py.File(
-    f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}_cut_full.hdf5",
+    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}_cut_full.hdf5",
     "r",
 )
 
@@ -1380,7 +1381,6 @@ nw_mask = np.where(nw_corner == 1, np.nan, 1)
 out_nw = np.where(out * nw_corner == 0, 1, out * nw_corner)
 gt_nw = np.nan_to_num(gt * nw_mask, nan=1) * out_nw
 gt_nw_cut = evalu.area_cutting_single(gt_nw)
-print(gt_nw.shape, gt_nw_cut.shape)
 
 # create xr datasets from variables for plotting purposes
 north_nw = 20
@@ -1388,248 +1388,6 @@ south_nw = 37
 west_nw = 25
 east_nw = 35
 fill_value = np.nan
-print(gt_nw_cut.shape)
-
-ds_nw = evalu.create_dataset(gt_nw, val_cut="")
-ds = evalu.create_dataset(gt, val_cut="")
-dso = evalu.create_dataset(out, val_cut="")
-ds_nw_cut = evalu.create_dataset(gt_nw_cut, val_cut="_cut")
-ds_nw_cut.variable[:, north_nw:south_nw, west_nw] = fill_value
-ds_nw_cut.variable[:, north_nw:south_nw, east_nw] = fill_value
-ds_nw_cut.variable[:, north_nw, west_nw:east_nw] = fill_value
-ds_nw_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
-ds_cut = evalu.create_dataset(gt_cut, val_cut="_cut")
-ds_cut.variable[:, north_nw:south_nw, west_nw] = fill_value
-ds_cut.variable[:, north_nw:south_nw, east_nw] = fill_value
-ds_cut.variable[:, north_nw, west_nw:east_nw] = fill_value
-ds_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
-dso_cut = evalu.create_dataset(out_cut, val_cut="_cut")
-dso_cut.variable[:, north_nw:south_nw, west_nw] = fill_value
-dso_cut.variable[:, north_nw:south_nw, east_nw] = fill_value
-dso_cut.variable[:, north_nw, west_nw:east_nw] = fill_value
-dso_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
-
-# cmap_1 = plt.cm.get_cmap("coolwarm").copy()
-# cmap_1.set_bad(color="black")
-#
-# fig = plt.figure(figsize=(18, 9), constrained_layout=True)
-# fig.suptitle("NA Ocean Heat Content", fontweight="bold", fontsize=15)
-# ax1 = plt.subplot(2, 2, 3, projection=ccrs.PlateCarree())
-# ax1.set_global()
-# ds.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
-#     ax=ax1,
-#     transform=ccrs.PlateCarree(),
-#     cmap="coolwarm",
-#     vmin=1.5e10,
-#     vmax=2e10,
-#     alpha=0.4,
-#     x="lon",
-#     y="lat",
-#     add_colorbar=False,
-# )
-# ds_cut.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
-#     ax=ax1,
-#     transform=ccrs.PlateCarree(),
-#     cmap="coolwarm",
-#     vmin=1.5e10,
-#     vmax=2e10,
-#     x="lon",
-#     y="lat",
-#     add_colorbar=False,
-# )
-# ax1.coastlines()
-# ax1.set_title("Assimilation January 1958 -- January 1963")
-# ax1.set_ylim([38, 72])
-# ax1.set_xlim([-75, 5])
-# gls1 = ax1.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
-# gls1.top_labels = False  # suppress top labels
-# gls1.right_labels = False  # suppress right labels
-#
-# ax2 = plt.subplot(2, 2, 4, projection=ccrs.PlateCarree())
-# ax2.set_global()
-# dso.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
-#     ax=ax2,
-#     transform=ccrs.PlateCarree(),
-#     cmap="coolwarm",
-#     vmin=1.5e10,
-#     vmax=2e10,
-#     alpha=0.4,
-#     x="lon",
-#     y="lat",
-#     add_colorbar=False,
-# )
-# im = (
-#     dso_cut.variable[0:60, :, :]
-#     .mean(axis=0)
-#     .plot.pcolormesh(
-#         ax=ax2,
-#         transform=ccrs.PlateCarree(),
-#         cmap="coolwarm",
-#         vmin=1.5e10,
-#         vmax=2e10,
-#         x="lon",
-#         y="lat",
-#         add_colorbar=False,
-#     )
-# )
-# ax2.coastlines()
-# ax2.set_title("Neural Network January 1958 -- January 1963")
-# ax2.set_ylim([38, 72])
-# ax2.set_xlim([-75, 5])
-# gls2 = ax2.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
-# gls2.top_labels = False  # suppress top labels
-# gls2.right_labels = False  # suppress right labels
-# gls2.left_labels = False  # suppress right labels
-# cbar = plt.colorbar(im, shrink=0.8)
-# cbar.set_label("Heat Content in J")
-#
-# ax3 = plt.subplot(2, 2, 1, projection=ccrs.PlateCarree())
-# ax3.set_global()
-# ds.variable[600:660, :, :].mean(axis=0).plot.pcolormesh(
-#     ax=ax3,
-#     transform=ccrs.PlateCarree(),
-#     cmap="coolwarm",
-#     vmin=1.5e10,
-#     vmax=2e10,
-#     alpha=0.4,
-#     x="lon",
-#     y="lat",
-#     add_colorbar=False,
-# )
-# ds_cut.variable[600:660, :, :].mean(axis=0).plot.pcolormesh(
-#     ax=ax3,
-#     transform=ccrs.PlateCarree(),
-#     cmap="coolwarm",
-#     vmin=1.5e10,
-#     vmax=2e10,
-#     x="lon",
-#     y="lat",
-#     add_colorbar=False,
-# )
-# ax3.coastlines()
-# ax3.set_title("Assimilation January 2010 -- January 2020")
-# ax3.set_ylim([38, 72])
-# ax3.set_xlim([-75, 5])
-# gls3 = ax3.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
-# gls3.top_labels = False  # suppress top labels
-# gls3.right_labels = False  # suppress right labels
-#
-# ax4 = plt.subplot(2, 2, 2, projection=ccrs.PlateCarree())
-# ax4.set_global()
-# dso.variable[600:660, :, :].mean(axis=0).plot.pcolormesh(
-#     ax=ax4,
-#     transform=ccrs.PlateCarree(),
-#     cmap="coolwarm",
-#     vmin=1.5e10,
-#     vmax=2e10,
-#     alpha=0.4,
-#     x="lon",
-#     y="lat",
-#     add_colorbar=False,
-# )
-# im = (
-#     dso_cut.variable[600:660, :, :]
-#     .mean(axis=0)
-#     .plot.pcolormesh(
-#         ax=ax4,
-#         transform=ccrs.PlateCarree(),
-#         cmap="coolwarm",
-#         vmin=1.5e10,
-#         vmax=2e10,
-#         x="lon",
-#         y="lat",
-#         add_colorbar=False,
-#     )
-# )
-# ax4.coastlines()
-# ax4.set_title("Neural Network January 2010 -- January 2020")
-# ax4.set_ylim([38, 72])
-# ax4.set_xlim([-75, 5])
-# gls4 = ax4.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
-# gls4.top_labels = False  # suppress top labels
-# gls4.left_labels = False  # suppress top labels
-# gls4.right_labels = False  # suppress right labels
-# cbar = plt.colorbar(im, shrink=0.8)
-# cbar.set_label("Heat Content in J")
-# plt.savefig(
-#     f"../Asi_maskiert/pdfs/validation/part_19/nw_images/nw_comparison__newgrid_4_obs_kontrast.pdf"
-# )
-# plt.show()
-
-# fig = plt.figure(figsize=(17, 5), constrained_layout=True)
-# fig.suptitle("NA Ocean Heat Content", fontweight="bold", fontsize=15)
-# ax1 = plt.subplot(1, 2, 1, projection=ccrs.PlateCarree())
-# ax1.set_global()
-# ds.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
-#     ax=ax1,
-#     transform=ccrs.PlateCarree(),
-#     cmap="coolwarm",
-#     vmin=1.5e10,
-#     vmax=3e10,
-#     alpha=0.4,
-#     x="lon",
-#     y="lat",
-#     add_colorbar=False,
-# )
-# ds_cut.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
-#     ax=ax1,
-#     transform=ccrs.PlateCarree(),
-#     cmap="coolwarm",
-#     vmin=1.5e10,
-#     vmax=3e10,
-#     x="lon",
-#     y="lat",
-#     add_colorbar=False,
-# )
-# ax1.coastlines()
-# ax1.set_title("Assimilation January 1958 -- January 1963")
-# ax1.set_ylim([38, 72])
-# ax1.set_xlim([-75, 5])
-# gls1 = ax1.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
-# gls1.top_labels = False  # suppress top labels
-# gls1.right_labels = False  # suppress right labels
-#
-# ax2 = plt.subplot(1, 2, 2, projection=ccrs.PlateCarree())
-# ax2.set_global()
-# ds_nw.variable[0:60, :, :].mean(axis=0).plot.pcolormesh(
-#     ax=ax2,
-#     transform=ccrs.PlateCarree(),
-#     cmap="coolwarm",
-#     vmin=1.5e10,
-#     vmax=3e10,
-#     alpha=0.4,
-#     x="lon",
-#     y="lat",
-#     add_colorbar=False,
-# )
-# im = (
-#     ds_nw_cut.variable[0:60, :, :]
-#     .mean(axis=0)
-#     .plot.pcolormesh(
-#         ax=ax2,
-#         transform=ccrs.PlateCarree(),
-#         cmap="coolwarm",
-#         vmin=1.5e10,
-#         vmax=3e10,
-#         x="lon",
-#         y="lat",
-#         add_colorbar=False,
-#     )
-# )
-# ax2.coastlines()
-# ax2.set_title("Neural Network January 1958 -- January 1963")
-# ax2.set_ylim([38, 72])
-# ax2.set_xlim([-75, 5])
-# gls2 = ax2.gridlines(color="lightgrey", linestyle="-", draw_labels=True)
-# gls2.top_labels = False  # suppress top labels
-# gls2.right_labels = False  # suppress right labels
-# gls2.left_labels = False  # suppress right labels
-# cbar = plt.colorbar(im, shrink=0.8)
-# cbar.set_label("Heat Content in J")
-# plt.savefig(
-#     "../Asi_maskiert/pdfs/validation/part_19/nw_images/nw_corner_newgrid_obs.pdf"
-# )
-# plt.show()
 
 
 ### create nw ensemble spread
@@ -1695,6 +1453,7 @@ dso_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
 # evalu.sst_bias_maps(end=120, sst="obs", name="_10year")
 # evalu.sst_bias_maps(end=202, sst="obs", name="_15year")
 
+####################4 plots
 # vs.new_4_plot(
 #     var_1=np.nanmean(gt[552:754, :, :], axis=0),
 #     var_2=np.nanmean(out[552:754, :, :], axis=0),
@@ -1708,37 +1467,456 @@ dso_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
 #     mini=1.5e10,
 #     maxi=2e10,
 # )
-
-
-# f = h5py.File(
-#     f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
-#     "r",
-# )
-# fc = h5py.File(
-#     f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}_full.hdf5",
-#     "r",
-# )
 #
-# mask = np.array(f.get("mask"))
-# mask = np.where(mask == 0, np.nan, mask)
-# mask_A = np.where(np.mean(mask[552:]) >= 0.1, 1, np.nan)
-# mask_pA = np.mean(mask[0:192])
-# mask_pA = np.where(mask_pA >= 0.1, 1, np.nan)
-# obs = np.array(f.get("image"))
-# obs_sst = np.where(obs == 0, np.nan, obs)[:, 0, :, :]
-# obs_pA = np.nanmean(obs_sst[:192, :, :])
-# obs_A = np.nanmean(obs_sst[552:, :, :])
-# image_pA = obs_pA * mask_pA
-# image_A = obs_A * mask_A
-# image = np.array(f.get("image"))
-# hc_net = np.array(fc.get("hc_net"))
-# hc_gt = np.array(fc.get("hc_gt"))
-# assi_sst = np.array(f.get("gt"))[:, 0, :, :] * mask[:, 0, :, :]
-#
+# vs.new_4_plot(
+#     var_1=np.nanmean(gt[552:754, :, :], axis=0),
+#     var_2=np.nanmean(out[552:754, :, :], axis=0),
+#     var_3=np.nanmean(gt[0:552, :, :], axis=0),
+#     var_4=np.nanmean(out[0:552, :, :], axis=0),
+#     name_1="Assimilation 2004 -- 2020",
+#     name_2="Neural Network 2004 -- 2020",
+#     name_3="Assimilation 1958 -- 1974",
+#     name_4="Neural Network 1958 -- 1974",
+#     title="figure_2_concept_plot",
+#     mini=1e10,
+#     maxi=3e10,
+# )
+
+f = h5py.File(
+    f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
+)
+f_cut = h5py.File(
+    f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}_cut.hdf5",
+    "r",
+)
+
+fa = h5py.File(
+    f"{cfg.val_dir}part_19/validation_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
+)
+fhc = h5py.File(
+    f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}_full.hdf5",
+    "r",
+)
+f_full = h5py.File(
+    f"{cfg.val_dir}part_19/validation_550000_observations_anhang_{cfg.eval_im_year}_full.hdf5",
+    "r",
+)
+fhc_a = h5py.File(
+    f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
+)
+fhc_as_a = h5py.File(
+    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
+)
+fhc_a_cut = h5py.File(
+    f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}_cut.hdf5",
+    "r",
+)
+fhc_as_cut = h5py.File(
+    f"{cfg.val_dir}part_19/heatcontent_550000_assimilation_anhang_{cfg.eval_im_year}_cut.hdf5",
+    "r",
+)
+ft = h5py.File(
+    f"{cfg.val_dir}part_19/timeseries_550000_observations_anhang_{cfg.eval_im_year}_cut.hdf5",
+    "r",
+)
+fta = h5py.File(
+    f"{cfg.val_dir}part_19/timeseries_550000_observations_anhang_{cfg.eval_im_year}_cut.hdf5",
+    "r",
+)
+
+mask_cut = np.array(f_cut.get("mask"))
+mask_cut = np.where(mask_cut == 0, np.nan, mask_cut)
+mask = np.array(f.get("mask"))
+mask = np.where(mask == 0, np.nan, mask)
+mask_A = np.where(np.mean(mask[552:]) >= 0.1, 1, np.nan)
+mask_pA = np.mean(mask[0:192])
+mask_pA = np.where(mask_pA >= 0.1, 1, np.nan)
+hc_net = np.array(fhc.get("hc_net"))
+hc_gt = np.array(fhc.get("hc_gt"))
+hc_net_a = np.array(fhc_a_cut.get("hc_net"))
+hc_gt_a = np.array(fhc_a_cut.get("hc_gt"))
+hc_net_as = np.array(fhc_as_cut.get("hc_net"))
+mask = np.array(f.get("mask"))
+mask = np.where(mask == 0, np.nan, mask)
+obs_cut = np.array(f_cut.get("image"))
+T_obs_cut = np.where(obs_cut == 0, np.nan, obs_cut)[:, :, :, :]
+obs = np.array(f.get("image"))
+T_obs = np.where(obs == 0, np.nan, obs)[:, :, :, :]
+T_assi = np.array(f.get("gt"))[:, :, :, :]
+T_net = np.array(f.get("output"))[:, :, :, :]
+T_net_a = np.array(fa.get("output"))[:, :, :, :]
+# T_net_a = np.array(fa.get("output"))[:, :, :, :]
+T_assi_masked = T_assi * mask
+T_net_masked = T_net * mask
+# T_net_a_masked = T_net_a * mask[:, :, :, :]
+
+assi_temps_masked_argo = T_assi_masked[552:]
+net_temps_masked_argo = T_net_masked[552:]
+assi_temps_masked_pargo = T_assi_masked[:192]
+net_temps_masked_pargo = T_net_masked[:192]
+obs_temps_masked_argo = T_obs[552:]
+obs_temps_masked_pargo = T_obs[:192]
+
+# print(np.nanmean(net_sst[:120, :, :] - obs_sst[:120, :, :], axis=0).shape)
+
 # masked_gt = hc_gt * mask[:, 0, :, :]
 # masked_net = hc_net * mask[:, 0, :, :]
+hc_net_masked = ft.get("net_ts_masked")
+hc_gt_masked = ft.get("gt_ts_masked")
+hc_net_masked_a = fta.get("net_ts_masked")
+hc_gt_masked_a = fta.get("gt_ts_masked")
+
+f_en4 = h5py.File(f"{cfg.im_dir}En4_reanalysis_1950_2020_NA.hdf5", "r")
+en4 = f_en4.get("ohc")[:750, :, :]
+en4 = evalu.area_cutting_single(en4)
+
+hc_all_a, hc_all_o, hc_all_gt = evalu.hc_ml_ensemble(
+    members=15, part="part_19", iteration=550000, length=764
+)
+
+hc_gt_mean = np.nanmean(hc_all_gt[:754], axis=0)
+
+#######Create ensemble mean temperature field
+
+# T_net_ensemble = np.zeros((16, 764, 20, 128, 128))
+# T_gt_ensemble = np.zeros((16, 764, 20, 128, 128))
+# T_net_ensemble_cut = np.zeros((16, 764, 20, hc_net_a.shape[1], hc_net_a.shape[2]))
+# T_gt_ensemble_cut = np.zeros((16, 764, 20, hc_net_a.shape[1], hc_net_a.shape[2]))
 #
-# print(image_pA.shape, obs_pA.shape, mask_pA.shape, obs.shape, mask.shape)
+# for i in range(1, 17):
+#     print(i)
+#     f_cut = h5py.File(
+#         f"{cfg.val_dir}part_19/validation_550000_observations_anhang_r{i}_full_newgrid_cut.hdf5",
+#         "r",
+#     )
+#     f = h5py.File(
+#         f"{cfg.val_dir}part_19/validation_550000_observations_anhang_r{i}_full_newgrid.hdf5",
+#         "r",
+#     )
+#
+#     net_cut = np.array(f_cut.get("output"))
+#     gt_cut = np.array(f_cut.get("gt"))
+#     net = np.array(f.get("output"))
+#     gt = np.array(f.get("gt"))
+#     f.close()
+#     f_cut.close()
+#
+#     T_net_ensemble[i - 1, :, :, :, :] = net
+#     T_gt_ensemble[i - 1, :, :, :, :] = gt
+#     T_net_ensemble_cut[i - 1, :, :, :, :] = net_cut
+#     T_gt_ensemble_cut[i - 1, :, :, :, :] = gt_cut
+#
+# f_ens = h5py.File(
+#     f"{cfg.val_dir}part_19/ensemble_mean_550000_observations_anhang.hdf5", "w"
+# )
+# f_ens_cut = h5py.File(
+#     f"{cfg.val_dir}part_19/ensemble_mean_550000_observations_anhang_cut.hdf5", "w"
+# )
+# f_ens.create_dataset(name="gt", shape=T_gt_ensemble.shape, data=T_gt_ensemble)
+# f_ens.create_dataset(name="output", shape=T_net_ensemble.shape, data=T_net_ensemble)
+# f_ens_cut.create_dataset(
+#     name="gt", shape=T_gt_ensemble_cut.shape, data=T_gt_ensemble_cut
+# )
+# f_ens_cut.create_dataset(
+#     name="output", shape=T_net_ensemble_cut.shape, data=T_net_ensemble_cut
+# )
+#
+# f_ens.close()
+# f_ens_cut.close()
+
+
+f_ens = h5py.File(
+    f"{cfg.val_dir}part_19/ensemble_mean_550000_observations_anhang.hdf5", "r"
+)
+f_ens_cut = h5py.File(
+    f"{cfg.val_dir}part_19/ensemble_mean_550000_observations_anhang_cut.hdf5", "r"
+)
+print(1)
+# T_gt_ensemble = np.array(f_ens.get("gt"))
+# T_net_ensemble = np.array(f_ens.get("output"))
+T_gt_ensemble_cut = np.array(f_ens_cut.get("gt"))
+T_net_ensemble_cut = np.array(f_ens_cut.get("output"))
+
+f_ens.close()
+f_ens_cut.close()
+
+T_assi_ens_mean_cut = np.mean(T_gt_ensemble_cut, axis=0)
+T_net_ens_mean_cut = np.mean(T_net_ensemble_cut, axis=0)
+T_assi_ens_mean_cut_masked = T_assi_ens_mean_cut * mask_cut
+T_net_ens_mean_cut_masked = T_net_ens_mean_cut * mask_cut
+
+################### Observation Mean Scatter Plot
+
+print(T_obs.shape, T_net.shape)
+T_obs_nw = evalu.area_cutting_single(T_obs)
+T_net_nw = evalu.area_cutting_single(T_net)[:, 0, :, :]
+T_assi_nw = evalu.area_cutting_single(T_assi)[:, 0, :, :]
+
+obs = np.nanmean(np.reshape(T_obs, (764, 20, 128 * 128)), axis=1)
+obs_nw = np.reshape(T_obs_nw[:, 0, :, :], (764, T_obs_nw.shape[2]*T_obs_nw.shape[3]))
+non_nan_count = np.count_nonzero(~np.isnan(obs_nw), axis=1)
+time = np.linspace(1958, 2021, obs.shape[0])
+time_repeat = np.repeat(time, obs.shape[1])
+time_nw = np.repeat(time, obs_nw.shape[1])
+print(obs.shape, time.shape)
+
+# plot only the northwest corner
+plt.figure(figsize=(12, 7))
+ax1 = plt.gca()
+ax2 = plt.twinx() 
+ax2.bar(time, non_nan_count, alpha=0.2, color='grey') 
+ax2.set_label("Number of Observations")
+ax2.set_ylim(0, 50)
+ax2.legend()
+
+ax1.scatter(time_nw, obs_nw, marker="x", color="#377eb8", label="Observations")
+ax1.plot(time, np.nanmean(T_net_nw, axis = (2, 1)), color="#ff7f00", label="SST Network Reconstruction")
+ax1.plot(time, np.nanmean(T_assi_nw, axis = (2, 1)), color="#4daf4a", label="SST Assimilation Reanalysis")
+ax1.set_ylabel("Anomaly SST in °C")
+ax1.set_ylim(-10, 10)
+ax1.legend(loc="upper left")
+
+plt.xlabel("Time in Years")
+plt.grid()
+plt.savefig(f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/nw_images/sst_nw_obs_comparison_{cfg.eval_im_year}.pdf")
+plt.show()
+
+# Plot it for the whole SPG
+plt.figure(figsize=(12, 7))
+plt.scatter(time_repeat, obs, marker="x", color="red", label="Observations")
+plt.plot(time, np.nanmean(T_net, axis = (3, 2, 1)), color="blue", label="Mean Network Reconstruction")
+plt.grid()
+plt.legend()
+plt.show()
+
+##################### Climatology investigation
+hc_gt_a = np.array(fhc_a.get("hc_gt"))
+
+###### Recreate Climatology
+gt_file = f"{cfg.im_dir}{cfg.im_name}{cfg.eval_im_year}.nc"
+ds = xr.load_dataset(gt_file)
+print(ds)
+clim_full = ds.groupby("time.month").mean("time")
+clim_full_val = np.array(clim_full.thetao.values)
+ds_argo = ds.sel(time=slice("2004-01-01", "2020-11-01"))
+ds_preargo = ds.sel(time=slice("1958-01-01", "2004-01-01"))
+ds_en4 = ds.sel(time=slice("1970-01-01", "2000-01-01"))
+clim_preargo = ds_preargo.groupby("time.month").mean("time")
+clim_preargo_val = np.array(clim_preargo.thetao.values)
+clim_en4 = ds_en4.groupby("time.month").mean("time")
+clim_en4_val = np.array(clim_en4.thetao.values)
+clim_argo = ds_argo.groupby("time.month").mean("time")
+clim_argo_val = np.array(clim_argo.thetao.values)
+
+# Load utilized climatology
+f_clim = h5py.File(
+    "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
+    "r",
+)
+clim = f_clim.get("sst_mean_newgrid")
+
+print(clim.shape, clim_argo_val.shape, clim_full_val.shape)
+print(np.nanmean(clim - clim_argo_val), np.nanmean(clim - clim_full_val), np.nanmean(clim - clim_en4_val), np.nanmean(clim - clim_preargo_val))
+
+vs.new_4_plot(
+    var_1=np.nanmean(clim, axis=(1, 0)) - np.nanmean(clim_argo_val, axis=(1, 0)),
+    var_2=np.nanmean(clim, axis=(1, 0)) - np.nanmean(clim_full_val, axis=(1, 0)),
+    var_3=np.nanmean(clim, axis=(1, 0)),
+    var_4=np.nanmean(clim_full_val, axis=(1, 0)),
+    name_1="PINN Argo mean",
+    name_2="Assimilation Argo mean",
+    name_3="PINN pArgo mean",
+    name_4="Assimilation pArgo mean",
+    title="OHC_bias_PINN_assimilation_Argo",
+    maxi=2,
+    mini=-2,
+    cb_unit="OHC bias in J",
+)
+
+#################### CREATE NEW CLIMATOLOGY
+
+clim_all = np.zeros(shape=(16, 12, 40, 107, 124))
+for i in np.arange(1, 17):
+    print(i)
+    year = f"r{i}_full_newgrid"
+    gt_file = f"{cfg.im_dir}{cfg.im_name}{year}.nc"
+    ds = xr.load_dataset(gt_file)
+    ds = ds.sel(time=slice("2004-01-01", "2020-11-01"))
+    clim = ds.groupby("time.month").mean("time")
+    clim_all[i-1] = np.array(clim.thetao.values)
+
+clim_all = np.nanmean(clim_all, axis=0)
+print(clim_all.shape)
+f_clim = h5py.File(f"{cfg.im_dir}{cfg.im_name}clim_argo_ensemble.hdf5", "w")
+f_clim.create_dataset(name="clim", shape=clim_all.shape, data=clim_all)
+f_clim.close()
+
+
+##################### COMPARISON OHC ESTIMATES
+plt.figure(figsize=(12, 7))
+plt.plot(np.nansum(hc_gt_a, axis=(2, 1)), label="Assimilation OHC Reanalysis")
+# plt.plot(hc_gt_mean, label="Assimilation Ensemble Mean OHC reanalysis")
+plt.plot(np.nansum(hc_net_a, axis=(2, 1)), label="Neural Network OHC Reconstruction")
+plt.plot(
+    np.nansum(hc_net_as, axis=(2, 1)),
+    label="Neural Network OHC Indirect Reconstruction",
+)
+plt.plot(np.nansum(en4, axis=(2, 1)), label="EN4 OHC Objective Analysis")
+plt.legend()
+plt.grid()
+plt.title("Comparison of OHC Estimates")
+plt.xlabel("Time in Years")
+plt.ylabel("Anomaly OHC in J")
+ticks = np.arange(0, 754, 12 * 5)
+labels = np.arange(1958, 2020, 5)
+plt.xticks(ticks=ticks, labels=labels)
+plt.savefig(
+    f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/nw_images/timeseries_comparison_{cfg.eval_im_year}_4.pdf"
+)
+plt.show()
+
+##################### COMPARISON OHC ESTIMATES AT OBS POINTS
+plt.figure(figsize=(12, 7))
+plt.plot(
+    evalu.running_mean_std(
+        np.nanmean(T_assi_ens_mean_cut_masked[502:], axis=(3, 2, 1)),
+        mode="mean",
+        del_t=12,
+    ),
+    label="Assimilation Reanalysis Mean Anomaly T",
+)
+# plt.plot(hc_gt_mean, label="Assimilation Ensemble Mean OHC reanalysis")
+plt.plot(
+    evalu.running_mean_std(
+        np.nanmean(T_net_ens_mean_cut_masked[502:], axis=(3, 2, 1)),
+        mode="mean",
+        del_t=12,
+    ),
+    label="Neural Network Reconstruction Mean Anomaly T",
+)
+plt.plot(
+    evalu.running_mean_std(
+        np.nanmean(T_obs_cut[502:], axis=(3, 2, 1)), mode="mean", del_t=12
+    ),
+    label="Observations Mean Anomaly T",
+)
+plt.legend()
+plt.grid()
+plt.title("Comparison of Subsurface Temperatures at Points of Observations")
+plt.xlabel("Time in Years")
+plt.ylabel("Mean Anomaly T in °C")
+ticks = np.arange(0, 250, 12 * 5)
+labels = np.arange(1999, 2020, 5)
+plt.xticks(ticks=ticks, labels=labels)
+plt.savefig(
+    f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/nw_images/Mean_anomaly_T_compare_ens_mean.pdf"
+)
+plt.show()
+
+######################## NW CONER T COMPARISON
+T_net_nw = T_net[:, :, 60:77, 40:60]
+T_assi_nw = T_assi[:, :, 60:77, 40:60]
+T_net_a_nw = T_net_a[:, :, 60:77, 40:60]
+
+plt.figure(figsize=(12, 6))
+plt.title("Mean Subsurface Temperatures in the region of the NAC's northwest corner")
+plt.plot(
+    evalu.running_mean_std(np.nanmean(T_net_nw, axis=(3, 2, 1)), mode="mean", del_t=12),
+    label="Network Mean Anomaly T",
+)
+plt.plot(
+    evalu.running_mean_std(
+        np.nanmean(T_assi_nw, axis=(3, 2, 1)), mode="mean", del_t=12
+    ),
+    label="Assimilation Mean Anomaly T",
+)
+plt.xlabel("Time in Years")
+plt.ylabel("Mean Anomaly Temperature in °C")
+plt.legend()
+plt.grid()
+ticks = np.arange(0, 754, 12 * 5)
+labels = np.arange(1958, 2020, 5)
+plt.xticks(ticks=ticks, labels=labels)
+plt.savefig(
+    f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/nw_images/T_means_timeseries_nw.pdf"
+)
+plt.show()
+
+hc_net_a = np.array(fhc_a.get("hc_net"))
+hc_gt_a = np.array(fhc_a.get("hc_gt"))
+hc_net_as_a = np.array(fhc_as_a.get("hc_net"))
+
+############################ ARGO OHC COMPARISON ASSI NET
+
+vs.new_4_plot(
+    var_1=np.nanmean(hc_net_a[552:, :, :], axis=0)
+    - np.nanmean(hc_gt_a[552:, :, :], axis=0),
+    var_2=np.nanmean(hc_net_as_a[450:650, :, :], axis=0)
+    - np.nanmean(hc_gt_a[450:650, :, :], axis=0),
+    var_3=np.nanmean(hc_gt_a[552:, :, :], axis=0)
+    - np.nanmean(hc_net_a[552:, :, :], axis=0),
+    var_4=np.nanmean(hc_net_as_a[552:, :, :], axis=0)
+    - np.nanmean(hc_gt_a[552:, :, :], axis=0),
+    name_1="PINN Argo mean",
+    name_2="Assimilation Argo mean",
+    name_3="PINN pArgo mean",
+    name_4="Assimilation pArgo mean",
+    title="OHC_bias_PINN_assimilation_Argo",
+    maxi=4e9,
+    mini=-4e9,
+    cb_unit="OHC bias in J",
+)
+
+#############################4 PLOTS COMPARISON OHC EXAMPLES
+vs.new_4_plot(
+    var_1=hc_net_a[691, :, :],
+    var_2=hc_gt_a[691, :, :],
+    var_3=hc_net_a[690, :, :],
+    var_4=hc_gt_a[690, :, :],
+    name_1="PINN Reanalysis February 2020",
+    name_2="Assimilation reconstruction February 2020",
+    name_3="PINN Reanalysis November 2004",
+    name_4="Assimilation reconstruction November 2004",
+    title="OHC_comparisons_0_14_A",
+    maxi=4e9,
+    mini=-4e9,
+    cb_unit="OHC in J",
+)
+vs.new_4_plot(
+    var_1=hc_net_a[748, :, :],
+    var_2=hc_gt_a[748, :, :],
+    var_3=hc_net_a[760, :, :],
+    var_4=hc_gt_a[760, :, :],
+    name_1="PINN Reanalysis February 2020",
+    name_2="Assimilation reconstruction February 2020",
+    name_3="PINN Reanalysis November 2004",
+    name_4="Assimilation reconstruction November 2004",
+    title="OHC_comparisons_53_6_A",
+    maxi=4e9,
+    mini=-4e9,
+    cb_unit="OHC in J",
+)
+
+
+# vs.new_4_plot(
+#     var_1=np.nanmean(hc_net_a[552:, :, :], axis=0),
+#     var_2=np.nanmean(hc_gt_a[552:, :, :], axis=0),
+#     var_3=np.nanmean(hc_net_a[:120, :, :], axis=0),
+#     var_4=np.nanmean(hc_gt_a[:120, :, :], axis=0),
+#     name_1="PINN Argo mean",
+#     name_2="Assimilation Argo mean",
+#     name_3="PINN pArgo mean",
+#     name_4="Assimilation pArgo mean",
+#     title="OHC_comparison_744_pAmean",
+#     maxi=4e9,
+#     mini=-4e9,
+#     cb_unit="OHC in J",
+# )
+
 # vs.new_4_plot(
 #     var_1=obs[744, 0, :, :] * mask[744, 0, :, :],
 #     var_2=obs[0, 0, :, :] * mask[0, 0, :, :],
@@ -1754,20 +1932,97 @@ dso_cut.variable[:, south_nw, west_nw : (east_nw + 1)] = fill_value
 #     cb_unit="SSTs in °C",
 # )
 
+############################ BIAS PLOTS 2D Temperature
+for i in range(15, 20):
+
+    T_net_sliced = T_net[:, i, :, :]
+    T_assi_sliced = T_assi[:, i, :, :]
+    T_obs_sliced = T_obs[:, i, :, :]
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(np.nanmean(T_net_sliced, axis=(2, 1)), label="Network Temps")
+    plt.plot(np.nanmean(T_assi_sliced, axis=(2, 1)), label="Assimilation Temps")
+    plt.plot(np.nanmean(T_obs_sliced, axis=(2, 1)), label="Observation Temps")
+    plt.legend()
+    plt.show()
+
+    vs.new_4_plot(
+        var_1=np.nanmean(T_net[:192, i, :, :], axis=(0)),
+        var_2=np.nanmean(T_obs[:192, i, :, :], axis=(0)),
+        var_3=np.nanmean(T_assi[:192, i, :, :], axis=(0)),
+        var_4=np.nanmean(T_net_a[552:, i, :, :], axis=(0)),
+        name_1="Network T pre Argo",
+        name_2="Observations T pre Argo",
+        name_3="Assimilations T pre Argo",
+        name_4="NetworkAssi T pre Argo",
+        title=f"T_comparison_2D_level_{i}",
+        mini=-2,
+        maxi=2,
+        cb_unit="T in °C",
+    )
+
+    vs.new_4_plot(
+        var_1=np.nanmean(T_net_masked[:192, i, :, :] - T_obs[:192, i, :, :], axis=(0)),
+        var_2=np.nanmean(T_net_masked[552:, i, :, :] - T_obs[552:, i, :, :], axis=(0)),
+        var_3=np.nanmean(T_assi_masked[:192, i, :, :] - T_obs[:192, i, :, :], axis=(0)),
+        var_4=np.nanmean(T_assi_masked[552:, i, :, :] - T_obs[552:, i, :, :], axis=(0)),
+        name_1="Network bias pre Argo",
+        name_2="Network bias Argo",
+        name_3="Assimilation Bias pre Argo",
+        name_4="Assimilation Bias Argo",
+        title=f"T_biased_2D_level_{i}",
+        mini=-2,
+        maxi=2,
+        cb_unit="T Bias in °C",
+    )
+
+
+# assi_bias = assi_temps_masked_pargo - obs_temps_masked_pargo
+# assi_bias_nw = assi_bias
+# assi_bias_nw[:, :, :60, :] = 0
+# assi_bias_nw[:, :, :, :40] = 0
+# assi_bias_nw[:, :, 75:, :] = 0
+# assi_bias_nw[:, :, :, 60:] = 0
+#
+#
 # vs.new_4_plot(
-#     var_1=image_pA,
-#     var_2=image_A,
-#     var_3=assi_sst[:202, :, :] - obs_sst[:202, :, :],
-#     var_4=assi_sst[552:754, :, :] - obs_sst[552:754, :, :],
-#     name_1="Observations pre Argo",
-#     name_2="Observations Argo",
+#     var_1=np.nanmean(net_temps_masked_pargo - obs_temps_masked_pargo, axis=(1, 0)),
+#     var_2=np.nanmean(net_temps_masked_argo - obs_temps_masked_argo, axis=(1, 0)),
+#     var_3=np.nanmean(assi_temps_masked_pargo - obs_temps_masked_pargo, axis=(1, 0)),
+#     var_4=np.nanmean(assi_bias_nw, axis=(1, 0)),
+#     name_1="Network bias pre Argo",
+#     name_2="Network bias Argo",
 #     name_3="Assimilation Bias pre Argo",
 #     name_4="Assimilation Bias Argo",
-#     title="masks_images_comparison_1",
-#     mini=1.0e10,
-#     maxi=3.5e10,
+#     title="T_bias_gesamt_nw",
+#     mini=-2,
+#     maxi=2,
+#     cb_unit="T bias in °C",
 # )
+#
+#
 
+# plt.figure(figsize=(12, 6))
+# plt.plot(np.nansum(T_net, axis=(3, 2, 1)), label="Network mean T")
+# plt.plot(np.nansum(T_net_a, axis=(3, 2, 1)), label="Network indirect mean T")
+# plt.plot(np.nansum(T_assi, axis=(3, 2, 1)), label="Assimilation mean T")
+# plt.legend()
+# plt.savefig(
+#     f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/nw_images/T_means_timeseries.pdf"
+# )
+# plt.show()
+#
+# plt.figure(figsize=(12, 6))
+# plt.plot(np.nansum(hc_net_cut, axis=(2, 1)), label="Network OHC")
+# plt.plot(np.nansum(hc_gt_cut, axis=(2, 1)), label="Network indirect OHC")
+# plt.legend()
+# plt.savefig(
+#     f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/nw_images/OHC_compare_timeseries.pdf"
+# )
+# plt.show()
+
+
+################################ COMPARISON OBSCOUNT PLOT PAPER
 part = "part_19"
 iteration = 550000
 mask_argo = "anhang"
@@ -1781,23 +2036,21 @@ ds_profiles = xr.load_dataset(profiles_name, decode_times=False)
 profiles = ds_profiles.tho.values
 
 f_o = h5py.File(
-    f"{cfg.val_dir}{part}/validation_{iteration}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+    f"{cfg.val_dir}{part}/validation_{iteration}_observations_{mask_argo}_{cfg.eval_im_year}_cut.hdf5",
     "r",
 )
 fo = h5py.File(
-    f"{cfg.val_dir}{part}/timeseries_{iteration}_observations_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+    f"{cfg.val_dir}{part}/timeseries_{iteration}_observations_{mask_argo}_{cfg.eval_im_year}_cut.hdf5",
     "r",
 )
 f = h5py.File(
-    f"{cfg.val_dir}{part}/timeseries_{iteration}_assimilation_{mask_argo}_{cfg.eval_im_year}{val_cut}.hdf5",
+    f"{cfg.val_dir}{part}/timeseries_{iteration}_assimilation_{mask_argo}_{cfg.eval_im_year}_cut.hdf5",
     "r",
 )
 
 hc_assi = np.array(f.get("net_ts"))
 hc_gt = np.array(f.get("gt_ts"))
 hc_obs = np.array(fo.get("net_ts"))
-
-print(hc_assi.shape, hc_obs.shape)
 
 gt = np.array(f_o.get("gt")[:, 0, :, :])
 continent_mask = np.where(gt == 0, np.NaN, 1)
@@ -1812,13 +2065,27 @@ gt_mean, std_gt, hc_all = evalu.hc_ensemble_mean_std(
     cfg.im_dir, name="Image_r", members=16
 )
 
-hc_all_a, hc_all_o = evalu.hc_ml_ensemble(
-    members=15, part="part_18", iteration=585000, length=764
+hc_all_a, hc_all_o, hc_all_gt = evalu.hc_ml_ensemble(
+    members=15, part="part_19", iteration=550000, length=764
 )
-del_a = evalu.running_mean_std(np.nanstd(hc_all_a, axis=0), mode="mean", del_t=del_t)
-del_o = evalu.running_mean_std(np.nanstd(hc_all_a, axis=0), mode="mean", del_t=del_t)
-std_gt = evalu.running_mean_std(std_gt, mode="mean", del_t=del_t)
-del_gt = std_gt[: len(std_a)]
+print(hc_all_a.shape, hc_all_gt.shape)
+hc_gt = np.nanmean(hc_all_gt, axis=0)
+hc_obs = np.nanmean(hc_all_o, axis=0)
+
+for i in range(hc_all_gt.shape[0]):
+    plt.plot(hc_all_gt[i, :])
+plt.show()
+
+
+for i in range(hc_all_a.shape[0]):
+    plt.plot(hc_all_a[i, :])
+
+plt.show()
+
+del_a = np.nanstd(hc_all_a, axis=0)
+del_o = np.nanstd(hc_all_a, axis=0)
+# std_gt = evalu.running_mean_std(std_gt, mode="std", del_t=del_t)
+del_gt = np.nanstd(hc_all_gt, axis=0)
 
 # calculate running mean, if necessary
 if del_t != 1:
@@ -1827,12 +2094,12 @@ if del_t != 1:
     hc_obs = evalu.running_mean_std(hc_obs, mode="mean", del_t=del_t)
 
 hc_gt, hc_obs, hc_assi, del_a, del_o, del_gt = (
-    hc_gt[:754],
-    hc_obs[:754],
-    hc_assi[:754],
-    del_a[:754],
-    del_o[:754],
-    del_gt[:754],
+    hc_gt[:753],
+    hc_obs[:753],
+    hc_assi[:753],
+    del_a[:753],
+    del_o[:753],
+    del_gt[:753],
 )
 start = 1958 + (del_t // 12) // 2
 end = 2021 - (del_t // 12) // 2
@@ -1841,6 +2108,12 @@ length = len(hc_gt)
 ticks = np.arange(0, length, 12 * 5)
 labels = np.arange(start, end, 5)  #
 
+r_pA = pearsonr(hc_obs[:552], hc_gt[:552])[0]
+r_A = pearsonr(hc_obs[552:], hc_gt[552:])[0]
+r = pearsonr(hc_obs, hc_gt)[0]
+print(r_pA, r_A, r)
+
+# Start plotting
 fig, ax = plt.subplots(figsize=(9, 5))
 plt.title("SPG OHC Estimates")
 
@@ -1857,7 +2130,7 @@ ax2.bar(
     color="grey",
 )
 ax2.set_ylabel("# of Observations")
-ax2.set_ylim(0, 12000)
+ax2.set_ylim(0, 11000)
 
 # Plot main axis: OHC timeseries
 ax.plot(hc_gt, label="Assimilation OHC", color="darkred", alpha=0.8)
@@ -1865,16 +2138,16 @@ ax.fill_between(
     range(len(hc_gt)),
     hc_gt + del_gt,
     hc_gt - del_gt,
-    label="Ensemble Spread Assimilation",
+    label="Ensemble Spread Assimilation Reanalysis",
     color="lightcoral",
     alpha=0.8,
 )
-ax.plot(hc_obs, label="CNN reconstruction OHC", color="royalblue", alpha=0.8)
+ax.plot(hc_obs, label="PINN Reconstruction OHC", color="royalblue", alpha=0.8)
 ax.fill_between(
     range(len(hc_gt)),
-    hc_obs + del_o,
-    hc_obs - del_o,
-    label="Ensemble Spread Assimilation",
+    hc_obs + del_a,
+    hc_obs - del_a,
+    label="Ensemble Spread PINN Reconstruction",
     color="lightblue",
     alpha=0.8,
 )
@@ -1883,11 +2156,11 @@ ax.legend(loc=9)
 ax.set_xticks(ticks=ticks, labels=labels)
 ax.set_xlabel("Time in years")
 ax.set_ylabel("Heat Content [J]")
-ax.set_ylim(-1.5e12, 1.5e12)
+ax.set_ylim(-4e12, 4.5e12)
 ax.axvline(552, color="red")
 
 
 plt.savefig(
-    f"../Asi_maskiert/pdfs/validation/{part}/nw_images/timeseries_paper_obscount.pdf"
+    f"../Asi_maskiert/pdfs/validation/{part}/nw_images/timeseries_paper_obscount_revised2.pdf"
 )
 plt.show()

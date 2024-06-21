@@ -1,0 +1,17 @@
+# Ignore all script files
+/scripts/*
+
+# Ignore all .log files in all directories
+**/*.log
+
+# Ignore all event files
+**/events*
+
+# Ignore all .pyc files
+*.pyc
+
+# Ignore all files in the .cache directory
+.cache/
+
+# Ignore all bash scripts
+*.sh
