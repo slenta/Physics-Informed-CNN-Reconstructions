@@ -16,6 +16,7 @@ import os
 from collections import namedtuple
 
 from scipy.stats import pearsonr
+from scipy.ndimage import generic_filter
 from preprocessing import preprocessing
 import xarray as xr
 import netCDF4 as nc
@@ -177,10 +178,9 @@ def heat_content_timeseries(depth_steps, iteration, name, anomalies=""):
         f"{cfg.val_dir}{cfg.save_part}/validation_{iteration}_{name}_{cfg.eval_im_year}{cut}.hdf5",
         "r",
     )
-    fb = h5py.File(
-        f"{cfg.im_dir}baseline_climatologyargo{cut}.hdf5",
-        "r",
-    )
+
+    f_clim = h5py.File(f"{cfg.im_dir}{cfg.im_name}clim_argo_ensemble.hdf5", "r")
+
 
     output = np.array(f.get("output"))
     gt = np.array(f.get("gt"))
@@ -189,7 +189,7 @@ def heat_content_timeseries(depth_steps, iteration, name, anomalies=""):
     cvar = [gt, output, image, mask]
 
     if anomalies == "_full":
-        thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
+        thetao_mean = np.array(f_clim.get("clim")[:, :20, :, :])
         mask = np.where(mask == 0, np.NaN, 1)
         image = image * mask
 
@@ -330,11 +330,9 @@ def heat_content_single(image, depths=False, anomalies="", month=13):
         depth_steps = depths
 
     if anomalies == "_full":
-        fb = h5py.File(
-            f"../Asi_maskiert/original_image/baseline_climatologyargo{valcut}.hdf5",
-            "r",
-        )
-        thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
+        f_clim = h5py.File(f"{cfg.im_dir}{cfg.im_name}clim_argo_ensemble.hdf5", "r")
+
+        thetao_mean = np.array(f_clim.get("clim")[:, :20, :, :])
 
         if month != 13:
             image = image + thetao_mean[month]
@@ -407,16 +405,14 @@ def heat_content(depth_steps, iteration, name, anomalies=""):
     mask = np.where(mask == 0, np.NaN, 1)
 
     fm = h5py.File("../Asi_maskiert/original_masks/Kontinent_newgrid.hdf5", "r")
-    fb = h5py.File(
-        f"../Asi_maskiert/original_image/baseline_climatologyargo{cut}.hdf5",
-        "r",
-    )
+    f_clim = h5py.File(f"{cfg.im_dir}{cfg.im_name}clim_argo_ensemble.hdf5", "r")
 
     continent_mask = fm.get("continent_mask")
     continent_mask = np.where(gt[0, 0, :, :] == 0, np.NaN, 1)
 
     if anomalies == "_full":
-        thetao_mean = np.array(fb.get("sst_mean"))[:, : cfg.in_channels, :, :]
+
+        thetao_mean = np.array(f_clim.get("clim")[:, :20, :, :])
         cvar = [gt, output, image, mask]
 
         for var in cvar:
@@ -934,12 +930,9 @@ def pattern_corr_timeseries(name, del_t=1, anomalies=""):
 
 
 def combine_layers(parts, anomalies=True):
-    fb = h5py.File(
-        f"{cfg.im_dir}baseline_climatologyargo.hdf5",
-        "r",
-    )
+    f_clim = h5py.File(f"{cfg.im_dir}{cfg.im_name}clim_argo_ensemble.hdf5", "r")
 
-    thetao_mean = np.array(fb.get("sst_mean")[:, :20, :, :])
+    thetao_mean = np.array(f_clim.get("clim")[:, :20, :, :])
 
     names = ["output", "image", "mask", "gt"]
 
@@ -1319,6 +1312,57 @@ def sst_bias_maps(start=0, end=120, sst="HadIsst", name=""):
         f"../Asi_maskiert/pdfs/validation/part_19/nw_images/sst_biases_{sst}{name}.pdf"
     )
     plt.show()
+
+def compute_spatial_std(data):
+    """
+    Compute the spatial standard deviation for each grid cell in regard to its 8 neighboring cells.
+
+    Parameters:
+    data (2D array): Input 2D array.
+
+    Returns:
+    2D array: Array of the same shape as input, where each element represents the standard deviation
+              of the corresponding grid cell and its 8 neighbors.
+    """
+    def std_filter(values):
+        return np.std(values)
+
+    # Apply the filter to compute the standard deviation for each grid cell and its neighbors
+    spatial_std = generic_filter(data, std_filter, size=3, mode='constant', cval=np.nan)
+    return spatial_std
+
+def compute_spatial_std_metrics(data):
+    """
+    Compute the spatial standard deviation metrics for each grid cell in regard to its 8 neighboring cells for each time step.
+
+    Parameters:
+    data (3D array): Input 3D array with shape (time, lat, lon).
+
+    Returns:
+    tuple: A tuple containing:
+        - 1D array: Spatially averaged time series of the spatial standard deviation over all grid cells.
+        - 2D array: Temporal average of the spatial standard deviation for each grid cell over all time steps.
+    """
+    # Get the shape of the input data
+    time, rows, cols = data.shape
+
+    # Initialize the output arrays
+    spatial_std = np.zeros((time, rows, cols))
+    spatial_avg_timeseries = np.zeros(time)
+
+    # Iterate over each time step
+    for t in range(time):
+        print(t)
+        # Compute the spatial standard deviation for the current time step
+        spatial_std[t, :, :] = compute_spatial_std(data[t, :, :])
+        
+        # Compute the spatially averaged standard deviation for the current time step
+        spatial_avg_timeseries[t] = np.nanmean(spatial_std[t, :, :])
+
+    # Compute the temporal average of the spatial standard deviation for each grid cell
+    temporal_avg_spatial_std = np.nanmean(spatial_std, axis=0)
+
+    return spatial_avg_timeseries, temporal_avg_spatial_std
 
 
 # cfg.set_train_args()

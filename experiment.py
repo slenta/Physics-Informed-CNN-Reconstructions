@@ -1,5 +1,6 @@
 # creating timeseries from all assimilation ensemble members and ensemble mean
 
+import pandas as pd
 import matplotlib
 import numpy as np
 import netCDF4
@@ -1496,6 +1497,10 @@ fa = h5py.File(
     "r",
 )
 fhc = h5py.File(
+    f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}.hdf5",
+    "r",
+)
+fhc_full = h5py.File(
     f"{cfg.val_dir}part_19/heatcontent_550000_observations_anhang_{cfg.eval_im_year}_full.hdf5",
     "r",
 )
@@ -1537,6 +1542,8 @@ mask_pA = np.mean(mask[0:192])
 mask_pA = np.where(mask_pA >= 0.1, 1, np.nan)
 hc_net = np.array(fhc.get("hc_net"))
 hc_gt = np.array(fhc.get("hc_gt"))
+hc_gt_full = np.array(fhc_full.get("hc_gt"))
+hc_o_full = np.array(fhc_full.get("hc_net"))
 hc_net_a = np.array(fhc_a_cut.get("hc_net"))
 hc_gt_a = np.array(fhc_a_cut.get("hc_gt"))
 hc_net_as = np.array(fhc_as_cut.get("hc_net"))
@@ -1571,14 +1578,386 @@ hc_net_masked_a = fta.get("net_ts_masked")
 hc_gt_masked_a = fta.get("gt_ts_masked")
 
 f_en4 = h5py.File(f"{cfg.im_dir}En4_reanalysis_1950_2020_NA.hdf5", "r")
+ds_en4 = xr.open_dataset(f"{cfg.im_dir}En4_reanalysis_1950_2020_NA.nc")
+T_en4 = ds_en4.thetao.values[:, :20, :, :]
+T_o_full = f_full.get("output")
+T_gt_full = f_full.get("gt")
 en4 = f_en4.get("ohc")[:750, :, :]
-en4 = evalu.area_cutting_single(en4)
+en4_cut = evalu.area_cutting_single(en4)
 
 hc_all_a, hc_all_o, hc_all_gt = evalu.hc_ml_ensemble(
     members=15, part="part_19", iteration=550000, length=764
 )
 
-hc_gt_mean = np.nanmean(hc_all_gt[:754], axis=0)
+hc_gt_mean = np.nanmean(hc_all_gt, axis=0)[:754]
+hc_o_mean = np.nanmean(hc_all_o, axis=0)[:754]
+print(hc_gt.shape, hc_net.shape, T_en4.shape)
+
+############ Correlation OHC assimilation network argo, preargo
+
+# Define the periods
+preArgo = slice(0, 552)
+argo = slice(552, 750)
+
+# Initialize the correlation arrays
+correlation_hc_o_gt_preArgo = np.zeros((en4.shape[1], en4.shape[2]))
+correlation_hc_o_gt_argo = np.zeros((en4.shape[1], en4.shape[2]))
+correlation_hc_o_en4_preArgo = np.zeros((en4.shape[1], en4.shape[2]))
+correlation_hc_o_en4_argo = np.zeros((en4.shape[1], en4.shape[2]))
+correlation_hc_gt_en4_preArgo = np.zeros((en4.shape[1], en4.shape[2]))
+correlation_hc_gt_en4_argo = np.zeros((en4.shape[1], en4.shape[2]))
+
+# Compute the correlation for each grid cell for preArgo
+for i in range(en4.shape[1]):
+    for j in range(en4.shape[2]):
+        correlation_hc_o_gt_preArgo[i, j] = np.corrcoef(hc_net[preArgo, i, j], hc_gt[preArgo, i, j])[0, 1]
+        correlation_hc_o_en4_preArgo[i, j] = np.corrcoef(hc_net[preArgo, i, j], en4[preArgo, i, j])[0, 1]
+        correlation_hc_gt_en4_preArgo[i, j] = np.corrcoef(hc_gt[preArgo, i, j], en4[preArgo, i, j])[0, 1]
+
+# Compute the correlation for each grid cell for argo
+for i in range(en4.shape[1]):
+    for j in range(en4.shape[2]):
+        correlation_hc_o_gt_argo[i, j] = np.corrcoef(hc_net[argo, i, j], hc_gt[argo, i, j])[0, 1]
+        correlation_hc_o_en4_argo[i, j] = np.corrcoef(hc_net[argo, i, j], en4[argo, i, j])[0, 1]
+        correlation_hc_gt_en4_argo[i, j] = np.corrcoef(hc_gt[argo, i, j], en4[argo, i, j])[0, 1]
+
+# Initialize the RMSE arrays
+rmse_hc_net_gt_preArgo = np.zeros((T_en4.shape[2], T_en4.shape[3]))
+rmse_hc_net_gt_argo = np.zeros((T_en4.shape[2], T_en4.shape[3]))
+rmse_hc_net_en4_preArgo = np.zeros((T_en4.shape[2], T_en4.shape[3]))
+rmse_hc_net_en4_argo = np.zeros((T_en4.shape[2], T_en4.shape[3]))
+rmse_hc_gt_en4_preArgo = np.zeros((T_en4.shape[2], T_en4.shape[3]))
+rmse_hc_gt_en4_argo = np.zeros((T_en4.shape[2], T_en4.shape[3]))
+
+# Compute the mean over axis 1
+mean_T_en4_preArgo = np.nanmean(T_en4, axis=1)[preArgo]
+mean_T_o_full_preArgo = np.nanmean(T_o_full, axis=1)[preArgo]
+mean_T_gt_full_preArgo = np.nanmean(T_gt_full, axis=1)[preArgo]
+
+mean_T_en4_argo = np.nanmean(T_en4, axis=1)[argo]
+mean_T_o_full_argo = np.nanmean(T_o_full, axis=1)[argo]
+mean_T_gt_full_argo = np.nanmean(T_gt_full, axis=1)[argo]
+
+print(mean_T_en4_argo.shape, mean_T_gt_full_argo.shape, rmse_hc_net_gt_preArgo.shape)
+# Compute the RMSE for each grid cell for preArgo
+for i in range(T_en4.shape[2]):
+    for j in range(T_en4.shape[3]):
+        rmse_hc_net_gt_preArgo[i, j] = np.sqrt(np.nanmean((mean_T_o_full_preArgo[:, i, j] - mean_T_gt_full_preArgo[:, i, j])**2))
+        rmse_hc_net_en4_preArgo[i, j] = np.sqrt(np.nanmean((mean_T_o_full_preArgo[:, i, j] - mean_T_en4_preArgo[:, i, j])**2))
+        rmse_hc_gt_en4_preArgo[i, j] = np.sqrt(np.nanmean((mean_T_gt_full_preArgo[:, i, j] - mean_T_en4_preArgo[:, i, j])**2))
+
+# Compute the RMSE for each grid cell for argo
+for i in range(T_en4.shape[2]):
+    for j in range(T_en4.shape[3]):
+        rmse_hc_net_gt_argo[i, j] = np.sqrt(np.nanmean((mean_T_o_full_argo[:, i, j] - mean_T_gt_full_argo[:, i, j])**2))
+        rmse_hc_net_en4_argo[i, j] = np.sqrt(np.nanmean((mean_T_o_full_argo[:, i, j] - mean_T_en4_argo[:, i, j])**2))
+        rmse_hc_gt_en4_argo[i, j] = np.sqrt(np.nanmean((mean_T_gt_full_argo[:, i, j] - mean_T_en4_argo[:, i, j])**2))
+
+# Compute the metrics for each variable and each period
+std_time_en4_preArgo, std_space_en4_preArgo = evalu.compute_spatial_std_metrics(mean_T_en4_preArgo)
+std_time_o_preArgo, std_space_o_preArgo = evalu.compute_spatial_std_metrics(mean_T_o_full_preArgo)
+std_time_gt_preArgo, std_space_gt_preArgo = evalu.compute_spatial_std_metrics(mean_T_gt_full_preArgo)
+
+std_time_en4_argo, std_space_en4_argo = evalu.compute_spatial_std_metrics(mean_T_en4_argo)
+std_time_o_argo, std_space_o_argo = evalu.compute_spatial_std_metrics(mean_T_o_full_argo)
+std_time_gt_argo, std_space_gt_argo = evalu.compute_spatial_std_metrics(mean_T_gt_full_argo)
+
+# # Plot the data
+# fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+
+# # Plot T_gt_full for argo period
+# im1 = axs[0].imshow(np.nanmean(T_gt_full[argo], axis=(0, 1)), cmap='coolwarm', vmin=np.nanmin(T_gt_full[argo]), vmax=np.nanmax(T_gt_full[argo]))
+# axs[0].set_title('T_gt_full (argo period)')
+# axs[0].set_xlabel('Longitude')
+# axs[0].set_ylabel('Latitude')
+# fig.colorbar(im1, ax=axs[0])
+# 
+# # Plot T_en4 for argo period
+# im2 = axs[1].imshow(np.nanmean(T_en4[argo], axis=(0, 1)), cmap='coolwarm', vmin=np.nanmin(T_en4[argo]), vmax=np.nanmax(T_en4[argo]))
+# axs[1].set_title('T_en4 (argo period)')
+# axs[1].set_xlabel('Longitude')
+# axs[1].set_ylabel('Latitude')
+# fig.colorbar(im2, ax=axs[1])
+# 
+# # Plot T_o_full for argo period
+# im3 = axs[2].imshow(np.nanmean(T_o_full[argo], axis=(0, 1)), cmap='coolwarm', vmin=np.nanmin(T_o_full[argo]), vmax=np.nanmax(T_o_full[argo]))
+# axs[2].set_title('T_o_full (argo period)')
+# axs[2].set_xlabel('Longitude')
+# axs[2].set_ylabel('Latitude')
+# fig.colorbar(im3, ax=axs[2])
+# 
+# plt.tight_layout()
+# plt.show()
+
+################## Plot timeseries of spatial standard deviation
+# Create a figure and axis
+fig, ax = plt.subplots(figsize=(12, 6))
+
+# Plot the time series for each variable
+years = pd.date_range(start='1958-01', end='2020-10', freq='M')
+ticks = pd.date_range(start='1958-01', end='2020-10', freq='10YS')
+ax.plot(years[:len(std_time_en4_preArgo)], std_time_en4_preArgo, label='EN4 Objective Analysis', color='blue')
+ax.plot(years[:len(std_time_o_preArgo)], std_time_o_preArgo, label='Neural Network Reconstruction', color='green')
+ax.plot(years[:len(std_time_gt_preArgo)], std_time_gt_preArgo, label='Assimilation Reanalysis', color='red')
+ax.plot(years[len(std_time_en4_preArgo):len(std_time_en4_preArgo) + len(std_time_en4_argo)], std_time_en4_argo, color='blue', linestyle='dashed')
+ax.plot(years[len(std_time_en4_preArgo):len(std_time_en4_preArgo) + len(std_time_o_argo)], std_time_o_argo, color='green', linestyle='dashed')
+ax.plot(years[len(std_time_en4_preArgo):len(std_time_en4_preArgo) + len(std_time_gt_argo)], std_time_gt_argo, color='red', linestyle='dashed')
+
+# Add labels and title
+ax.set_xlabel('Time')
+ax.set_ylabel('Spatial Standard Deviation')
+ax.set_title('Time Series of Spatial Standard Deviation')
+ax.grid(True)
+
+# Set the x-axis ticks and labels
+ax.set_xticks(ticks)
+ax.set_xticklabels(ticks.year)
+
+# Add a legend
+ax.legend()
+
+# Show the plot
+plt.tight_layout()
+plt.savefig(
+    f"../Asi_maskiert/pdfs/validation/{cfg.save_part}/nw_images/std_time_en4_nn_gt.pdf"
+)
+   
+plt.show()
+# 
+# vs.new_4_plot(
+#     var_1=std_space_en4_preArgo,
+#     var_2=std_space_gt_preArgo,
+#     var_3=std_space_en4_argo,
+#     var_4=std_space_gt_argo,
+#     name_1="Std Space EN4 PreArgo",
+#     name_2="Std Space GT PreArgo", 
+#     name_3="Std Space EN4 Argo", 
+#     name_4="Std Space GT Argo", 
+#     title="std_space_gt_en4", 
+#     mini=0, 
+#     maxi=1)
+# 
+# vs.new_4_plot(
+#     var_1=std_space_o_preArgo,
+#     var_2=std_space_gt_preArgo,
+#     var_3=std_space_o_argo,
+#     var_4=std_space_gt_argo,
+#     name_1="Std Space NN PreArgo",
+#     name_2="Std Space GT PreArgo", 
+#     name_3="Std Space NN Argo", 
+#     name_4="Std Space GT Argo", 
+#     title="std_space_gt_nn", 
+#     mini=0, 
+#     maxi=1)
+
+# vs.new_4_plot(
+#     var_1=rmse_hc_gt_en4_argo,
+#     var_2=rmse_hc_gt_en4_preArgo,
+#     var_3=rmse_hc_net_en4_argo,
+#     var_4=rmse_hc_net_en4_preArgo,
+#     name_1="Rmse OHC GT EN4 Argo",
+#     name_2="Rmse OHC GT EN4 PreArgo", 
+#     name_3="Rmse OHC NN EN4 Argo", 
+#     name_4="Rmse OHC NN EN4 PreArgo", 
+#     title="rmse_t_en4", 
+#     mini=0, 
+#     maxi=1.5)
+# 
+# vs.new_4_plot(
+#     var_1=correlation_hc_gt_en4_argo,
+#     var_2=correlation_hc_gt_en4_preArgo,
+#     var_3=correlation_hc_o_en4_argo,
+#     var_4=correlation_hc_o_en4_preArgo,
+#     name_1="Correlation OHC GT EN4 Argo",
+#     name_2="Correlation OHC GT EN4 PreArgo", 
+#     name_3="Correlation OHC NN EN4 Argo", 
+#     name_4="Correlation OHC NN EN4 PreArgo", 
+#     title="correlation_ohc_en4", 
+#     mini=-1, 
+#     maxi=1)
+# 
+# vs.new_4_plot(
+#     var_1=correlation_hc_o_gt_argo,
+#     var_2=correlation_hc_o_gt_preArgo,
+#     var_3=correlation_hc_o_en4_argo,
+#     var_4=correlation_hc_o_en4_preArgo,
+#     name_1="Correlation OHC Net GT PreArgo",
+#     name_2="Correlation OHC NN GT Argo", 
+#     name_3="Correlation OHC NN EN4 Argo", 
+#     name_4="Correlation OHC NN EN4 PreArgo", 
+#     title="correlation_ohc_en4", 
+#     mini=-1, 
+#     maxi=1)
+
+vs.new_4_plot(
+    var_1=np.nanmean(hc_gt_full[preArgo], axis=0),
+    var_2=np.nanmean(hc_o_full[preArgo], axis=0),
+    var_3=np.nanmean(hc_gt_full[argo], axis=0),
+    var_4=np.nanmean(hc_o_full[argo], axis=0),
+    name_1="OHC gt PreArgo",
+    name_2="OHC Net PreArgo", 
+    name_3="OHC gt Argo", 
+    name_4="OHC Net Argo", 
+    title="comparison_ohc_gt_nn_broad", 
+    mini=1.0e10, 
+    maxi=3.5e10,
+)
+
+vs.new_4_plot(
+    var_1=np.nanmean(hc_gt_full[preArgo], axis=0),
+    var_2=np.nanmean(hc_o_full[preArgo], axis=0),
+    var_3=np.nanmean(hc_gt_full[argo], axis=0),
+    var_4=np.nanmean(hc_o_full[argo], axis=0),
+    name_1="OHC gt PreArgo",
+    name_2="OHC Net PreArgo", 
+    name_3="OHC gt Argo", 
+    name_4="OHC Net Argo", 
+    title="comparison_ohc_gt_nn_wiggle", 
+    mini=1.6e10, 
+    maxi=2.1e10,
+)
+
+# Print the results
+print(f"Correlation between hc_o_mean and hc_gt_mean preArgo: {np.nanmean(correlation_hc_o_gt_preArgo)}")
+print(f"Correlation between hc_o_mean and en4 preArgo: {np.nanmean(correlation_hc_o_en4_preArgo)}")
+print(f"Correlation between hc_o_mean and hc_gt_mean argo: {np.nanmean(correlation_hc_o_gt_argo)}")
+print(f"Correlation between hc_o_mean and en4 argo: {np.nanmean(correlation_hc_o_en4_argo)}")
+print(f"Correlation between hc_gt_mean and en4 preArgo: {np.nanmean(correlation_hc_gt_en4_preArgo)}")
+print(f"Correlation between hc_gt_mean and en4 argo: {np.nanmean(correlation_hc_gt_en4_argo)}")
+
+# Plot the data
+fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+
+# Plot hc_gt for argo period
+im1 = axs[0].imshow(np.nanmean(hc_gt[argo], axis=0), cmap='coolwarm', vmin=np.nanmin(en4[argo]), vmax=np.nanmax(en4[argo]))
+axs[0].set_title('hc_gt (argo period)')
+axs[0].set_xlabel('Longitude')
+axs[0].set_ylabel('Latitude')
+fig.colorbar(im1, ax=axs[0])
+
+# Plot en4 for argo period
+im2 = axs[1].imshow(np.nanmean(en4[argo], axis=0), cmap='coolwarm', vmin=np.nanmin(en4[argo]), vmax=np.nanmax(en4[argo]))
+axs[1].set_title('en4 (argo period)')
+axs[1].set_xlabel('Longitude')
+axs[1].set_ylabel('Latitude')
+fig.colorbar(im2, ax=axs[1])
+
+# Plot hc_net for argo period
+im3 = axs[2].imshow(np.nanmean(hc_net[argo], axis=0), cmap='coolwarm', vmin=np.nanmin(en4[argo]), vmax=np.nanmax(en4[argo]))
+axs[2].set_title('hc_net (argo period)')
+axs[2].set_xlabel('Longitude')
+axs[2].set_ylabel('Latitude')
+fig.colorbar(im3, ax=axs[2])
+
+plt.tight_layout()
+plt.show()
+
+# Plot the results
+fig, axs = plt.subplots(3, 2, figsize=(15, 18))
+
+print(hc_gt.shape, hc_net.shape, correlation_hc_o_gt_argo.shape)
+
+# Plot correlation between hc_o_mean and hc_gt_mean for preArgo
+im1 = axs[0, 0].imshow(correlation_hc_o_gt_preArgo, cmap='coolwarm', vmin=-1, vmax=1)
+axs[0, 0].set_title('Correlation between hc_o_mean and hc_gt_mean (Period 1)')
+axs[0, 0].set_xlabel('Longitude')
+axs[0, 0].set_ylabel('Latitude')
+fig.colorbar(im1, ax=axs[0, 0])
+
+# Plot correlation between hc_o_mean and en4 for preArgo
+im2 = axs[0, 1].imshow(correlation_hc_o_en4_preArgo, cmap='coolwarm', vmin=-1, vmax=1)
+axs[0, 1].set_title('Correlation between hc_o_mean and en4 (Period 1)')
+axs[0, 1].set_xlabel('Longitude')
+axs[0, 1].set_ylabel('Latitude')
+fig.colorbar(im2, ax=axs[0, 1])
+
+# Plot correlation between hc_o_mean and hc_gt_mean for argo
+im3 = axs[1, 0].imshow(correlation_hc_o_gt_argo, cmap='coolwarm', vmin=-1, vmax=1)
+axs[1, 0].set_title('Correlation between hc_o_mean and hc_gt_mean (Period 2)')
+axs[1, 0].set_xlabel('Longitude')
+axs[1, 0].set_ylabel('Latitude')
+fig.colorbar(im3, ax=axs[1, 0])
+
+# Plot correlation between hc_o_mean and en4 for argo
+im4 = axs[1, 1].imshow(correlation_hc_o_en4_argo, cmap='coolwarm', vmin=-1, vmax=1)
+axs[1, 1].set_title('Correlation between hc_o_mean and en4 (Period 2)')
+axs[1, 1].set_xlabel('Longitude')
+axs[1, 1].set_ylabel('Latitude')
+fig.colorbar(im4, ax=axs[1, 1])
+
+# Plot correlation between hc_gt_mean and en4 for preArgo
+im5 = axs[2, 0].imshow(correlation_hc_gt_en4_preArgo, cmap='coolwarm', vmin=-1, vmax=1)
+axs[2, 0].set_title('Correlation between hc_gt_mean and en4 (preArgo)')
+axs[2, 0].set_xlabel('Longitude')
+axs[2, 0].set_ylabel('Latitude')
+fig.colorbar(im5, ax=axs[2, 0])
+
+# Plot correlation between hc_gt_mean and en4 for argo
+im6 = axs[2, 1].imshow(correlation_hc_gt_en4_argo, cmap='coolwarm', vmin=-1, vmax=1)
+axs[2, 1].set_title('Correlation between hc_gt_mean and en4 (argo)')
+axs[2, 1].set_xlabel('Longitude')
+axs[2, 1].set_ylabel('Latitude')
+fig.colorbar(im6, ax=axs[2, 1])
+
+plt.show()
+
+############ Create Rmse Maps
+
+# Print the results
+print(f"RMSE between hc_net and hc_gt preArgo: {np.nanmean(rmse_hc_net_gt_preArgo)}")
+print(f"RMSE between hc_net and en4 preArgo: {np.nanmean(rmse_hc_net_en4_preArgo)}")
+print(f"RMSE between hc_net and hc_gt argo: {np.nanmean(rmse_hc_net_gt_argo)}")
+print(f"RMSE between hc_net and en4 argo: {np.nanmean(rmse_hc_net_en4_argo)}")
+print(f"RMSE between hc_gt and en4 preArgo: {np.nanmean(rmse_hc_gt_en4_preArgo)}")
+print(f"RMSE between hc_gt and en4 argo: {np.nanmean(rmse_hc_gt_en4_argo)}")
+
+# Plot the results
+fig, axs = plt.subplots(3, 2, figsize=(15, 18))
+
+# Plot RMSE between hc_net and hc_gt for preArgo
+im1 = axs[0, 0].imshow(rmse_hc_net_gt_preArgo, cmap='coolwarm', vmin=0, vmax=5e9)
+axs[0, 0].set_title('RMSE between hc_net and hc_gt (preArgo)')
+axs[0, 0].set_xlabel('Longitude')
+axs[0, 0].set_ylabel('Latitude')
+fig.colorbar(im1, ax=axs[0, 0])
+
+# Plot RMSE between hc_net and en4 for preArgo
+im2 = axs[0, 1].imshow(rmse_hc_net_en4_preArgo, cmap='coolwarm', vmin=0, vmax=5e9)
+axs[0, 1].set_title('RMSE between hc_net and en4 (preArgo)')
+axs[0, 1].set_xlabel('Longitude')
+axs[0, 1].set_ylabel('Latitude')
+fig.colorbar(im2, ax=axs[0, 1])
+
+# Plot RMSE between hc_net and hc_gt for argo
+im3 = axs[1, 0].imshow(rmse_hc_net_gt_argo, cmap='coolwarm', vmin=0, vmax=5e9)
+axs[1, 0].set_title('RMSE between hc_net and hc_gt (argo)')
+axs[1, 0].set_xlabel('Longitude')
+axs[1, 0].set_ylabel('Latitude')
+fig.colorbar(im3, ax=axs[1, 0])
+
+# Plot RMSE between hc_net and en4 for argo
+im4 = axs[1, 1].imshow(rmse_hc_net_en4_argo, cmap='coolwarm', vmin=0, vmax=5e9)
+axs[1, 1].set_title('RMSE between hc_net and en4 (argo)')
+axs[1, 1].set_xlabel('Longitude')
+axs[1, 1].set_ylabel('Latitude')
+fig.colorbar(im4, ax=axs[1, 1])
+
+# Plot RMSE between hc_gt and en4 for preArgo
+im5 = axs[2, 0].imshow(rmse_hc_gt_en4_preArgo, cmap='coolwarm', vmin=0, vmax=5e9)
+axs[2, 0].set_title('RMSE between hc_gt and en4 (preArgo)')
+axs[2, 0].set_xlabel('Longitude')
+axs[2, 0].set_ylabel('Latitude')
+fig.colorbar(im5, ax=axs[2, 0])
+
+# Plot RMSE between hc_gt and en4 for argo
+im6 = axs[2, 1].imshow(rmse_hc_gt_en4_argo, cmap='coolwarm', vmin=0, vmax=5e9)
+axs[2, 1].set_title('RMSE between hc_gt and en4 (argo)')
+axs[2, 1].set_xlabel('Longitude')
+axs[2, 1].set_ylabel('Latitude')
+fig.colorbar(im6, ax=axs[2, 1])
+
+plt.show()
+
 
 #######Create ensemble mean temperature field
 
@@ -1712,48 +2091,48 @@ clim_en4_val = np.array(clim_en4.thetao.values)
 clim_argo = ds_argo.groupby("time.month").mean("time")
 clim_argo_val = np.array(clim_argo.thetao.values)
 
-# Load utilized climatology
-f_clim = h5py.File(
-    "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
-    "r",
-)
-clim = f_clim.get("sst_mean_newgrid")
+# # Load utilized climatology
+# f_clim = h5py.File(
+#     "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
+#     "r",
+# )
+# clim = f_clim.get("sst_mean_newgrid")
+# 
+# print(clim.shape, clim_argo_val.shape, clim_full_val.shape)
+# print(np.nanmean(clim - clim_argo_val), np.nanmean(clim - clim_full_val), np.nanmean(clim - clim_en4_val), np.nanmean(clim - clim_preargo_val))
+# 
+# vs.new_4_plot(
+#     var_1=np.nanmean(clim, axis=(1, 0)) - np.nanmean(clim_argo_val, axis=(1, 0)),
+#     var_2=np.nanmean(clim, axis=(1, 0)) - np.nanmean(clim_full_val, axis=(1, 0)),
+#     var_3=np.nanmean(clim, axis=(1, 0)),
+#     var_4=np.nanmean(clim_full_val, axis=(1, 0)),
+#     name_1="PINN Argo mean",
+#     name_2="Assimilation Argo mean",
+#     name_3="PINN pArgo mean",
+#     name_4="Assimilation pArgo mean",
+#     title="OHC_bias_PINN_assimilation_Argo",
+#     maxi=2,
+#     mini=-2,
+#     cb_unit="OHC bias in J",
+# )
 
-print(clim.shape, clim_argo_val.shape, clim_full_val.shape)
-print(np.nanmean(clim - clim_argo_val), np.nanmean(clim - clim_full_val), np.nanmean(clim - clim_en4_val), np.nanmean(clim - clim_preargo_val))
-
-vs.new_4_plot(
-    var_1=np.nanmean(clim, axis=(1, 0)) - np.nanmean(clim_argo_val, axis=(1, 0)),
-    var_2=np.nanmean(clim, axis=(1, 0)) - np.nanmean(clim_full_val, axis=(1, 0)),
-    var_3=np.nanmean(clim, axis=(1, 0)),
-    var_4=np.nanmean(clim_full_val, axis=(1, 0)),
-    name_1="PINN Argo mean",
-    name_2="Assimilation Argo mean",
-    name_3="PINN pArgo mean",
-    name_4="Assimilation pArgo mean",
-    title="OHC_bias_PINN_assimilation_Argo",
-    maxi=2,
-    mini=-2,
-    cb_unit="OHC bias in J",
-)
-
-#################### CREATE NEW CLIMATOLOGY
-
-clim_all = np.zeros(shape=(16, 12, 40, 107, 124))
-for i in np.arange(1, 17):
-    print(i)
-    year = f"r{i}_full_newgrid"
-    gt_file = f"{cfg.im_dir}{cfg.im_name}{year}.nc"
-    ds = xr.load_dataset(gt_file)
-    ds = ds.sel(time=slice("2004-01-01", "2020-11-01"))
-    clim = ds.groupby("time.month").mean("time")
-    clim_all[i-1] = np.array(clim.thetao.values)
-
-clim_all = np.nanmean(clim_all, axis=0)
-print(clim_all.shape)
-f_clim = h5py.File(f"{cfg.im_dir}{cfg.im_name}clim_argo_ensemble.hdf5", "w")
-f_clim.create_dataset(name="clim", shape=clim_all.shape, data=clim_all)
-f_clim.close()
+# #################### CREATE NEW CLIMATOLOGY
+# 
+# clim_all = np.zeros(shape=(16, 12, 40, 107, 124))
+# for i in np.arange(1, 17):
+#     print(i)
+#     year = f"r{i}_full_newgrid"
+#     gt_file = f"{cfg.im_dir}{cfg.im_name}{year}.nc"
+#     ds = xr.load_dataset(gt_file)
+#     ds = ds.sel(time=slice("2004-01-01", "2020-11-01"))
+#     clim = ds.groupby("time.month").mean("time")
+#     clim_all[i-1] = np.array(clim.thetao.values)
+# 
+# clim_all = np.nanmean(clim_all, axis=0)
+# print(clim_all.shape)
+# f_clim = h5py.File(f"{cfg.im_dir}{cfg.im_name}clim_argo_ensemble.hdf5", "w")
+# f_clim.create_dataset(name="clim", shape=clim_all.shape, data=clim_all)
+# f_clim.close()
 
 
 ##################### COMPARISON OHC ESTIMATES
@@ -2142,12 +2521,12 @@ ax.fill_between(
     color="lightcoral",
     alpha=0.8,
 )
-ax.plot(hc_obs, label="PINN Reconstruction OHC", color="royalblue", alpha=0.8)
+ax.plot(hc_obs, label="NN Reconstruction OHC", color="royalblue", alpha=0.8)
 ax.fill_between(
     range(len(hc_gt)),
     hc_obs + del_a,
     hc_obs - del_a,
-    label="Ensemble Spread PINN Reconstruction",
+    label="Ensemble Spread NN Reconstruction",
     color="lightblue",
     alpha=0.8,
 )

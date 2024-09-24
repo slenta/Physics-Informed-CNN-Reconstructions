@@ -1,0 +1,72 @@
+r1_full_newgrid
+0
+/sw/spack-levante/mambaforge-4.11.0-0-Linux-x86_64-sobz6z/lib/python3.9/site-packages/xarray/backends/cfgrib_.py:27: UserWarning: Failed to load cfgrib - most likely there is a problem accessing the ecCodes library. Try `import cfgrib` to get the full error message
+  warnings.warn(
+/sw/spack-levante/mambaforge-4.11.0-0-Linux-x86_64-sobz6z/lib/python3.9/site-packages/xarray/conventions.py:516: SerializationWarning: variable 'sao' has multiple fill values {'-9.e+33f', -9e+33}, decoding all values to NaN.
+  new_vars[k] = decode_cf_variable(
+/sw/spack-levante/mambaforge-4.11.0-0-Linux-x86_64-sobz6z/lib/python3.9/site-packages/xarray/conventions.py:516: SerializationWarning: variable 'tho' has multiple fill values {'-9.e+33f', -9e+33}, decoding all values to NaN.
+  new_vars[k] = decode_cf_variable(
+/sw/spack-levante/mambaforge-4.11.0-0-Linux-x86_64-sobz6z/lib/python3.9/site-packages/xarray/coding/variables.py:140: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+  condition |= data == fv
+../Asi_maskiert/original_masks/Maske_1958_2021_newgrid.nc
+<xarray.Dataset>
+Dimensions:   (time: 202, y: 107, x: 124, nv4: 4, depth: 40)
+Coordinates:
+  * time      (time) float64 2.004e+05 2.004e+05 2.004e+05 ... 2.02e+05 2.02e+05
+    lon       (y, x) float32 305.6 305.7 305.8 306.0 ... 32.31 33.57 34.84 36.12
+    lat       (y, x) float32 70.78 70.68 70.57 70.46 ... 29.16 29.48 29.8 30.12
+  * depth     (depth) float32 6.0 17.0 27.0 37.0 ... 4.67e+03 5.17e+03 5.72e+03
+Dimensions without coordinates: y, x, nv4
+Data variables:
+    lon_bnds  (y, x, nv4) float32 305.7 305.3 305.5 305.8 ... 35.67 36.95 36.58
+    lat_bnds  (y, x, nv4) float32 70.86 70.82 70.71 70.75 ... 29.41 29.73 30.83
+    sao       (time, depth, y, x) float32 nan nan nan nan ... nan nan nan nan
+    tho       (time, depth, y, x) float32 nan nan nan nan ... nan nan nan nan
+Attributes:
+    CDI:          Climate Data Interface version 1.9.10 (https://mpimet.mpg.d...
+    Conventions:  CF-1.4
+    history:      Mon May 16 16:02:57 2022: cdo sellonlatbox,-65,-5,20,69 en4...
+    title:        en4 prof2xyz
+    CDO:          Climate Data Operators version 1.9.10 (https://mpimet.mpg.d...
+Traceback (most recent call last):
+  File "/work/uo1075/u301617/Master_Arbeit/Master-Arbeit_jm/prepro.py", line 73, in <module>
+    prepro_obs.save_data()
+  File "/work/uo1075/u301617/Master_Arbeit/Master-Arbeit_jm/preprocessing.py", line 224, in save_data
+    tos_new = self.__getitem__()
+  File "/work/uo1075/u301617/Master_Arbeit/Master-Arbeit_jm/preprocessing.py", line 113, in __getitem__
+    thetao = ds.thetao.values
+  File "/sw/spack-levante/mambaforge-4.11.0-0-Linux-x86_64-sobz6z/lib/python3.9/site-packages/xarray/core/common.py", line 239, in __getattr__
+    raise AttributeError(
+AttributeError: 'Dataset' object has no attribute 'thetao'
+
+********************************************************************************
+*                                                                              *
+*  This is the automated job summary provided by DKRZ.                         *
+*  If you encounter problems, need assistance or have any suggestion, please   *
+*  write an email to                                                           *
+*                                                                              *
+*  --  support@dkrz.de --                                                      *
+*                                                                              *
+*                       We hope you enjoyed the DKRZ supercomputer LEVANTE ... *
+*
+* JobID            : 10838721
+* JobName          : SimonLentz                                        
+* Account          : uo1075
+* User             : u301617 (100850), u300 (32013)                    
+* Partition        : compute
+* QOS              : normal
+* Nodelist         : l40551 (1)                                                
+* Submit date      : 2024-06-24T14:38:46
+* Start time       : 2024-06-24T14:38:54
+* End time         : 2024-06-24T14:39:54
+* Elapsed time     : 00:01:00 (Timelimit=08:00:00)                     
+* Command          : /work/uo1075/u301617/Master_Arbeit/Master-Arbeit_jm/
+*                    scripts/script_preprocessing_multi.sh
+* WorkDir          : /work/uo1075/u301617/Master_Arbeit/Master-Arbeit_jm
+*
+* StepID | JobName      NodeHours    MaxRSS [Byte] (@task)
+* ------------------------------------------------------------------------------
+* batch  | batch            0.017
+* extern | extern           0.017                2204K (0)
+* ------------------------------------------------------------------------------
+

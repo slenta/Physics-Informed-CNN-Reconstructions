@@ -86,7 +86,7 @@ class preprocessing:
             thetao = ds.thetao.values
 
             if cfg.attribute_anomaly == "anomalies":
-                for i in range(len(tos)):
+                for i in range(len(thetao)):
                     thetao[i] = thetao[i] - thetao_clim[i % 12]
 
             # eliminate nan values
@@ -105,21 +105,19 @@ class preprocessing:
             if cfg.attribute_argo == "anhang":
                 ds = ds.sel(time=slice(195800, 202112))
 
+            print(ds)
             # change total values to anomalies using calculated baseline
             # climatology (taken from ensemble mean of all assimilation data)
-            f = h5py.File(
-                "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
-                "r",
-            )
-
-            tos_mean = f.get("sst_mean_newgrid")
-            tos = ds.tho.values
+            f_clim = h5py.File(f"{cfg.im_dir}{cfg.im_name}clim_argo_ensemble.hdf5", "r")
+            thetao_clim = f_clim.get("clim")
+            thetao = ds.thetao.values
 
             if cfg.attribute_anomaly == "anomalies":
-                for i in range(len(tos)):
-                    tos[i] = tos[i] - tos_mean[i % 12]
+                for i in range(len(thetao)):
+                    thetao[i] = thetao[i] - thetao_clim[i % 12]
 
-            tos = np.nan_to_num(tos, nan=0)
+            # eliminate nan values
+            tos = np.nan_to_num(thetao, nan=0)
 
         # create mixed dataset from observations and assimilation data to better reconstruct observational values
         elif self.mode == "mixed":
@@ -146,17 +144,16 @@ class preprocessing:
             tos_mixed = np.where(np.isnan(tos_obs) == True, tos_im, tos_obs)
             tos = np.array(tos_mixed)
 
-            f = h5py.File(
-                "../Asi_maskiert/original_image/baseline_climatologyargo.hdf5",
-                "r",
-            )
-            tos_mean = f.get("sst_mean_newgrid")
+            f_clim = h5py.File(f"{cfg.im_dir}{cfg.im_name}clim_argo_ensemble.hdf5", "r")
+            thetao_clim = f_clim.get("clim")
+            thetao = ds.thetao.values
 
             if cfg.attribute_anomaly == "anomalies":
-                for i in range(len(tos)):
-                    tos[i] = tos[i] - tos_mean[i % 12]
+                for i in range(len(thetao)):
+                    thetao[i] = thetao[i] - thetao_clim[i % 12]
 
-            tos = np.nan_to_num(tos, nan=0)
+            # eliminate nan values
+            tos = np.nan_to_num(thetao, nan=0)
 
         # adjust shape of variables to fit quadratic input
         n = tos.shape
