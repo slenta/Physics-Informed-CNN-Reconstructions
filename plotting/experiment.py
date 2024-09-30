@@ -10,7 +10,7 @@ import config as cfg
 import xarray as xr
 import evaluation_og as evalu
 import cdo
-import visualisation as vs
+import plotting.visualisation as vs
 import os
 import cartopy.crs as ccrs
 from scipy.stats import pearsonr

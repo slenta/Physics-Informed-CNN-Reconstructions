@@ -3,6 +3,7 @@
 
 # Ignore all .log files in all directories
 **/*.log
+/logs/*
 
 # Ignore all event files
 **/events*

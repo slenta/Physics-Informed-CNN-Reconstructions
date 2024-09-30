@@ -8,8 +8,8 @@ import pandas as pd
 import imageio
 import matplotlib.pyplot as plt
 from dateutil import parser
-from dataloader import MaskDataset
-from preprocessing import preprocessing
+from utils.dataloader import MaskDataset
+from preprocessing.preprocessing import preprocessing
 from fpdf import FPDF
 from cdo import *
 from numpy import ma

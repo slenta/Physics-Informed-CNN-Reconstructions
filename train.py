@@ -15,37 +15,40 @@ from utils.io import load_ckpt, save_ckpt
 from utils.netcdfloader import InfiniteSampler
 from model.loss import InpaintingLoss, HoleLoss
 import config as cfg
-from dataloader import MaskDataset
-import evaluation_og as evalu
-from preprocessing import preprocessing
-from dataloader import ValDataset
+from utils.dataloader import MaskDataset
+import evaluation_new.evaluation_og as evalu
+from preprocessing.preprocessing import preprocessing
+from utils.dataloader import ValDataset
 import time
 
+# Clear CUDA cache
 torch.cuda.empty_cache()
 
+# Depending if you want to allow plots to be shown or not
 # matplotlib.use('Agg')
 
+# Set training arguments
 cfg.set_train_args()
 
-if not os.path.exists(f"{cfg.save_dir}/images/{cfg.save_part}/"):
-    os.makedirs(f"{cfg.save_dir}/images/{cfg.save_part}/")
-if not os.path.exists(f"{cfg.save_dir}/ckpt/{cfg.save_part}/"):
-    os.makedirs(f"{cfg.save_dir}/ckpt/{cfg.save_part}/")
-if not os.path.exists(f"{cfg.save_dir}/validation/{cfg.save_part}/"):
-    os.makedirs(f"{cfg.save_dir}/validation/{cfg.save_part}/")
+
+# Create necessary directories if they don't exist
+# Save_part as help to structure results, especially if multiple depth layers
+directories = [
+    f"{cfg.save_dir}/images/{cfg.save_part}/",
+    f"{cfg.save_dir}/ckpt/{cfg.save_part}/",
+    f"{cfg.save_dir}/validation/{cfg.save_part}/",
+    f"{cfg.log_dir}{cfg.save_part}/"
+]
+
+for directory in directories:
+    os.makedirs(directory, exist_ok=True)
 
 
+# Initialize TensorBoard writer
 log_dir = f"{cfg.log_dir}{cfg.save_part}/"
-if not os.path.exists(log_dir):
-    os.makedirs(log_dir)
 writer = SummaryWriter(log_dir=log_dir)
 
-# define lstm, depth variables
-if cfg.attribute_depth == "depth":
-    depth = True
-else:
-    depth = False
-
+# Print save_part to keep track of structure
 print(cfg.save_part)
 
 # define datasets

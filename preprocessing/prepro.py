@@ -1,6 +1,6 @@
 # script to preprocess necessary data for the nn input
 
-from preprocessing import preprocessing
+from preprocessing.preprocessing import preprocessing
 import config as cfg
 
 cfg.set_train_args()

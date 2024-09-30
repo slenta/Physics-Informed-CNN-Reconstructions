@@ -3,9 +3,9 @@
 
 import matplotlib
 import evaluation_og as evalu
-from dataloader import MaskDataset
-from dataloader import ValDataset
-from preprocessing import preprocessing
+from utils.dataloader import MaskDataset
+from utils.dataloader import ValDataset
+from preprocessing.preprocessing import preprocessing
 from utils.io import load_ckpt, save_ckpt
 import config as cfg
 import torch

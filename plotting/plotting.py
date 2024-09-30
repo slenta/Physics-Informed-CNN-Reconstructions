@@ -1,6 +1,6 @@
 # script plotting all relevant master thesis plots
 
-import visualisation as vs
+import plotting.visualisation as vs
 import numpy as np
 import config as cfg
 import matplotlib.pyplot as plt

@@ -4,7 +4,7 @@ from torch.utils import data
 from torchvision.utils import make_grid
 from torchvision.utils import save_image
 import numpy as np
-from image import unnormalize
+from utils.image import unnormalize
 import h5py
 import matplotlib.pyplot as plt
 import config as cfg
@@ -17,7 +17,7 @@ from collections import namedtuple
 
 from scipy.stats import pearsonr
 from scipy.ndimage import generic_filter
-from preprocessing import preprocessing
+from preprocessing.preprocessing import preprocessing
 import xarray as xr
 import netCDF4 as nc
 import cdo
