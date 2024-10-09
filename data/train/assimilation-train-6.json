@@ -1,15 +1,15 @@
 [
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r3i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r4i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r5i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r6i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r7i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r8i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r9i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r10i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r11i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r12i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r13i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r14i8p4_195801-202010_anomalies_level-6.nc",
-  "/work/uo1075/u301617/Master_Arbeit/data/assimilation_nc_files/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r15i8p4_195801-202010_anomalies_level-6.nc"
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r3i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r4i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r5i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r6i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r7i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r8i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r9i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r10i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r11i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r12i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r13i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r14i8p4_195801-202010_anomalies_level-6.nc",
+  "/work/uo1075/u301617/Master_Arbeit/data/input-goratz/original_files/level-6/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r15i8p4_195801-202010_anomalies_level-6.nc"
 ]
