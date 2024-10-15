@@ -9,6 +9,6 @@ __pycache__/
 
 # Output files
 *.pth
-./snapshots/*
-./outputs/*
+snapshots/*
+outputs/*
 *.log
