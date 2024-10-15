@@ -7,3 +7,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Output files
+*.pth
+./snapshots/*
+./outputs/*
+*.log
