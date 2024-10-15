@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directory containing the JSON files
-json_dir="./train/"
+json_dir="./test/"
 
 # Define the old and new phrases
 old_phrase="/assimilation_nc_files/"

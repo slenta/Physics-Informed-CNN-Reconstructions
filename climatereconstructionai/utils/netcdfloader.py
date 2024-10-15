@@ -85,6 +85,7 @@ def nc_loadchecker(filename, data_type):
                 )
             )
 
+    ds = ds.squeeze("depth")
     ds1 = dataset_formatter(ds, data_type, basename)
     ds = ds.drop_vars(data_type)
 

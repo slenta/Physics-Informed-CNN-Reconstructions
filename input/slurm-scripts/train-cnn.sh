@@ -12,5 +12,5 @@
 module load python3/2022.01-gcc-11.2.0
 cd /work/uo1075/u301617/Master_Arbeit/code-goratz/
 
-source /work/uo1075/u301617/py_envs/crai_env/bin/activate
-python -m climatereconstructionai.train --load-from-file ../input/levante/train-cnn.txt
+source activate crai
+python -m climatereconstructionai.train --load-from-file ./input/levante/train-cnn.txt

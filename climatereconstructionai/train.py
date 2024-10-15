@@ -93,7 +93,8 @@ def train(arg_file=None):
     train_stats = {"mean": dataset_train.img_mean, "std": dataset_train.img_std}
 
     # define network model
-    if len(image_sizes) - cfg.n_target_data > 1:
+    # Temporarily disabled fusion channels for input streams with depth channels
+    if len(image_sizes) - cfg.n_target_data < 1:
         model = CRAINet(
             img_size=image_sizes[0],
             enc_dec_layers=cfg.encoding_layers[0],
@@ -101,8 +102,8 @@ def train(arg_file=None):
             in_channels=cfg.n_channel_steps,
             out_channels=cfg.out_channels,
             fusion_img_size=image_sizes[1],
-            fusion_enc_layers=cfg.encoding_layers[1],
-            fusion_pool_layers=cfg.pooling_layers[1],
+            fusion_enc_layers=cfg.encoding_layers[0],
+            fusion_pool_layers=cfg.pooling_layers[0],
             fusion_in_channels=(len(image_sizes) - 1 - cfg.n_target_data)
             * cfg.n_channel_steps,
             bounds=dataset_train.bounds,

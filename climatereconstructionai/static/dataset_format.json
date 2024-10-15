@@ -15,6 +15,14 @@
     "scale": [[-3,3],"RdBu_r"]
   },
 
+  "mpi-assim": { 
+  "dimensions": ["time", "y", "x"],
+  "axes": ["time", "y", "x"], 
+  "grid": [[0.0, 220.0, 1.0], [0.0, 256.0, 1.0]], 
+  "step": [1.0, 1.0], 
+  "scale": [null, null]
+  }, 
+
   "None": {
     "dimensions": null,
     "axes": null,
