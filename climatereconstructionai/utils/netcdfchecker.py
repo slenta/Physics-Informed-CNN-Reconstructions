@@ -7,11 +7,16 @@ import xesmf as xe
 from .. import config as cfg
 
 
-def reformat_dataset(ds1, ds2, data_type):
+def reformat_dataset(ds1, ds2, data_type, format_name=None):
     if cfg.dataset_name is not None:
         import xesmf as xe
 
-        ds2[data_type] = ds2[data_type].transpose(*cfg.dataset_format["dimensions"])
+        if not format_name:
+            ds2[data_type] = ds2[data_type].transpose(*cfg.dataset_format["dimensions"])
+        else:
+            ds2[data_type] = ds2[data_type].transpose(
+                *cfg.get_format(format_name)["dimensions"]
+            )
 
         regrid = False
         for i in range(2):

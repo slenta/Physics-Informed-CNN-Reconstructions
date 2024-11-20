@@ -193,6 +193,7 @@ class NetCDFLoader(Dataset):
             self.mask_length = self.img_length
         else:
             if not cfg.shuffle_masks:
+                print(self.mask_length, self.img_length)
                 assert self.img_length == self.mask_length
 
         self.img_mean, self.img_std, self.img_znorm = img_normalization(

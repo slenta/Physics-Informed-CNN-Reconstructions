@@ -23,6 +23,14 @@
   "scale": [null, null]
   }, 
 
+  "mpi-assim-depth": { 
+  "dimensions": ["time", "depth", "y", "x"],
+  "axes": ["time", "depth", "y", "x"], 
+  "grid": [[0.0, 645.0, 32.25],[0.0, 220.0, 1.0], [0.0, 256.0, 1.0]], 
+  "step": [32.25, 1.0, 1.0], 
+  "scale": [null, null, null]
+  }, 
+
   "None": {
     "dimensions": null,
     "axes": null,

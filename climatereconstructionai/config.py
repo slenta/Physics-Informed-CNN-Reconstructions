@@ -172,6 +172,12 @@ def set_common_args():
         help="Directory where the log files will be stored",
     )
     arg_parser.add_argument(
+        "--xrdss-paths",
+        type=str_list,
+        default="../data/input-goratz/original_files/anomalies-thetao/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r10i8p4_195801-202010_anomalies.nc",
+        help="File with dimensions for the output files",
+    )
+    arg_parser.add_argument(
         "--data-names",
         type=str_list,
         default="train.nc",
@@ -506,6 +512,12 @@ def set_evaluate_args(arg_file=None, prog_func=None):
     )
     arg_parser.add_argument(
         "--model-names", type=str_list, default="1000000.pth", help="Model names"
+    )
+    arg_parser.add_argument(
+        "--eval-format",
+        type=str,
+        default=None,
+        help="Format for eval output files, if different from training",
     )
     arg_parser.add_argument(
         "--evaluation-dirs",
