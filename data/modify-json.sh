@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Define the directory containing the JSON files
-json_dir="./test/"
+json_dir="./masks/"
 
 # Define the old and new phrases
-old_phrase="/assimilation_nc_files/"
-new_phrase="/input-goratz/"
+old_phrase="2023"
+new_phrase="2020"
 
 # Find all JSON files in the directory and replace the phrase
 find "$json_dir" -name "*.json" | while read -r file; do

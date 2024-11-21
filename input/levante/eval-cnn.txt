@@ -1,13 +1,12 @@
 --data-root-dir ./data/
---model-dir ./model-checkpoints/ 
+--model-dir ./snapshots/ckpt/
 --evaluation-dirs ./evaluations/
 --log-dir ./logs/
 --mask-dir ./data/masks
 
---data-names assimilation-train-1.json,assimilation-train-2.json,assimilation-train-3.json,assimilation-train-4.json,assimilation-train-5.json,assimilation-train-6.json,assimilation-train-7.json,assimilation-train-8.json,assimilation-train-9.json,assimilation-train-10.json,assimilation-train-11.json,assimilation-train-12.json,assimilation-train-13.json,assimilation-train-14.json,assimilation-train-15.json,assimilation-train-16.json,assimilation-train-17.json,assimilation-train-18.json,assimilation-train-19.json,assimilation-train-20.json
 --mask-names en4_masks_1958-2023-level-1.json,en4_masks_1958-2023-level-2.json,en4_masks_1958-2023-level-3.json,en4_masks_1958-2023-level-4.json,en4_masks_1958-2023-level-5.json,en4_masks_1958-2023-level-6.json,en4_masks_1958-2023-level-7.json,en4_masks_1958-2023-level-8.json,en4_masks_1958-2023-level-9.json,en4_masks_1958-2023-level-10.json,en4_masks_1958-2023-level-11.json,en4_masks_1958-2023-level-12.json,en4_masks_1958-2023-level-13.json,en4_masks_1958-2023-level-14.json,en4_masks_1958-2023-level-15.json,en4_masks_1958-2023-level-16.json,en4_masks_1958-2023-level-17.json,en4_masks_1958-2023-level-18.json,en4_masks_1958-2023-level-19.json,en4_masks_1958-2023-level-20.json
 --val-names assimilation-val-1.json,assimilation-val-2.json,assimilation-val-3.json,assimilation-val-4.json,assimilation-val-5.json,assimilation-val-6.json,assimilation-val-7.json,assimilation-val-8.json,assimilation-val-9.json,assimilation-val-10.json,assimilation-val-11.json,assimilation-val-12.json,assimilation-val-13.json,assimilation-val-14.json,assimilation-val-15.json,assimilation-val-16.json,assimilation-val-17.json,assimilation-val-18.json,assimilation-val-19.json,assimilation-val-20.json
---test-names assimilation-test-1.json,assimilation-test-2.json,assimilation-test-3.json,assimilation-test-4.json,assimilation-test-5.json,assimilation-test-6.json,assimilation-test-7.json,assimilation-test-8.json,assimilation-test-9.json,assimilation-test-10.json,assimilation-test-11.json,assimilation-test-12.json,assimilation-test-13.json,assimilation-test-14.json,assimilation-test-15.json,assimilation-test-16.json,assimilation-test-17.json,assimilation-test-18.json,assimilation-test-19.json,assimilation-test-20.json
+--data-names assimilation-test-1.json,assimilation-test-2.json,assimilation-test-3.json,assimilation-test-4.json,assimilation-test-5.json,assimilation-test-6.json,assimilation-test-7.json,assimilation-test-8.json,assimilation-test-9.json,assimilation-test-10.json,assimilation-test-11.json,assimilation-test-12.json,assimilation-test-13.json,assimilation-test-14.json,assimilation-test-15.json,assimilation-test-16.json,assimilation-test-17.json,assimilation-test-18.json,assimilation-test-19.json,assimilation-test-20.json
 --data-types thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao,thetao 
 
 --device cuda 
@@ -16,14 +15,15 @@
 --n-target-data 0
 --multiple-gpus
 --lr 2e-4
+--shuffle-masks
 --out-channels 20
 --eval-names demo
---dataset-name mpi-assim 
---plot-result 0,100
+--dataset-name mpi-assim
+--eval-format mpi-assim-depth
 --global-padding
 --encoding-layers 3
 --pooling-layers 0
 --normalize-data
+--eval-names asseikeraf-r1i8p4-cnn
 
---save-model-interval 2000
---log-interval 100
+--model-names 200000
