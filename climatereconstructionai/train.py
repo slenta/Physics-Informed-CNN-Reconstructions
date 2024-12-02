@@ -16,6 +16,7 @@ from .model.net import CRAINet
 from .utils import twriter, early_stopping
 from .utils.evaluation import create_snapshot_image
 from .utils.io import load_ckpt, load_model, save_ckpt
+from .utils.save_input_params import save_input_params
 from .utils.netcdfloader import NetCDFLoader, InfiniteSampler, load_steadymask
 from .utils.profiler import load_profiler
 
@@ -42,8 +43,10 @@ def train(arg_file=None):
             os.makedirs(outdir)
 
     writer = twriter.writer()
-
     writer.set_hparams(cfg.passed_args)
+
+    # Save input parameters to a summary file
+    save_input_params(cfg, dir=cfg.snapshot_dir)
 
     # create data sets
     dataset_train = NetCDFLoader(

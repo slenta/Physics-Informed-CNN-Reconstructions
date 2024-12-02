@@ -220,7 +220,9 @@ class NetCDFLoader(Dataset):
 
         return image, mask
 
-    def get_single_item(self, ind_data, index, shuffle_masks):
+    def get_single_item(
+        self, ind_data, index, shuffle_masks, mask_indices=None, mask_ds_index=None
+    ):
         # get index of dataset
         ds_index = 0
         current_index = 0
@@ -238,7 +240,7 @@ class NetCDFLoader(Dataset):
         img_indices[img_indices > self.img_length[ds_index] - 1] = (
             self.img_length[ds_index] - 1
         )
-        if shuffle_masks:
+        if shuffle_masks and mask_indices is None:
             mask_index = self.random.randint(0, sum(self.mask_length) - 1)
             mask_ds_index = 0
             current_index = 0
@@ -261,6 +263,9 @@ class NetCDFLoader(Dataset):
             mask_indices[mask_indices > self.mask_length[mask_ds_index] - 1] = (
                 self.mask_length[mask_ds_index] - 1
             )
+        elif shuffle_masks and mask_indices is not None:
+            mask_indices = mask_indices
+            mask_ds_index = mask_ds_index
         else:
             mask_indices = img_indices
             mask_ds_index = ds_index
@@ -273,7 +278,7 @@ class NetCDFLoader(Dataset):
         images = torch.stack([images], dim=1)
         masks = torch.stack([masks], dim=1)
 
-        return images, masks
+        return images, masks, mask_indices, mask_ds_index
 
     def __getitem__(self, index):
 
@@ -281,10 +286,14 @@ class NetCDFLoader(Dataset):
         masks = []
         masked = []
         ndata = len(self.data_types)
+        mask_indices = None
+        mask_ds_index = None
 
         for i in range(ndata):
 
-            image, mask = self.get_single_item(i, index, cfg.shuffle_masks)
+            image, mask, mask_indices, mask_ds_index = self.get_single_item(
+                i, index, cfg.shuffle_masks, mask_indices, mask_ds_index
+            )
 
             if i >= ndata - cfg.n_target_data:
                 images.append(image)

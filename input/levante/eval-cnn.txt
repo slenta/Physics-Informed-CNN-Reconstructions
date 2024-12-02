@@ -15,7 +15,6 @@
 --n-target-data 0
 --multiple-gpus
 --lr 2e-4
---shuffle-masks
 --out-channels 20
 --eval-names demo
 --dataset-name mpi-assim
@@ -26,4 +25,4 @@
 --normalize-data
 --eval-names asseikeraf-r1i8p4-cnn
 
---model-names 200000
+--model-names 225000

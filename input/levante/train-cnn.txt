@@ -1,7 +1,7 @@
 --data-root-dir ./data/
---model-dir ./model-checkpoints/ 
---evaluation-dirs ./evaluations/
---log-dir ./logs/
+--model-dir ./model-checkpoints/depth/
+--evaluation-dirs ./evaluations/depth/
+--log-dir ./logs/depth/
 --mask-dir ./data/masks
 
 --data-names assimilation-train-1.json,assimilation-train-2.json,assimilation-train-3.json,assimilation-train-4.json,assimilation-train-5.json,assimilation-train-6.json,assimilation-train-7.json,assimilation-train-8.json,assimilation-train-9.json,assimilation-train-10.json,assimilation-train-11.json,assimilation-train-12.json,assimilation-train-13.json,assimilation-train-14.json,assimilation-train-15.json,assimilation-train-16.json,assimilation-train-17.json,assimilation-train-18.json,assimilation-train-19.json,assimilation-train-20.json
@@ -20,10 +20,11 @@
 --eval-names demo
 --dataset-name mpi-assim 
 --plot-result 0,100
+--shuffle-masks
 --global-padding
 --encoding-layers 3
 --pooling-layers 0
 --normalize-data
 
---save-model-interval 2000
+--save-model-interval 5000
 --log-interval 100

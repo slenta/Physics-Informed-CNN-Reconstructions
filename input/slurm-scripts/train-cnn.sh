@@ -13,4 +13,4 @@ module load python3/2022.01-gcc-11.2.0
 cd /work/uo1075/u301617/Master_Arbeit/code-goratz/
 
 source activate crai
-python -m climatereconstructionai.train --load-from-file ./input/levante/train-cnn.txt --max-iter 300000 --resume-iter 280000
+python -m climatereconstructionai.train --load-from-file ./input/levante/train-cnn.txt --max-iter 300000 --resume-iter 275000

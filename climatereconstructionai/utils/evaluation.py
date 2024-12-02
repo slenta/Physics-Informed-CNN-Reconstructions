@@ -171,13 +171,15 @@ def infill(model, dataset, eval_path, output_names, data_stats, xr_dss, i_model)
                 data_dict["image"].to(cfg.device), data_dict["mask"].to(cfg.device)
             )
 
+        # Choose time step, if lstm applied?
         for key in ("image", "mask", "gt", "output"):
             data_dict[key] = data_dict[key][:, cfg.recurrent_steps, :, :, :].to(
                 torch.device("cpu")
             )
 
-        # for key in ("image", "mask", "gt"):
-        #     data_dict[key] = data_dict[key][:, cfg.gt_channels, :, :]
+        # Question: If different data types/depth levels are used --> same channel everywhere?
+        for key in ("image", "mask", "gt"):
+            data_dict[key] = data_dict[key][:, cfg.gt_channels, :, :]
 
         if steady_mask is not None:
             for key in ("image", "gt", "output"):
