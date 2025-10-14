@@ -514,6 +514,25 @@ def set_evaluate_args(arg_file=None, prog_func=None):
         "--model-names", type=str_list, default="1000000.pth", help="Model names"
     )
     arg_parser.add_argument(
+        "--hindcast-eval",
+        type=bool,
+        default=False,
+        help="should hindcast postprocessing be evaluated",
+    )
+    arg_parser.add_argument(
+        "--reference-data",
+        type=str,
+        default=None,
+        help="path to reference data for correlation hindcast eval",
+    )
+    arg_parser.add_argument(
+        "--lead-year",
+        type=int,
+        default=None,
+        help="Leadyear used for hindcast postprocessing infilling",
+    )
+
+    arg_parser.add_argument(
         "--eval-format",
         type=str,
         default=None,

@@ -4,6 +4,7 @@ import xesmf
 
 import numpy as np
 import torch
+import wandb
 import torch.multiprocessing
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
@@ -27,6 +28,8 @@ def train(arg_file=None):
     print("* Number of GPUs: ", torch.cuda.device_count())
 
     torch.multiprocessing.set_sharing_strategy("file_system")
+
+    wandb.init(project="crai-hindcast-pp", config=cfg.passed_args, dir=cfg.snapshot_dir)
 
     np.random.seed(cfg.loop_random_seed)
     if cfg.cuda_random_seed is not None:
@@ -182,6 +185,7 @@ def train(arg_file=None):
         optimizer.step()
 
         if cfg.log_interval and n_iter % cfg.log_interval == 0:
+
             writer.update_scalars(train_loss, n_iter, "train")
 
             model.eval()
@@ -200,6 +204,11 @@ def train(arg_file=None):
             early_stop.update(val_loss["total"].item(), n_iter, model_save=model)
 
             writer.update_scalars(val_loss, n_iter, "val")
+
+            # Log on to wandb
+            wandb.log({f"train/{k}": v for k, v in train_loss.items()}, step=n_iter)
+            wandb.log({f"val/{k}": v for k, v in val_loss.items()}, step=n_iter)
+            wandb.log({"lr": lr_val}, step=n_iter)
 
             if cfg.early_stopping:
                 writer.update_scalar(
@@ -270,6 +279,7 @@ def train(arg_file=None):
     writer.add_visualizations(mask, steady_mask, output, gt, n_iter, "val")
 
     writer.close()
+    wandb.finish()
 
 
 if __name__ == "__main__":
