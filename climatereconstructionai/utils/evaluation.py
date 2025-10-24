@@ -6,6 +6,7 @@ import numpy as np
 import torch
 from tensorboardX import SummaryWriter
 import xarray as xr
+from IPython import embed
 
 from .netcdfchecker import reformat_dataset
 from .netcdfloader import load_steadymask
@@ -108,7 +109,7 @@ def get_xr_dss(xr_dss_paths, data_types):
         ds = xr.load_dataset(path, decode_times=True)
 
         # Adjust the depth dimension for both ds and ds1
-        ds = ds.isel(depth=slice(0, cfg.out_channels))
+        # ds = ds.isel(depth=slice(0, cfg.out_channels))
         ds1 = ds.copy()
 
         # ds = ds.drop_vars(data_types[i])
@@ -120,6 +121,8 @@ def get_xr_dss(xr_dss_paths, data_types):
         }
         ds1 = ds1.drop_vars(ds1.keys())
         ds1 = ds1.drop_dims("time")
+        ds1 = ds1.drop_dims("depth") if "depth" in ds1.dims else ds1
+        ds1 = ds1.drop_dims("height") if "height" in ds1.dims else ds1
         xr_dss.append([ds, ds1, dims, coords])
     return xr_dss
 
@@ -236,14 +239,35 @@ def create_outputs(
         cnames = ["gt", "output"]
         pnames = ["gt", "output"]
 
+    split_data = []
+    for cname in cnames:
+
+        if cfg.normalize_data and cname != "mask":
+            for k in range(data_dict[cname].shape[1]):
+                data_dict[cname][:, k, :, :] = renormalize(
+                    data_dict[cname][:, k, :, :],
+                    data_stats["mean"][k],
+                    data_stats["std"][k],
+                )
+
+        # Split data_dict[cname] along axis 0
+        split_arrays = np.array_split(
+            data_dict[cname].squeeze().to(torch.device("cpu")).detach().numpy(),
+            len(eval_path),
+            axis=0,
+        )
+        split_data.append(split_arrays)
+
     for j in range(len(eval_path)):
 
-        i_data = -cfg.n_target_data + j
+        if len(cfg.data_types) > 1:
+            i_data = -cfg.n_target_data + j
+        else:
+            i_data = 0
         data_type = cfg.data_types[i_data]
 
-        for cname in cnames:
-
-            rootname = "{}_{}".format(eval_path[j], cname)
+        for c, cname in enumerate(cnames):
+            rootname = f"{eval_path[j]}_ly{cfg.lead_year}_{cname}"
             if rootname not in output_names:
                 output_names[rootname] = {}
 
@@ -254,20 +278,12 @@ def create_outputs(
 
             ds = xr_dss[i_data][1].copy()
 
-            if cfg.normalize_data and cname != "mask":
-                for k in range(data_dict[cname].shape[1]):
-                    data_dict[cname][:, k, :, :] = renormalize(
-                        data_dict[cname][:, k, :, :],
-                        data_stats["mean"][k],
-                        data_stats["std"][k],
-                    )
-
             ds[data_type] = xr.DataArray(
-                data_dict[cname].to(torch.device("cpu")).detach().numpy(),
+                split_data[c][j],
                 dims=xr_dss[i_data][2],
                 coords=xr_dss[i_data][3],
             )
-            ds["time"] = xr_dss[i_data][0]["time"].values[index]
+            ds["time"] = xr_dss[i_data][0]["time"]
 
             ds = reformat_dataset(
                 xr_dss[i_data][0], ds, data_type, format_name=cfg.eval_format
@@ -302,3 +318,148 @@ def create_outputs(
                     str(xr_dss[i_data][0]["time"][time_step].values),
                     *cfg.dataset_format["scale"],
                 )
+
+
+def plot_gridwise_correlation(
+    tensor1,
+    tensor2,
+    save_path,
+    mask=None,
+    lat=None,
+    lon=None,
+    title="Gridwise Correlation",
+    plot=True,
+):
+    """
+    Calculate and plot gridwise correlation between two tensors of shape (time, lat, lon).
+
+    Args:
+        tensor1: np.ndarray or torch.Tensor, shape (time, lat, lon)
+        tensor2: np.ndarray or torch.Tensor, shape (time, lat, lon)
+        mask: np.ndarray or torch.Tensor, shape (lat, lon), binary mask (optional)
+        lat: 1D array of latitude values (optional, for axis labeling)
+        lon: 1D array of longitude values (optional, for axis labeling)
+        title: Title for the plot
+        save_path: If provided, saves the figure to this path
+    """
+    # Convert to numpy if torch tensor
+    if hasattr(tensor1, "detach"):
+        tensor1 = tensor1.detach().cpu().numpy()
+    if hasattr(tensor2, "detach"):
+        tensor2 = tensor2.detach().cpu().numpy()
+    if mask is not None and hasattr(mask, "detach"):
+        mask = mask.detach().cpu().numpy()
+
+    time, nlat, nlon = tensor1.shape
+
+    # Reshape to (time, lat*lon)
+    t1_flat = np.nan_to_num(tensor1.reshape(time, nlat * nlon), 0)
+    t2_flat = np.nan_to_num(tensor2.reshape(time, nlat * nlon), 0)
+
+    # Calculate correlation for each grid cell
+    corr = np.array(
+        [np.corrcoef(t1_flat[:, i], t2_flat[:, i])[0, 1] for i in range(nlat * nlon)]
+    )
+    corr_grid = corr.reshape(nlat, nlon)
+
+    # Plot
+    if plot == True:
+        plt.figure(figsize=(8, 6))
+        im = plt.imshow(corr_grid, origin="lower", cmap="RdBu_r", vmin=-1, vmax=1)
+
+        # Add mask overlay with small dots
+        if mask is not None:
+            y_coords = np.where(mask == 1)[1]
+            x_coords = np.where(mask == 1)[2]
+            plt.scatter(
+                x_coords,
+                y_coords,
+                s=0.003,
+                c="black",
+                alpha=0.8,
+                marker="o",
+                linewidths=0.1,
+            )
+
+        plt.colorbar(im, label="Correlation")
+        plt.title(title)
+        plt.xlabel("Longitude" if lon is not None else "Grid X")
+        plt.ylabel("Latitude" if lat is not None else "Grid Y")
+        if lat is not None and lon is not None:
+            plt.xticks(np.arange(len(lon)), np.round(lon, 2), rotation=90)
+            plt.yticks(np.arange(len(lat)), np.round(lat, 2))
+        plt.tight_layout()
+        plt.savefig(f"{save_path}/images/{title}.png", bbox_inches="tight")
+        plt.close()
+    return corr_grid
+
+
+def plot_ensemble_correlation_maps(
+    corr_array, lat=None, lon=None, save_path=None, title="Ensemble Correlation Maps"
+):
+    """
+    Plots an array of correlation maps with shape (n_ens_members, 3 or 4, nlat, nlon).
+    The 3 maps per member are: gt_correlation, output_correlation, differences.
+    If 4 maps provided, the 4th is used as a binary mask for stippling.
+
+    Args:
+        corr_array: np.ndarray, shape (n_ens_members, 3 or 4, nlat, nlon)
+        lat: 1D array of latitude values (optional)
+        lon: 1D array of longitude values (optional)
+        save_path: Directory to save the figure (optional)
+        title: Title for the figure
+    """
+    n_ens, n_maps, nlat, nlon = corr_array.shape
+
+    # Extract mask if n_maps == 4
+    mask = None
+    if n_maps == 4:
+        mask = corr_array[:, 3, :, :]  # shape: (n_ens, nlat, nlon)
+        corr_array = corr_array[:, :3, :, :]  # Only plot first 3 maps
+        n_maps = 3
+
+    map_titles = ["GT Correlation", "Output Correlation", "Difference"]
+
+    fig, axes = plt.subplots(
+        n_ens, n_maps, figsize=(6 * n_maps, 3 * n_ens), squeeze=False
+    )
+    fig.suptitle(title, fontsize=18)
+
+    for i in range(n_ens):
+        for j in range(n_maps):
+            im = axes[i, j].imshow(
+                corr_array[i, j], origin="lower", cmap="RdBu_r", vmin=-1, vmax=1
+            )
+
+            # Add mask overlay with small dots (use ensemble-specific mask)
+
+            if mask is not None:
+                y_coords = np.where(mask[i] == 1)[0]
+                x_coords = np.where(mask[i] == 1)[1]
+                axes[i, j].scatter(
+                    x_coords,
+                    y_coords,
+                    s=0.01,
+                    c="black",
+                    alpha=0.8,
+                    marker="o",
+                    linewidths=0.5,
+                )
+
+            axes[i, j].set_title(f"Member {i+1}: {map_titles[j]}")
+            axes[i, j].set_xlabel("Longitude" if lon is not None else "Grid X")
+            axes[i, j].set_ylabel("Latitude" if lat is not None else "Grid Y")
+            if lat is not None and lon is not None:
+                axes[i, j].set_xticks(np.arange(len(lon)))
+                axes[i, j].set_xticklabels(np.round(lon, 2), rotation=90)
+                axes[i, j].set_yticks(np.arange(len(lat)))
+                axes[i, j].set_yticklabels(np.round(lat, 2))
+            fig.colorbar(
+                im, ax=axes[i, j], fraction=0.046, pad=0.04, label="Correlation"
+            )
+
+    plt.tight_layout(rect=[0, 0, 1, 0.97])
+    plt.savefig(
+        f"{save_path}/images/{title.replace(' ', '_')}.png", bbox_inches="tight"
+    )
+    plt.close(fig)

@@ -1,0 +1,42 @@
+--data-root-dir ./data/
+--mask-dir ./data/masks/co2/test
+
+--config-name co2flux 
+--run-name co2flux-mpi-esm-lr-acc
+
+--model-dir ./model-checkpoints/
+--evaluation-dirs ./evaluations/
+--log-dir ./logs/
+
+--model-dir ./snapshots/
+--snapshot-dir ./snapshots
+
+--data-names co2/mpi-esm-ly3-test.json 
+--mask-names mpi-esm-ly3-acc-masks.json 
+--val-names co2/era5-1x1-val.json 
+--data-types fgco2 
+
+--device cuda 
+--n-filters 18
+--n-threads 64
+--n-target-data 0
+--multiple-gpus
+--lr 2e-4
+--out-channels 1
+--eval-names demo
+--dataset-name mpi-esm-hr
+--eval-format mpi-esm-hr
+--global-padding
+--encoding-layers 3
+--pooling-layers 0
+--normalize-data
+--eval-names mpi-esm-r1i1p1f1-co2-acc-cnn,mpi-esm-r2i1p1f1-co2-acc-cnn,mpi-esm-r3i1p1f1-co2-acc-cnn,mpi-esm-r4i1p1f1-co2-acc-cnn,mpi-esm-r5i1p1f1-co2-acc-cnn,mpi-esm-r6i1p1f1-co2-acc-cnn,mpi-esm-r7i1p1f1-co2-acc-cnn,mpi-esm-r8i1p1f1-co2-acc-cnn,mpi-esm-r9i1p1f1-co2-acc-cnn,mpi-esm-r10i1p1f1-co2-acc-cnn
+
+--xrdss-path /work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/hindcasts/MPI-ESM1-2-LR-co2flux-dcppA-hindcast/fgco2/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r1_1982-2021_1deg_ano.nc
+
+--reference-data /work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/reference-data/co2flux_1982-2021_1deg_ano_detrend.nc
+
+--hindcast-eval True
+--lead-year 3
+
+--model-names 350000

@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import xarray as xr
 from torch.utils.data import Dataset, Sampler
+from IPython import embed
 
 from .netcdfchecker import dataset_formatter
 from .normalizer import img_normalization, bnd_normalization
@@ -85,7 +86,10 @@ def nc_loadchecker(filename, data_type):
                 )
             )
 
-    ds = ds.squeeze("depth")
+    # ds = ds.squeeze("depth")
+    if "bnds" in ds.dims:
+        ds = ds.drop_dims("bnds")
+
     ds1 = dataset_formatter(ds, data_type, basename)
     ds = ds.drop_vars(data_type)
 

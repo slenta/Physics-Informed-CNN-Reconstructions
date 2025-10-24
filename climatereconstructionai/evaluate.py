@@ -11,6 +11,7 @@ from .utils.evaluation import (
 from .utils.io import load_ckpt, load_model
 from torch.utils.data import DataLoader
 from .utils.netcdfloader import NetCDFLoader, FiniteSampler
+from .evaluate_pp_skill import evaluate_pp_skill
 import xarray as xr
 import numpy as np
 from IPython import embed
@@ -194,61 +195,7 @@ def evaluate(arg_file=None, prog_func=None):
                         os.remove(output_name)
 
     if cfg.hindcast_eval == True:
-        # Load reference data
-        ref_data = xr.open_dataset(cfg.reference_data)
-        ref_data = ref_data.resample(time="1Y").mean()
-        n_ens = len(cfg.eval_names)
-        corr_array = []
-
-        for i in range(n_ens):
-            # Load output and gt for this ensemble member
-            ds_out = xr.open_dataset(f"{eval_path[i]}_ly{cfg.lead_year}_output.nc")
-            ds_gt = xr.open_dataset(
-                f"{eval_path[i]}_ly{cfg.lead_year}_gt.nc"
-            )  # (time, lat, lon)
-
-            time = ds_gt.time
-            first_year = time.min().dt.year.values
-            last_year = time.max().dt.year.values
-
-            ref = ref_data.sel(
-                time=slice(f"{first_year}-01-01", f"{last_year}-12-31")
-            ).tas.values
-            output = ds_out.tas.values
-            gt = ds_gt.tas.values
-
-            # Calculate gridwise correlations
-            gt_corr = plot_gridwise_correlation(
-                gt,
-                ref,
-                lat=None,
-                lon=None,
-                title=f"GT Correlation Member {i+1} LY {cfg.lead_year}",
-                save_path=cfg.evaluation_dirs[0],
-            )
-            output_corr = plot_gridwise_correlation(
-                output,
-                ref,
-                lat=None,
-                lon=None,
-                title=f"Output Correlation Member {i+1} LY {cfg.lead_year}",
-                save_path=cfg.evaluation_dirs[0],
-            )
-            diff_corr = output_corr - gt_corr
-
-            # Stack for this member
-            corr_array.append(np.stack([gt_corr, output_corr, diff_corr], axis=0))
-
-        corr_array = np.array(corr_array)  # shape: (n_ens, 3, lat, lon)
-
-        # Plot all ensemble correlation maps
-        plot_ensemble_correlation_maps(
-            corr_array,
-            lat=None,
-            lon=None,
-            save_path=cfg.evaluation_dirs[0],
-            title=f"Ensemble Correlation Maps LY {cfg.lead_year}",
-        )
+        evaluate_pp_skill()
 
 
 if __name__ == "__main__":

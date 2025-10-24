@@ -53,8 +53,11 @@ def dataset_formatter(ds, data_type, basename):
             if cfg.dataset_format["dimensions"][i] != ds_dims[i]:
                 raise ValueError(
                     "Inconsistent dimensions in {}."
-                    "\nThe input file should contain: {}.".format(
-                        basename, cfg.dataset_format["dimensions"]
+                    "\nThe input file should contain: {}. {} is not {}".format(
+                        basename,
+                        cfg.dataset_format["dimensions"],
+                        ds_dims[i],
+                        cfg.dataset_format["dimensions"][i],
                     )
                 )
 

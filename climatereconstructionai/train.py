@@ -29,7 +29,14 @@ def train(arg_file=None):
 
     torch.multiprocessing.set_sharing_strategy("file_system")
 
-    wandb.init(project="crai-hindcast-pp", config=cfg.passed_args, dir=cfg.snapshot_dir)
+    wandb.init(
+        project="crai-hindcast-pp",
+        name=cfg.run_name,
+        config=cfg.passed_args,
+        dir=cfg.snapshot_dir,
+    )
+
+    print(cfg.snapshot_dir, cfg.log_dir)
 
     np.random.seed(cfg.loop_random_seed)
     if cfg.cuda_random_seed is not None:

@@ -3,6 +3,7 @@ import json
 import os
 import os.path
 import pkgutil
+from IPython import embed
 
 
 def get_format(dataset_name):
@@ -77,6 +78,35 @@ def set_lambdas():
         lambda_dict.update(lambda_loss)
 
 
+def eval_args(parser, arg_file=None, prog_func=None):
+
+    if arg_file is None:
+        import sys
+
+        argv = sys.argv[1:]
+    else:
+        argv = ["--load-from-file", arg_file]
+
+    global progress_fwd
+    progress_fwd = prog_func
+    args, unknown = parser.parse_known_args(argv)
+
+    args_dict = vars(args)
+    for arg in args_dict:
+        globals()[arg] = args_dict[arg]
+
+    global evaluation_dir
+    global model_dir
+
+    evaluation_dirs[0] = f"{evaluation_dirs[0]}/{config_name}/{run_name}"
+    model_dir = f"{model_dir}/{config_name}/{run_name}/ckpt"
+
+    if not os.path.exists(evaluation_dirs[0]):
+        os.makedirs(evaluation_dirs[0])
+
+    return args
+
+
 def global_args(parser, arg_file=None, prog_func=None):
     import torch
 
@@ -106,9 +136,6 @@ def global_args(parser, arg_file=None, prog_func=None):
         skip_layers = 0
     else:
         skip_layers = 1
-
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
 
     global recurrent_steps
     global n_recurrent_steps
@@ -148,6 +175,18 @@ def global_args(parser, arg_file=None, prog_func=None):
             " This means the defined timesteps will not go beyond each files' boundary."
         )
 
+    # Adapt paths
+    global log_dir
+    global snapshot_dir
+
+    log_dir += f"{config_name}/{run_name}"
+    snapshot_dir += f"{config_name}/{run_name}"
+
+    if not os.path.exists(snapshot_dir):
+        os.makedirs(snapshot_dir)
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
     return args
 
 
@@ -176,6 +215,18 @@ def set_common_args():
         type=str_list,
         default="../data/input-goratz/original_files/anomalies-thetao/thetao_Omon_MPI-ESM-LR_asSEIKERAf_r10i8p4_195801-202010_anomalies.nc",
         help="File with dimensions for the output files",
+    )
+    arg_parser.add_argument(
+        "--run-name",
+        type=str,
+        default="None",
+        help="name for this general run",
+    )
+    arg_parser.add_argument(
+        "--config-name",
+        type=str,
+        default="None",
+        help="name for this specific set of configs",
     )
     arg_parser.add_argument(
         "--data-names",
@@ -340,6 +391,12 @@ def set_common_args():
         help="Comma separated list of values defining the permitted upper-bound of output values",
     )
     arg_parser.add_argument(
+        "--snapshot-dir",
+        type=str,
+        default="snapshots/",
+        help="Parent directory of the training checkpoints and the snapshot images",
+    )
+    arg_parser.add_argument(
         "--profile", action="store_true", help="Profile code using tensorboard profiler"
     )
     return arg_parser
@@ -352,12 +409,6 @@ def set_train_args(arg_file=None):
         type=str_list,
         default=None,
         help="Comma separated list of netCDF files (climate dataset) for validation",
-    )
-    arg_parser.add_argument(
-        "--snapshot-dir",
-        type=str,
-        default="snapshots/",
-        help="Parent directory of the training checkpoints and the snapshot images",
     )
     arg_parser.add_argument(
         "--resume-iter",
@@ -591,3 +642,4 @@ def set_evaluate_args(arg_file=None, prog_func=None):
         help="Load all the arguments from a text file",
     )
     global_args(arg_parser, arg_file, prog_func)
+    eval_args(arg_parser, arg_file, prog_func)
