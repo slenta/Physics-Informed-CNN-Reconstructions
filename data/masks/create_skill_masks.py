@@ -94,12 +94,12 @@ def create_skill_masks(gt_file, hc_file, rmse_thresh, corr_thresh, mask_output_p
 
 
 # Path to your JSON file and the ground truth file
-ly = 3
-json_path = f"/work/bk1318/k202208/crai/hindcast-pp/Physics-Informed-CNN-Reconstructions/data/test/mpi-esm-hr-ly{ly}-test.json"
-gt_file = "/work/bk1318/k202208/crai/hindcast-pp/data/era5-monthly/remapped/tas_Amon_reanalysis_era5_r1i1p1_19400101-20241231_remapped_anomaly.nc"
-rmse_thresh = 0.8
-corr_thresh = 0.35
-output_dir = f"/work/bk1318/k202208/crai/hindcast-pp/data/binary-masks/mpi_hr_ly{ly}"
+ly = 1
+json_path = f"/work/bk1318/k202208/crai/hindcast-pp/Physics-Informed-CNN-Reconstructions/data/test/tas/mpi-esm-ly{ly}-test.json"
+gt_file = "/work/bk1318/k202208/crai/hindcast-pp/data/tas/era5-monthly/remapped/tas_Amon_reanalysis_era5_r1i1p1_19400101-20241231_remapped_anomaly.nc"
+rmse_thresh = 3
+corr_thresh = 0.3
+output_dir = f"/work/bk1318/k202208/crai/hindcast-pp/data/tas/binary-masks/mpi_ly{ly}"
 
 os.makedirs(output_dir, exist_ok=True)
 

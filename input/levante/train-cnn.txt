@@ -2,7 +2,7 @@
 --mask-dir ./data/masks/tas/train
 
 --config-name tas 
---run-name era5-mpi-1x1-tas-acc
+--run-name era5-1x1-tas-acc
 
 --model-dir ./model-checkpoints/
 --evaluation-dirs ./evaluations/

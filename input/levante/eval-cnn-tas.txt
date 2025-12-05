@@ -11,8 +11,8 @@
 --model-dir ./snapshots/
 --snapshot-dir ./snapshots
 
---data-names tas/mpi-esm-hr-ly1-test.json 
---mask-names mpi-esm-hr-ly1-acc-masks.json 
+--data-names tas/mpi-esm-ly2-test.json 
+--mask-names mpi-esm-ly2-acc-masks.json 
 --val-names tas/era5-1x1-val.json 
 --reference-data /work/bk1318/k202208/crai/hindcast-pp/data/tas/era5-monthly/remapped/tas_Amon_reanalysis_era5_r1i1p1_19400101-20241231_remapped_anomaly.nc
 --data-types tas 
@@ -32,10 +32,9 @@
 --pooling-layers 0
 --normalize-data
 --eval-names mpi-esm-hr-r1i1p1f1-tas-acc-cnn,mpi-esm-hr-r2i1p1f1-tas-acc-cnn,mpi-esm-hr-r3i1p1f1-tas-acc-cnn,mpi-esm-hr-r4i1p1f1-tas-acc-cnn,mpi-esm-hr-r5i1p1f1-tas-acc-cnn,mpi-esm-hr-r6i1p1f1-tas-acc-cnn,mpi-esm-hr-r7i1p1f1-tas-acc-cnn,mpi-esm-hr-r8i1p1f1-tas-acc-cnn,mpi-esm-hr-r9i1p1f1-tas-acc-cnn 
-# --xrdss-path /work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/hindcasts/MPI-ESM1-2-LR-co2flux-dcppA-hindcast/fgco2/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r1_1982-2021_1deg_ano.nc
---xrdss-path /work/bk1318/k202208/crai/hindcast-pp/data/tas/hindcast/20251006-115506_tas_cmip6_dcpp_mpi-esm1-2-hr_1960-2018/remapped_anomaly/tas_mpi-esm1-2-hr_dcppa-hindcast_1960-2018_r1i1p1f1_1-1_anomaly.nc
+--xrdss-path /work/bk1318/k202208/crai/hindcast-pp/data/tas/hindcast/20251006-115506_tas_cmip6_dcpp_mpi-esm1-2-hr_1960-2018/remapped_anomaly/tas_mpi-esm1-2-hr_dcppa-hindcast_1960-2018_r1i1p1f1_1-1_remapped_anomaly.nc
 
 --hindcast-eval True
---lead-year 1
+--lead-year 2
 
 --model-names 300000
