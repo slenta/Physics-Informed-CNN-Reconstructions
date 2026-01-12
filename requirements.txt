@@ -3,7 +3,7 @@ numpy>=1.22
 protobuf==3.18.3
 six==1.16.0
 tensorboardX~=2.4
-torch==1.8.1
+torch>=2.8.0
 torchaudio==0.8.1
 torchvision~=0.10.1
 tqdm~=4.62.2
