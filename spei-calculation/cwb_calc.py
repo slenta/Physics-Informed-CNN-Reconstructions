@@ -34,8 +34,9 @@ import argparse
 def compute_cwb_global(
     precip: xr.DataArray,
     temp: xr.DataArray,
-    var_name: str = "CWB",
+    var_names: list = ["t2m", "precip", "CWB", "latitude", "longitude"],
     temp_unit: str = "K",
+    member: bool = True,
 ) -> xr.Dataset:
     """
     Compute CWB globally at each grid cell for all ensemble members.
@@ -46,10 +47,13 @@ def compute_cwb_global(
         Monthly total precipitation [mm]. Must have dims ('time', 'member', 'latitude', 'longitude').
     temp : xr.DataArray
         Monthly mean temperature [°C]. Must have dims ('time', 'member', 'latitude', 'longitude').
-    var_name : str, optional
-        Output variable name in the resulting xarray. Default = 'CWB'.
+    var_names : list, optional
+        List of variable names in the order [temperature, precipitation, output, lat_name, lon_name].
+        Default = ['t2m', 'precip', 'CWB', 'latitude', 'longitude'].
     temp_unit : str, optional
         Temperature unit ('K' or 'C'). Default = 'K'.
+    member : bool, optional
+        Whether data has a member dimension. Default = True.
 
     Returns
     -------
@@ -61,50 +65,151 @@ def compute_cwb_global(
     - PET computed via Hamon method.
     - CWB = Precipitation - PET
     - PET converted from daily to monthly by multiplying with days in month
+    - Time coordinates normalized to first day of month for alignment
     """
 
-    # Align data
-    precip, temp = xr.align(precip, temp)
+    # Extract variables
+    temp = temp[var_names[0]]
+    precip = precip[var_names[1]]
+
+    # Normalize time coordinates to the first day of each month
+    temp_time = pd.to_datetime(temp["time"].values)
+    precip_time = pd.to_datetime(precip["time"].values)
+
+    # Convert to first day of month for both
+    temp["time"] = pd.DatetimeIndex(
+        [pd.Timestamp(t.year, t.month, 1) for t in temp_time]
+    )
+    precip["time"] = pd.DatetimeIndex(
+        [pd.Timestamp(t.year, t.month, 1) for t in precip_time]
+    )
+
+    # Now align on the normalized time coordinate
+    precip, temp = xr.align(precip, temp, join="inner")
 
     time = precip["time"]
-    lats = precip["latitude"].values
-    lons = precip["longitude"].values
+    lats = precip[var_names[3]].values
+    lons = precip[var_names[4]].values
     n_time = len(time)
-    n_members = precip.shape[1]
+    n_members = precip.shape[1] if member else 1
 
     # Calculate days per month for each timestep
     time_pd = pd.to_datetime(time.values)
     days_in_month = np.array([pd.Period(t, freq="M").days_in_month for t in time_pd])
 
-    # Initialize outputs with full dimensions
+    # Create properly formatted coordinate DataArrays with metadata
+    lat_coord = xr.DataArray(
+        lats,
+        dims=["latitude"],
+        attrs={
+            "units": "degrees_north",
+            "long_name": "latitude",
+            "standard_name": "latitude",
+            "axis": "Y",
+        },
+    )
+
+    lon_coord = xr.DataArray(
+        lons,
+        dims=["longitude"],
+        attrs={
+            "units": "degrees_east",
+            "long_name": "longitude",
+            "standard_name": "longitude",
+            "axis": "X",
+        },
+    )
+
+    time_coord = xr.DataArray(
+        time.values,
+        dims=["time"],
+        attrs={
+            "long_name": "time",
+            "standard_name": "time",
+            "axis": "T",
+        },
+    )
+
+    member_coord = xr.DataArray(
+        np.arange(n_members) if member else [0],
+        dims=["member"],
+        attrs={
+            "long_name": "ensemble member",
+            "standard_name": "realization",
+        },
+    )
+
+    # Initialize outputs with full dimensions and proper coordinates
     cwb_out = xr.DataArray(
         data=np.full(
-            (n_time, n_members, len(lats), len(lons)), np.nan, dtype=np.float32
+            (n_time, n_members, len(lats), len(lons)),
+            np.nan,
+            dtype=np.float32,
         ),
         coords={
-            "time": time,
-            "member": np.arange(n_members),
-            "latitude": lats,
-            "longitude": lons,
+            "time": time_coord,
+            "member": member_coord,
+            "latitude": lat_coord,
+            "longitude": lon_coord,
         },
         dims=["time", "member", "latitude", "longitude"],
-        name=var_name,
+        name=var_names[2],
+        attrs={
+            "units": "mm",
+            "long_name": "Climatic Water Balance",
+            "description": "Precipitation minus Potential Evapotranspiration",
+        },
     )
 
     pet_out = cwb_out.copy(deep=True)
     pet_out.name = "PET"
+    pet_out.attrs.update(
+        {
+            "long_name": "Potential Evapotranspiration",
+            "description": "Monthly PET computed using Hamon method",
+        }
+    )
 
     precip_out = cwb_out.copy(deep=True)
     precip_out.name = "Precip"
+    precip_out.attrs.update(
+        {
+            "long_name": "Precipitation",
+            "description": "Monthly total precipitation",
+        }
+    )
 
     nlat, nlon = len(lats), len(lons)
 
     for i in tqdm(range(nlat), desc="Computing CWB (per latitude)"):
         lat = lats[i]
         for j in range(nlon):
-            for member in range(n_members):
-                P = precip[:, member, i, j]
-                T = temp[:, member, i, j]
+            if member:
+                for m in range(n_members):
+                    P = precip[:, m, i, j]
+                    T = temp[:, m, i, j]
+                    if temp_unit == "K":
+                        T = T - 273.15  # Convert from K to °C
+
+                    # Skip if all zeros or all NaN
+                    if (np.all(P == 0) and np.all(T == 0)) or (
+                        np.all(np.isnan(P)) and np.all(np.isnan(T))
+                    ):
+                        continue
+
+                    # Compute daily PET
+                    PET_daily = pet(tmean=T, latitude=np.radians(lat), method="hamon")
+
+                    # Convert to monthly PET by multiplying with days in month
+                    PET = PET_daily * days_in_month
+                    cwb = P - PET
+
+                    cwb_out[:, m, i, j] = cwb
+                    pet_out[:, m, i, j] = PET
+                    precip_out[:, m, i, j] = P
+            else:
+                P = precip[:, i, j]
+                T = temp[:, i, j]
                 if temp_unit == "K":
                     T = T - 273.15  # Convert from K to °C
 
@@ -121,20 +226,22 @@ def compute_cwb_global(
                 PET = PET_daily * days_in_month
                 cwb = P - PET
 
-                cwb_out[:, member, i, j] = cwb
-                pet_out[:, member, i, j] = PET
-                precip_out[:, member, i, j] = P
+                cwb_out[:, 0, i, j] = cwb
+                pet_out[:, 0, i, j] = PET
+                precip_out[:, 0, i, j] = P
 
     # Create Dataset with all variables
-    ds = xr.Dataset({var_name: cwb_out, "PET": pet_out, "Precip": precip_out})
+    ds = xr.Dataset({var_names[2]: cwb_out, "PET": pet_out, "Precip": precip_out})
 
     ds.attrs.update(
         {
-            "description": "Climatic Water Balance (Precipitation - Hamon PET)",
+            "title": "Climatic Water Balance (Precipitation - Hamon PET)",
+            "description": "Monthly CWB, PET, and Precipitation data",
             "units": "mm",
             "creator": "compute_cwb_global",
             "ensemble_members": n_members,
             "note": "PET converted from daily to monthly totals",
+            "Conventions": "CF-1.8",
         }
     )
 
@@ -190,28 +297,33 @@ if __name__ == "__main__":
 
     # Define output file
     hc_output_file = output_path + f"dwd-hindcast_cwb_ly{lead_year}.nc"
-    ref_output_file = output_path + f"era5-tamsat_cwb_ly{lead_year}.nc"
+    ref_output_file = output_path + f"era5-tamsat_cwb_ly.nc"
 
-    print(f"Computing CWB for all ensemble members (lead year {lead_year})")
+    print(
+        f"Computing CWB for all ensemble members (lead year {lead_year}), data type: {data_type}"
+    )
     if data_type == "ref":
         print("Using reference/ERA5 data")
         output_file = ref_output_file
         file_precip = file_era5_precip
         file_t2m = file_era5_tas
+        var_names = ["tas", "rainfall_estimate_filled", "CWB", "lat", "lon"]
+        member = False
     else:
         print("Using hindcast data")
         output_file = hc_output_file
         file_precip = hc_file_precip
         file_t2m = hc_file_t2m
+        var_names = ["t2m", "precip", "CWB", "latitude", "longitude"]
+        member = True
     print(f"Output will be saved to: {output_file}")
 
     # Load data
-    precip = xr.open_dataarray(file_precip)
-    temp = xr.open_dataarray(file_t2m)
+    precip = xr.open_dataset(file_precip)
+    temp = xr.open_dataset(file_t2m)
 
     # Compute CWB for all members
-    cwb = compute_cwb_global(precip, temp, var_name="CWB")
-
+    cwb = compute_cwb_global(precip, temp, var_names=var_names, member=member)
     # Save output
     cwb.to_netcdf(output_file)
     print(f"CWB computation complete. Saved to {output_file}")

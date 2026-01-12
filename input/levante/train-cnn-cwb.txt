@@ -2,16 +2,16 @@
 --mask-dir ./data/masks/cwb/train
 
 --config-name cwb 
---run-name era5-tamsat-africa-cwb-acc
+--run-name era5-1x1-cwb-maxthres-rmse
 
 --model-dir ./model-checkpoints/
 --evaluation-dirs ./evaluations/
 --log-dir ./logs/
 
---data-names cwb/cwb-era5-tamsat-africa.json
---mask-names dwd-hindcasts_ly1-5_acc-masks.json 
---val-names cwb/cwb-era5-tamsat-africa.json
---test-names cwb/cwb-era5-tamsat-africa.json
+--data-names cwb/cwb-era5-tamsat-africa.json 
+--mask-names dwd-hindcast_lm1-6_rmse-masks.json 
+--val-names cwb/cwb-era5-tamsat-africa.json 
+--test-names test/dwd-hindcasts_lm1-test.json
 --data-types CWB 
 
 --device cuda 

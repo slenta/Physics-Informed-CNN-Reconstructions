@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import xarray as xr
 import xesmf as xe
+from IPython import embed
 
 from .. import config as cfg
 
@@ -32,6 +33,8 @@ def reformat_dataset(ds1, ds2, data_type, format_name=None):
 
 
 def dataset_formatter(ds, data_type, basename):
+    # Check and format dataset to match the targeted dataset format. Squeeze first in case of empty dimensions
+    ds[data_type] = ds[data_type].squeeze()
     if data_type not in list(ds.keys()):
         raise ValueError(
             "Variable name '{}' not found in {}.".format(data_type, basename)

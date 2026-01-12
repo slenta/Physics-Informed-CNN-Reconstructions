@@ -1,18 +1,18 @@
 --data-root-dir ./data/
---mask-dir ./data/masks/cwb/train
+--mask-dir ./data/masks/tas/train
 
---config-name cwb 
---run-name era5-tamsat-africa-cwb-acc
+--config-name tas 
+--run-name era5-1x1-tas-acc
 
 --model-dir ./model-checkpoints/
 --evaluation-dirs ./evaluations/
 --log-dir ./logs/
 
---data-names cwb/cwb-era5-tamsat-africa.json
---mask-names dwd-hindcasts_ly1-5_acc-masks.json 
---val-names cwb/cwb-era5-tamsat-africa.json
---test-names cwb/cwb-era5-tamsat-africa.json
---data-types CWB 
+--data-names tas/era5-1x1-train.json 
+--mask-names mpi-esm-hr-ly1-3-acc-masks.json 
+--val-names tas/era5-1x1-val.json 
+--test-names test/mpi-esm-hr-ly1-test.json
+--data-types tas 
 
 --device cuda 
 --n-filters 18
@@ -23,7 +23,7 @@
 --out-channels 1
 
 --eval-names demo
---dataset-name africa-dwd-hindcasts 
+--dataset-name mpi-esm-hr
 --plot-result 0,100
 --shuffle-masks
 --global-padding

@@ -2,11 +2,19 @@ import xarray as xr
 import numpy as np
 import json
 import os
+import pandas as pd
 from IPython import embed
 
 
 def create_skill_masks(
-    gt_file, hc_file, rmse_thresh, corr_thresh, mask_output_prefix, var, timemean=True
+    gt_file,
+    hc_file,
+    rmse_thresh,
+    corr_thresh,
+    mask_output_prefix,
+    var,
+    timemean=True,
+    ly=1,
 ):
     """
     Compute RMSE and correlation masks between two files with (time, lat, lon) variables.
@@ -27,6 +35,14 @@ def create_skill_masks(
     if timemean:
         ds_gt = ds_gt.resample(time="1Y").mean()
         ds_hc = ds_hc.resample(time="1Y").mean()
+
+    # Shift forward by leadmonth due to dwd shift error
+    if var[0] == "CWB":
+        print(f"Shifting hindcast time by {ly - 1} months for CWB variable")
+        shifted_time = pd.to_datetime(ds_hc["time"].values) + pd.DateOffset(
+            months=(ly - 1)
+        )
+        ds_hc = ds_hc.assign_coords(time=shifted_time)
 
     hc_time = ds_hc["time"]
     gt_time = ds_gt["time"]
@@ -95,8 +111,8 @@ def create_skill_masks(
     # Create RMSE and ACC maps (continuous values)
     rmse_map_xr = xr.DataArray(
         rmse,
-        dims=("lat", "lon"),
-        coords={"lat": lat, "lon": lon},
+        dims=("latitude", "longitude"),
+        coords={"latitude": lat, "longitude": lon},
         name="rmse",
         attrs={
             "long_name": "Root Mean Square Error",
@@ -107,8 +123,8 @@ def create_skill_masks(
 
     acc_map_xr = xr.DataArray(
         acc,
-        dims=("lat", "lon"),
-        coords={"lat": lat, "lon": lon},
+        dims=("latitude", "longitude"),
+        coords={"latitude": lat, "longitude": lon},
         name="acc",
         attrs={
             "long_name": "Anomaly Correlation Coefficient",
@@ -120,14 +136,14 @@ def create_skill_masks(
     # Broadcast masks along time dimension
     rmse_mask_xr = xr.DataArray(
         np.broadcast_to(rmse_mask, (len(hc_time), nlat, nlon)),
-        dims=("time", "lat", "lon"),
-        coords={"time": hc_time, "lat": lat, "lon": lon},
+        dims=("time", "latitude", "longitude"),
+        coords={"time": hc_time, "latitude": lat, "longitude": lon},
         name="rmse_mask",
     )
     acc_mask_xr = xr.DataArray(
         np.broadcast_to(acc_mask, (len(hc_time), nlat, nlon)),
-        dims=("time", "lat", "lon"),
-        coords={"time": hc_time, "lat": lat, "lon": lon},
+        dims=("time", "latitude", "longitude"),
+        coords={"time": hc_time, "latitude": lat, "longitude": lon},
         name="acc_mask",
     )
 
@@ -157,31 +173,39 @@ def create_skill_masks(
 # var = "CWB"
 # mean = False
 
-ly = 1
-json_path = f"/work/bk1318/k202208/crai/hindcast-pp/Physics-Informed-CNN-Reconstructions/data/test/precip/dwd-hindcast_ly{ly}_precip-test.json"
-gt_file = "/work/bk1318/k202208/crai/hindcast-pp/data/spei/era5/precip/tamsat/tamsat_precip_monthly_1983-2024_dwdgrid.nc"
-rmse_thresh = 3
-corr_thresh = 0.1
-output_dir = f"/work/bk1318/k202208/crai/hindcast-pp/data/spei/precip/binary-masks/dwd-hindcasts_lm{ly}"
-var = ["precip", "rainfall_estimate_filled"]
+gt_file = "/work/bk1318/k202208/crai/hindcast-pp/data/spei/cwb/era5-tamsat_cwb_remapped_invlat.nc"
+rmse_thresh = 45
+corr_thresh = 0.70
+var = ["CWB", "CWB"]
 mean = False
 
+# Loop over multiple ly values
+ly_values = [1, 2, 3, 4, 5, 6]
 
-os.makedirs(output_dir, exist_ok=True)
+for ly in ly_values:
+    print(f"\n{'='*60}")
+    print(f"Processing ly = {ly}")
+    print(f"{'='*60}\n")
 
-with open(json_path, "r") as f:
-    file_list = json.load(f)
+    json_path = f"/work/bk1318/k202208/crai/hindcast-pp/Physics-Informed-CNN-Reconstructions/data/test/cwb/dwd-hindcasts_lm{ly}-test.json"
+    output_dir = f"/work/bk1318/k202208/crai/hindcast-pp/data/spei/cwb/binary-masks/dwd-hindcasts_cwb_maxthres_lm{ly}"
 
-for hc_file in file_list:
-    # Extract a name for output prefix
-    base = os.path.splitext(os.path.basename(hc_file))[0]
-    mask_output_prefix = os.path.join(output_dir, base)
-    create_skill_masks(
-        gt_file,
-        hc_file,
-        rmse_thresh,
-        corr_thresh,
-        mask_output_prefix,
-        var=var,
-        timemean=mean,
-    )
+    os.makedirs(output_dir, exist_ok=True)
+
+    with open(json_path, "r") as f:
+        file_list = json.load(f)
+
+    for hc_file in file_list:
+        # Extract a name for output prefix
+        base = os.path.splitext(os.path.basename(hc_file))[0]
+        mask_output_prefix = os.path.join(output_dir, base)
+        create_skill_masks(
+            gt_file,
+            hc_file,
+            rmse_thresh,
+            corr_thresh,
+            mask_output_prefix,
+            var=var,
+            timemean=mean,
+            ly=ly,
+        )
