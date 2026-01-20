@@ -1,18 +1,18 @@
 --data-root-dir ./data/
---mask-dir ./data/masks/tas/train
+--mask-dir ./data/masks/co2/train
 
---config-name tas 
---run-name era5-1x1-tas-acc
+--config-name fgco2 
+--run-name fgco2_MPI-ESM1-2-LR_acc
 
 --model-dir ./model-checkpoints/
 --evaluation-dirs ./evaluations/
 --log-dir ./logs/
 
---data-names tas/era5-1x1-train.json 
---mask-names mpi-esm-hr-ly1-3-acc-masks.json 
---val-names tas/era5-1x1-val.json 
---test-names test/mpi-esm-hr-ly1-test.json
---data-types tas 
+--data-names co2/co2flux-1deg-ano-detrend.json 
+--mask-names mpi-esm-ly1-5-acc-masks.json 
+--val-names co2/co2flux-1deg-ano-detrend.json
+--test-names test/mpi-esm-ly1-test.json
+--data-types fgco2 
 
 --device cuda 
 --n-filters 18

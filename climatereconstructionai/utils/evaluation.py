@@ -533,6 +533,11 @@ def plot_ensemble_correlation_maps(
     """
     n_ens, n_maps, nlat, nlon = corr_array.shape
 
+    # Keep only first 3 members and last member
+    indices = list(range(3)) + [-1]
+    corr_array = corr_array[indices]
+    n_ens = len(indices)
+
     # Extract mask if n_maps == 4
     mask = None
     if n_maps == 4:
@@ -540,7 +545,7 @@ def plot_ensemble_correlation_maps(
         corr_array = corr_array[:, :3, :, :]  # Only plot first 3 maps
         n_maps = 3
 
-    map_titles = ["GT Correlation", "Output Correlation", "Difference"]
+    map_titles = ["GT Correlation", "Output Correlation", "Diff: Out - GT"]
 
     # Create figure
     fig = plt.figure(figsize=(6 * n_maps, 3 * n_ens))
@@ -565,6 +570,9 @@ def plot_ensemble_correlation_maps(
 
             # Add coastlines
             ax.coastlines(linewidth=0.5, color="black")
+            ax.set_extent(
+                [min(lon), max(lon), min(lat), max(lat)], crs=ccrs.PlateCarree()
+            )
 
             # Add mask overlay with small dots (use ensemble-specific mask)
             if mask is not None:
@@ -612,6 +620,11 @@ def plot_ensemble_rmse_maps(
     """
     n_ens, n_maps, nlat, nlon = rmse_array.shape
 
+    # Keep only first 3 members and last member
+    indices = list(range(3)) + [-1]
+    rmse_array = rmse_array[indices]
+    n_ens = len(indices)
+
     # Extract mask if n_maps == 4
     mask = None
     if n_maps == 4:
@@ -619,7 +632,7 @@ def plot_ensemble_rmse_maps(
         rmse_array = rmse_array[:, :3, :, :]  # Only plot first 3 maps
         n_maps = 3
 
-    map_titles = ["GT RMSE", "Output RMSE", "RMSE Difference"]
+    map_titles = ["GT RMSE", "Output RMSE", "RMSE Diff: Out - GT"]
 
     # Create figure
     fig = plt.figure(figsize=(6 * n_maps, 3 * n_ens))
@@ -661,6 +674,9 @@ def plot_ensemble_rmse_maps(
 
             # Add coastlines
             ax.coastlines(linewidth=0.5, color="black")
+            ax.set_extent(
+                [min(lon), max(lon), min(lat), max(lat)], crs=ccrs.PlateCarree()
+            )
 
             # Add mask overlay with small dots (use ensemble-specific mask)
             if mask is not None:

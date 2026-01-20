@@ -1,12 +1,13 @@
 [
-	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-co2flux-dcppA-hindcast-acc/long/co2flux_MPI-ESM1-2-LR_ly1_mask_long.nc",
-	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-co2flux-dcppA-hindcast-acc/long/co2flux_MPI-ESM1-2-LR_ly1_mask_long.nc",
-	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-co2flux-dcppA-hindcast-acc/long/co2flux_MPI-ESM1-2-LR_ly1_mask_long.nc",
-	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-co2flux-dcppA-hindcast-acc/long/co2flux_MPI-ESM1-2-LR_ly1_mask_long.nc",
-	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-co2flux-dcppA-hindcast-acc/long/co2flux_MPI-ESM1-2-LR_ly1_mask_long.nc",
-	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-co2flux-dcppA-hindcast-acc/long/co2flux_MPI-ESM1-2-LR_ly1_mask_long.nc",
-	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-co2flux-dcppA-hindcast-acc/long/co2flux_MPI-ESM1-2-LR_ly1_mask_long.nc",
-	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-co2flux-dcppA-hindcast-acc/long/co2flux_MPI-ESM1-2-LR_ly1_mask_long.nc",
-	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-co2flux-dcppA-hindcast-acc/long/co2flux_MPI-ESM1-2-LR_ly1_mask_long.nc",
-	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-co2flux-dcppA-hindcast-acc/long/co2flux_MPI-ESM1-2-LR_ly1_mask_long.nc"
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r1_1982-2021_1deg_ano_detrend_acc_mask.nc",
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r2_1982-2021_1deg_ano_detrend_acc_mask.nc",
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r3_1982-2021_1deg_ano_detrend_acc_mask.nc",
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r4_1982-2021_1deg_ano_detrend_acc_mask.nc",
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r5_1982-2021_1deg_ano_detrend_acc_mask.nc",
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r6_1982-2021_1deg_ano_detrend_acc_mask.nc",
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r7_1982-2021_1deg_ano_detrend_acc_mask.nc",
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r8_1982-2021_1deg_ano_detrend_acc_mask.nc",
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r9_1982-2021_1deg_ano_detrend_acc_mask.nc",
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_r10_1982-2021_1deg_ano_detrend_acc_mask.nc",
+	"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly1/fgco2_MPI-ESM1-2-LR_dcppA-hindcast_ly1_ensmean_1982-2021_1deg_ano_detrend_acc_mask.nc"
 ]

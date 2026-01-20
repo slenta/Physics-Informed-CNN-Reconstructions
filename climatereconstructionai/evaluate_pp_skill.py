@@ -51,19 +51,24 @@ def evaluate_pp_skill(arg_file=None, prog_func=None):
                 f"{cfg.data_types[0]}"
             ].values
         else:
-            ref = ref_data[f"{cfg.data_types[0]}"].values
+            ref = np.squeeze(ref_data[f"{cfg.data_types[0]}"].values)
 
-        output = ds_out[f"{cfg.data_types[0]}"].values
-        gt = ds_gt[f"{cfg.data_types[0]}"].values
+        output = np.squeeze(ds_out[f"{cfg.data_types[0]}"].values)
+        gt = np.squeeze(ds_gt[f"{cfg.data_types[0]}"].values)
         mask = ds_mask[f"{cfg.data_types[0]}"].values
-        lats = ds_gt["lat"].values
-        lons = ds_gt["lon"].values
+        if cfg.data_types[0] == "CWB":
+            # Infill output and gt using mask
+            lats = ref_data["latitude"].values
+            lons = ref_data["longitude"].values
+        else:
+            lats = ref_data["lat"].values
+            lons = ref_data["lon"].values
 
         # Standardize longitude and latitude to uniform ranges
         output, _, _ = standardize_longitude(output, lons, lats)
         gt, _, _ = standardize_longitude(gt, lons, lats)
         ref, _, _ = standardize_longitude(ref, lons, lats)
-        mask, lons, lats = standardize_longitude(mask, lons, lats)
+        # mask, lons, lats = standardize_longitude(mask, lons, lats)
 
         # Calculate gridwise correlations
         gt_corr = plot_gridwise_correlation(
@@ -188,6 +193,7 @@ def evaluate_pp_skill(arg_file=None, prog_func=None):
         reference=ref,
         save_path=cfg.evaluation_dirs[0],
         title=f"Ensemble Timeseries NA LY {cfg.lead_year}",
+        time=time,
     )
 
     vs.create_ensemble_timeseries(
@@ -200,6 +206,7 @@ def evaluate_pp_skill(arg_file=None, prog_func=None):
         reference=ref,
         save_path=cfg.evaluation_dirs[0],
         title=f"Ensemble Timeseries ENSO LY {cfg.lead_year}",
+        time=time,
     )
 
     vs.create_ensemble_timeseries(
@@ -208,6 +215,7 @@ def evaluate_pp_skill(arg_file=None, prog_func=None):
         reference=ref,
         save_path=cfg.evaluation_dirs[0],
         title=f"Ensemble Timeseries Global LY {cfg.lead_year}",
+        time=time,
     )
 
     # Create example maps

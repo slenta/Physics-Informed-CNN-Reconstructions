@@ -1,0 +1,43 @@
+--data-root-dir ./data/
+--mask-dir ./data/masks/cwb/test
+
+--config-name cwb 
+--run-name era5-1x1-cwb-maxthres-rmse
+
+--model-dir ./model-checkpoints/
+--evaluation-dirs ./evaluations/
+--log-dir ./logs/
+
+--model-dir ./snapshots/
+--snapshot-dir ./snapshots
+
+--data-names cwb/dwd-hindcasts_lm1-test.json 
+--mask-names dwd-hindcasts_lm1_rmse-masks.json 
+--val-names cwb/cwb-era5-tamsat-africa.json 
+--data-types CWB 
+
+--device cuda 
+--n-filters 18
+--n-threads 64
+--n-target-data 0
+--multiple-gpus
+--lr 2e-4
+--out-channels 1
+--eval-names demo
+--dataset-name africa-dwd-hindcasts
+--eval-format africa-dwd-hindcasts
+--global-padding
+--encoding-layers 3
+--pooling-layers 0
+--normalize-data
+--eval-names dwd-hindcasts-r0i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r1i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r2i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r3i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r4i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r5i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r6i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r7i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r8i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r9i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r10i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r11i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r12i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r13i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r14i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r15i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r16i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r17i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r18i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r19i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r20i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r21i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r22i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r23i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r24i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r25i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r26i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r27i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r28i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r29i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r30i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r31i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r32i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r33i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r34i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r35i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r36i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r37i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r38i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r39i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r40i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r41i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r42i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r43i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r44i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r45i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r46i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r47i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r48i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r49i1p1f1-cwb-rmse-cnn,dwd-hindcasts-r50i1p1f1-cwb-rmse-cnn
+
+--xrdss-path /work/bk1318/k202208/crai/hindcast-pp/data/spei/cwb/dwd-hindcast_cwb_lm1_invlat_r0_1983-2024_xrdss.nc
+
+--reference-data /work/bk1318/k202208/crai/hindcast-pp/data/spei/cwb/era5/era5-tamsat_cwb_remapped_invlat_lat.nc
+
+--hindcast-eval True
+--lead-year 1
+
+--model-names 800000
+

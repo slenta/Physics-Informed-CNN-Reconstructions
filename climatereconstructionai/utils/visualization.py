@@ -289,6 +289,7 @@ def create_ensemble_timeseries(
     reference=None,
     lats=None,
     lons=None,
+    time=None,
     lat_range=None,
     lon_range=None,
     title="Ensemble Timeseries",
@@ -303,6 +304,7 @@ def create_ensemble_timeseries(
         reference: np.ndarray or torch.Tensor, shape (time, lat, lon), optional
         lats: 1D array of latitude values, shape (lat,), optional
         lons: 1D array of longitude values, shape (lon,), optional
+        time: 1D array of time values (e.g., years), shape (time,), optional
         lat_range: tuple (lat_min, lat_max) to cut region, optional
         lon_range: tuple (lon_min, lon_max) to cut region, optional
         title: Title for the plot
@@ -319,6 +321,12 @@ def create_ensemble_timeseries(
         lats = lats.detach().cpu().numpy()
     if lons is not None and hasattr(lons, "detach"):
         lons = lons.detach().cpu().numpy()
+    if time is not None:
+        if hasattr(time, "detach"):
+            time = time.detach().cpu().numpy()
+        elif hasattr(time, "values"):
+            # Handle xarray DataArray
+            time = time.values
 
     # Cut region if lat/lon ranges are provided
     if lat_range is not None or lon_range is not None:
@@ -371,7 +379,13 @@ def create_ensemble_timeseries(
     output_mean = np.nanmean(output_spatial_mean, axis=0)  # shape: (time,)
     output_std = np.nanstd(output_spatial_mean, axis=0)  # shape: (time,)
 
-    time_steps = np.arange(len(gt_mean))
+    # Use provided time array or default to time steps
+    if time is not None:
+        time_steps = time
+        xlabel = "Time"
+    else:
+        time_steps = np.arange(len(gt_mean))
+        xlabel = "Time Step"
 
     # Calculate RMSE and correlation if reference is provided
     rmse_val = None
@@ -431,9 +445,9 @@ def create_ensemble_timeseries(
 
     # Update title with RMSE and correlation if available
     if rmse_val is not None and corr_val is not None:
-        fig_title = f"{title} (RMSE: ML: {rmse_val:.2f}, GT: {rmse_gt:.2f}, Corr: ML: {corr_val:.2f}, GT: {corr_gt:.2f})"
+        fig_title = f"{title} (RMSE: ML: {rmse_val:.2e}, GT: {rmse_gt:.2e}, Corr: ML: {corr_val:.2f}, GT: {corr_gt:.2f})"
 
-    ax.set_xlabel("Time Step")
+    ax.set_xlabel(xlabel)
     ax.set_ylabel("Spatial Mean Value")
     ax.set_title(fig_title)
     ax.legend(loc="best", framealpha=0.9)
@@ -543,6 +557,9 @@ def create_example_maps(
             transform=ccrs.PlateCarree(),
         )
         ax0.coastlines(linewidth=0.5, color="black")
+        ax0.set_extent(
+            [min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree()
+        )
         if mask is not None:
             y_coords, x_coords = np.where(mask[0, t] == 1)
             ax0.scatter(
@@ -571,6 +588,9 @@ def create_example_maps(
             transform=ccrs.PlateCarree(),
         )
         ax1.coastlines(linewidth=0.5, color="black")
+        ax1.set_extent(
+            [min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree()
+        )
         if mask is not None:
             y_coords, x_coords = np.where(mask[0, t] == 1)
             ax1.scatter(
@@ -599,6 +619,9 @@ def create_example_maps(
             transform=ccrs.PlateCarree(),
         )
         ax2.coastlines(linewidth=0.5, color="black")
+        ax2.set_extent(
+            [min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree()
+        )
         if mask is not None:
             y_coords, x_coords = np.where(mask_min[t] == 1)
             ax2.scatter(
@@ -627,6 +650,9 @@ def create_example_maps(
             transform=ccrs.PlateCarree(),
         )
         ax3.coastlines(linewidth=0.5, color="black")
+        ax3.set_extent(
+            [min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree()
+        )
         if mask is not None:
             y_coords, x_coords = np.where(mask_min[t] == 1)
             ax3.scatter(
@@ -656,6 +682,9 @@ def create_example_maps(
                 transform=ccrs.PlateCarree(),
             )
             ax4.coastlines(linewidth=0.5, color="black")
+            ax4.set_extent(
+                [min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree()
+            )
             if mask is not None:
                 y_coords, x_coords = np.where(mask_min[t] == 1)
                 ax4.scatter(
@@ -695,6 +724,9 @@ def create_example_maps(
         transform=ccrs.PlateCarree(),
     )
     ax_mean0.coastlines(linewidth=0.5, color="black")
+    ax_mean0.set_extent(
+        [min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree()
+    )
     if mask is not None:
         y_coords, x_coords = np.where(mask_time_mean_member1 == 1)
         ax_mean0.scatter(
@@ -722,6 +754,9 @@ def create_example_maps(
         transform=ccrs.PlateCarree(),
     )
     ax_mean1.coastlines(linewidth=0.5, color="black")
+    ax_mean1.set_extent(
+        [min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree()
+    )
     if mask is not None:
         y_coords, x_coords = np.where(mask_time_mean_member1 == 1)
         ax_mean1.scatter(
@@ -749,6 +784,9 @@ def create_example_maps(
         transform=ccrs.PlateCarree(),
     )
     ax_mean2.coastlines(linewidth=0.5, color="black")
+    ax_mean2.set_extent(
+        [min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree()
+    )
     if mask is not None:
         y_coords, x_coords = np.where(mask_time_mean_ens == 1)
         ax_mean2.scatter(
@@ -776,6 +814,9 @@ def create_example_maps(
         transform=ccrs.PlateCarree(),
     )
     ax_mean3.coastlines(linewidth=0.5, color="black")
+    ax_mean3.set_extent(
+        [min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree()
+    )
     if mask is not None:
         y_coords, x_coords = np.where(mask_time_mean_ens == 1)
         ax_mean3.scatter(
@@ -805,6 +846,9 @@ def create_example_maps(
             transform=ccrs.PlateCarree(),
         )
         ax_mean4.coastlines(linewidth=0.5, color="black")
+        ax_mean4.set_extent(
+            [min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree()
+        )
         if mask is not None:
             y_coords, x_coords = np.where(mask_time_mean_ens == 1)
             ax_mean4.scatter(

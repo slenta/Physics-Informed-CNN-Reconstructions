@@ -15,6 +15,7 @@ def create_skill_masks(
     var,
     timemean=True,
     ly=1,
+    apply_landseamask=False,
 ):
     """
     Compute RMSE and correlation masks between two files with (time, lat, lon) variables.
@@ -27,10 +28,22 @@ def create_skill_masks(
         mask_output_prefix (str): Prefix for output mask files.
         var (list): Variable names [hc, gt] to extract.
         timemean (bool): Whether to resample to annual means.
+        ly (int): Lead time in months.
+        apply_landseamask (bool): If True, mark land areas (NaN in reference) as 1 in masks.
     """
     ds_hc = xr.open_dataset(hc_file)
     # Use hc_file's time to subset gt_file
-    ds_gt = xr.open_dataset(gt_file)
+    # Open with decode_times=False to handle non-CF time units like "months since"
+    ds_gt = xr.open_dataset(gt_file, decode_times=False)
+
+    # Convert numeric time to proper datetime if units are "months since"
+    if "months since" in str(ds_gt["time"].attrs.get("units", "")):
+        # Create proper datetime index from month offsets
+        time_numeric = ds_gt["time"].values
+        # Start from 1982-01-16 and add months
+        start_date = pd.Timestamp("1982-01-16")
+        new_time = [start_date + pd.DateOffset(months=int(m)) for m in time_numeric]
+        ds_gt = ds_gt.assign_coords(time=new_time)
 
     if timemean:
         ds_gt = ds_gt.resample(time="1Y").mean()
@@ -48,8 +61,8 @@ def create_skill_masks(
     gt_time = ds_gt["time"]
 
     # Get overlapping time range
-    time_start = max(hc_time.values.min(), gt_time.values.min())
-    time_end = min(hc_time.values.max(), gt_time.values.max())
+    time_start = min(hc_time.values.min(), gt_time.values.min())
+    time_end = max(hc_time.values.max(), gt_time.values.max())
 
     # Select common time period for both datasets
     ds_hc = ds_hc.sel(time=slice(time_start, time_end))
@@ -101,9 +114,21 @@ def create_skill_masks(
     rmse_mask = (rmse < rmse_thresh).astype(np.uint8)
     acc_mask = (acc > corr_thresh).astype(np.uint8)
 
+    # Apply land-sea mask if requested
+    if apply_landseamask:
+        # Identify land areas where reference data has NaNs (averaged over time)
+        land_mask = np.all(np.isnan(gt), axis=0)  # True where all timesteps are NaN
+        print(
+            f"Land mask: {np.sum(land_mask)} land pixels out of {land_mask.size} total"
+        )
+
+        # Set land areas to 1 in both masks
+        rmse_mask[land_mask] = 1
+        acc_mask[land_mask] = 1
+
     # Convert masks to xarray DataArrays
-    lat = ds_gt["latitude"].values
-    lon = ds_gt["longitude"].values
+    lat = ds_gt[var[2]].values
+    lon = ds_gt[var[3]].values
 
     # Get the full time dimension from hc_file
     hc_time = ds_hc["time"].values  # shape (ntime,)
@@ -111,8 +136,8 @@ def create_skill_masks(
     # Create RMSE and ACC maps (continuous values)
     rmse_map_xr = xr.DataArray(
         rmse,
-        dims=("latitude", "longitude"),
-        coords={"latitude": lat, "longitude": lon},
+        dims=(var[2], var[3]),
+        coords={var[2]: lat, var[3]: lon},
         name="rmse",
         attrs={
             "long_name": "Root Mean Square Error",
@@ -123,8 +148,8 @@ def create_skill_masks(
 
     acc_map_xr = xr.DataArray(
         acc,
-        dims=("latitude", "longitude"),
-        coords={"latitude": lat, "longitude": lon},
+        dims=(var[2], var[3]),
+        coords={var[2]: lat, var[3]: lon},
         name="acc",
         attrs={
             "long_name": "Anomaly Correlation Coefficient",
@@ -136,14 +161,14 @@ def create_skill_masks(
     # Broadcast masks along time dimension
     rmse_mask_xr = xr.DataArray(
         np.broadcast_to(rmse_mask, (len(hc_time), nlat, nlon)),
-        dims=("time", "latitude", "longitude"),
-        coords={"time": hc_time, "latitude": lat, "longitude": lon},
+        dims=("time", var[2], var[3]),
+        coords={"time": hc_time, var[2]: lat, var[3]: lon},
         name="rmse_mask",
     )
     acc_mask_xr = xr.DataArray(
         np.broadcast_to(acc_mask, (len(hc_time), nlat, nlon)),
-        dims=("time", "latitude", "longitude"),
-        coords={"time": hc_time, "latitude": lat, "longitude": lon},
+        dims=("time", var[2], var[3]),
+        coords={"time": hc_time, var[2]: lat, var[3]: lon},
         name="acc_mask",
     )
 
@@ -173,22 +198,22 @@ def create_skill_masks(
 # var = "CWB"
 # mean = False
 
-gt_file = "/work/bk1318/k202208/crai/hindcast-pp/data/spei/cwb/era5-tamsat_cwb_remapped_invlat.nc"
-rmse_thresh = 45
-corr_thresh = 0.70
-var = ["CWB", "CWB"]
+gt_file = "/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/reference-data/fgco2_1982-2021_1deg_ano_detrend.nc"
+rmse_thresh = 1e-9
+corr_thresh = 0.1
+var = ["fgco2", "fgco2", "lat", "lon"]
 mean = False
 
 # Loop over multiple ly values
-ly_values = [1, 2, 3, 4, 5, 6]
+ly_values = [1, 2, 3]
 
 for ly in ly_values:
     print(f"\n{'='*60}")
     print(f"Processing ly = {ly}")
     print(f"{'='*60}\n")
 
-    json_path = f"/work/bk1318/k202208/crai/hindcast-pp/Physics-Informed-CNN-Reconstructions/data/test/cwb/dwd-hindcasts_lm{ly}-test.json"
-    output_dir = f"/work/bk1318/k202208/crai/hindcast-pp/data/spei/cwb/binary-masks/dwd-hindcasts_cwb_maxthres_lm{ly}"
+    json_path = f"/work/bk1318/k202208/crai/hindcast-pp/Physics-Informed-CNN-Reconstructions/data/test/co2/mpi-esm-ly{ly}-test.json"
+    output_dir = f"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly{ly}"
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -208,4 +233,5 @@ for ly in ly_values:
             var=var,
             timemean=mean,
             ly=ly,
+            apply_landseamask=True,
         )
