@@ -12,3 +12,10 @@ __pycache__/
 snapshots/*
 outputs/*
 *.log
+
+# Evaluation files
+evaluations/*
+*.pdf
+*.jpg
+*.png
+*.nc
