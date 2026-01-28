@@ -294,6 +294,7 @@ def create_ensemble_timeseries(
     lon_range=None,
     title="Ensemble Timeseries",
     save_path=None,
+    aggregate="mean",
 ):
     """
     Create timeseries plot with ensemble mean, std, and optional reference data.
@@ -309,6 +310,11 @@ def create_ensemble_timeseries(
         lon_range: tuple (lon_min, lon_max) to cut region, optional
         title: Title for the plot
         save_path: If provided, saves the figure to this path
+        aggregate: str or tuple, determines spatial aggregation type
+            "mean": computes spatial mean (default)
+            "sum": computes spatial sum (simple integration)
+            ("area", grid_areas): area-weighted integration, where grid_areas is 
+                np.ndarray of shape (lat, lon) containing the area of each grid cell
     """
     # Convert to numpy if torch tensor
     if hasattr(gt, "detach"):
@@ -327,6 +333,22 @@ def create_ensemble_timeseries(
         elif hasattr(time, "values"):
             # Handle xarray DataArray
             time = time.values
+
+    # Handle aggregate parameter
+    grid_areas = None
+    if isinstance(aggregate, tuple) and len(aggregate) == 2:
+        agg_type, grid_areas = aggregate
+        if agg_type != "area":
+            raise ValueError(f"When aggregate is a tuple, first element must be 'area', got '{agg_type}'")
+        # Convert grid_areas to numpy if needed
+        if hasattr(grid_areas, "detach"):
+            grid_areas = grid_areas.detach().cpu().numpy()
+        elif hasattr(grid_areas, "values"):
+            grid_areas = grid_areas.values
+    elif isinstance(aggregate, str):
+        agg_type = aggregate
+    else:
+        raise ValueError(f"aggregate must be a string or tuple, got {type(aggregate)}")
 
     # Cut region if lat/lon ranges are provided
     if lat_range is not None or lon_range is not None:
@@ -368,16 +390,42 @@ def create_ensemble_timeseries(
                 lat_indices[0] : lat_indices[-1] + 1,
                 lon_indices[0] : lon_indices[-1] + 1,
             ]
+        
+        # Cut grid_areas if provided
+        if grid_areas is not None:
+            grid_areas = grid_areas[
+                lat_indices[0] : lat_indices[-1] + 1,
+                lon_indices[0] : lon_indices[-1] + 1,
+            ]
 
-    # Compute spatial mean for each ensemble member and timestep
-    gt_spatial_mean = np.nanmean(gt, axis=(2, 3))  # shape: (ens, time)
-    output_spatial_mean = np.nanmean(output, axis=(2, 3))  # shape: (ens, time)
+    # Compute spatial aggregation for each ensemble member and timestep
+    if agg_type == "mean":
+        gt_spatial = np.nanmean(gt, axis=(2, 3))  # shape: (ens, time)
+        output_spatial = np.nanmean(output, axis=(2, 3))  # shape: (ens, time)
+        ylabel = "Spatial Mean Value"
+    elif agg_type == "sum":
+        gt_spatial = np.nansum(gt, axis=(2, 3))  # shape: (ens, time)
+        output_spatial = np.nansum(output, axis=(2, 3))  # shape: (ens, time)
+        ylabel = "Spatial Sum (Integrated Value)"
+    elif agg_type == "area":
+        if grid_areas is None:
+            raise ValueError("grid_areas must be provided when using 'area' aggregation")
+        # Broadcast grid_areas to match data shape and multiply
+        # gt shape: (ens, time, lat, lon), grid_areas shape: (lat, lon)
+        gt_weighted = gt * grid_areas[np.newaxis, np.newaxis, :, :]
+        output_weighted = output * grid_areas[np.newaxis, np.newaxis, :, :]
+        # Sum over spatial dimensions
+        gt_spatial = np.nansum(gt_weighted, axis=(2, 3))  # shape: (ens, time)
+        output_spatial = np.nansum(output_weighted, axis=(2, 3))  # shape: (ens, time)
+        ylabel = "Area-Weighted Integrated Value"
+    else:
+        raise ValueError(f"aggregate type must be 'mean', 'sum', or 'area', got '{agg_type}'")
 
     # Compute ensemble mean and std across ensemble members
-    gt_mean = np.nanmean(gt_spatial_mean, axis=0)  # shape: (time,)
-    gt_std = np.nanstd(gt_spatial_mean, axis=0)  # shape: (time,)
-    output_mean = np.nanmean(output_spatial_mean, axis=0)  # shape: (time,)
-    output_std = np.nanstd(output_spatial_mean, axis=0)  # shape: (time,)
+    gt_mean = np.nanmean(gt_spatial, axis=0)  # shape: (time,)
+    gt_std = np.nanstd(gt_spatial, axis=0)  # shape: (time,)
+    output_mean = np.nanmean(output_spatial, axis=0)  # shape: (time,)
+    output_std = np.nanstd(output_spatial, axis=0)  # shape: (time,)
 
     # Use provided time array or default to time steps
     if time is not None:
@@ -391,21 +439,26 @@ def create_ensemble_timeseries(
     rmse_val = None
     corr_val = None
     if reference is not None:
-        ref_spatial_mean = np.nanmean(reference, axis=(1, 2))  # shape: (time,)
+        if agg_type == "mean":
+            ref_spatial = np.nanmean(reference, axis=(1, 2))  # shape: (time,)
+        elif agg_type == "sum":
+            ref_spatial = np.nansum(reference, axis=(1, 2))  # shape: (time,)
+        elif agg_type == "area":
+            # Apply area weighting to reference
+            ref_weighted = reference * grid_areas[np.newaxis, :, :]
+            ref_spatial = np.nansum(ref_weighted, axis=(1, 2))  # shape: (time,)
 
         # Calculate RMSE between output ensemble mean and reference
-        rmse_val = np.sqrt(np.nanmean((output_mean - ref_spatial_mean) ** 2))
-        rmse_gt = np.sqrt(np.nanmean((gt_mean - ref_spatial_mean) ** 2))
+        rmse_val = np.sqrt(np.nanmean((output_mean - ref_spatial) ** 2))
+        rmse_gt = np.sqrt(np.nanmean((gt_mean - ref_spatial) ** 2))
 
         # Calculate correlation between output ensemble mean and reference
-        valid_mask = ~(np.isnan(output_mean) | np.isnan(ref_spatial_mean))
+        valid_mask = ~(np.isnan(output_mean) | np.isnan(ref_spatial))
         if valid_mask.sum() > 0:
-            corr_val = np.corrcoef(
-                output_mean[valid_mask], ref_spatial_mean[valid_mask]
-            )[0, 1]
-            corr_gt = np.corrcoef(gt_mean[valid_mask], ref_spatial_mean[valid_mask])[
+            corr_val = np.corrcoef(output_mean[valid_mask], ref_spatial[valid_mask])[
                 0, 1
             ]
+            corr_gt = np.corrcoef(gt_mean[valid_mask], ref_spatial[valid_mask])[0, 1]
 
     # Create plot
     fig, ax = plt.subplots(figsize=(12, 6))
@@ -436,7 +489,7 @@ def create_ensemble_timeseries(
     if reference is not None:
         ax.plot(
             time_steps,
-            ref_spatial_mean,
+            ref_spatial,
             color="green",
             linewidth=2,
             linestyle="--",
@@ -448,7 +501,7 @@ def create_ensemble_timeseries(
         fig_title = f"{title} (RMSE: ML: {rmse_val:.2e}, GT: {rmse_gt:.2e}, Corr: ML: {corr_val:.2f}, GT: {corr_gt:.2f})"
 
     ax.set_xlabel(xlabel)
-    ax.set_ylabel("Spatial Mean Value")
+    ax.set_ylabel(ylabel)
     ax.set_title(fig_title)
     ax.legend(loc="best", framealpha=0.9)
     ax.grid(True, alpha=0.3)
@@ -562,9 +615,15 @@ def create_example_maps(
         )
         if mask is not None:
             y_coords, x_coords = np.where(mask[0, t] == 1)
+            if "cwb" in save_path:
+                mask_lon = x_coords + min(lons)
+                mask_lat = y_coords + min(lats)
+            else:
+                mask_lon = x_coords * 360 / nlon + min(lons)
+                mask_lat = y_coords * 180 / nlat + min(lats)
             ax0.scatter(
-                x_coords * 360 / nlon + min(lons),
-                y_coords * 180 / nlat + min(lats),
+                mask_lon,
+                mask_lat,
                 s=0.1,
                 c="black",
                 alpha=0.5,
@@ -593,9 +652,15 @@ def create_example_maps(
         )
         if mask is not None:
             y_coords, x_coords = np.where(mask[0, t] == 1)
+            if "cwb" in save_path:
+                mask_lon = x_coords + min(lons)
+                mask_lat = y_coords + min(lats)
+            else:
+                mask_lon = x_coords * 360 / nlon + min(lons)
+                mask_lat = y_coords * 180 / nlat + min(lats)
             ax1.scatter(
-                x_coords * 360 / nlon + min(lons),
-                y_coords * 180 / nlat + min(lats),
+                mask_lon,
+                mask_lat,
                 s=0.1,
                 c="black",
                 alpha=0.5,
@@ -624,9 +689,15 @@ def create_example_maps(
         )
         if mask is not None:
             y_coords, x_coords = np.where(mask_min[t] == 1)
+            if "cwb" in save_path:
+                mask_lon = x_coords + min(lons)
+                mask_lat = y_coords + min(lats)
+            else:
+                mask_lon = x_coords * 360 / nlon + min(lons)
+                mask_lat = y_coords * 180 / nlat + min(lats)
             ax2.scatter(
-                x_coords * 360 / nlon + min(lons),
-                y_coords * 180 / nlat + min(lats),
+                mask_lon,
+                mask_lat,
                 s=0.1,
                 c="black",
                 alpha=0.5,
@@ -655,9 +726,15 @@ def create_example_maps(
         )
         if mask is not None:
             y_coords, x_coords = np.where(mask_min[t] == 1)
+            if "cwb" in save_path:
+                mask_lon = x_coords + min(lons)
+                mask_lat = y_coords + min(lats)
+            else:
+                mask_lon = x_coords * 360 / nlon + min(lons)
+                mask_lat = y_coords * 180 / nlat + min(lats)
             ax3.scatter(
-                x_coords * 360 / nlon + min(lons),
-                y_coords * 180 / nlat + min(lats),
+                mask_lon,
+                mask_lat,
                 s=0.1,
                 c="black",
                 alpha=0.5,
@@ -687,9 +764,15 @@ def create_example_maps(
             )
             if mask is not None:
                 y_coords, x_coords = np.where(mask_min[t] == 1)
+                if "cwb" in save_path:
+                    mask_lon = x_coords + min(lons)
+                    mask_lat = y_coords + min(lats)
+                else:
+                    mask_lon = x_coords * 360 / nlon + min(lons)
+                    mask_lat = y_coords * 180 / nlat + min(lats)
                 ax4.scatter(
-                    x_coords * 360 / nlon + min(lons),
-                    y_coords * 180 / nlat + min(lats),
+                    mask_lon,
+                    mask_lat,
                     s=0.1,
                     c="black",
                     alpha=0.5,
@@ -729,9 +812,15 @@ def create_example_maps(
     )
     if mask is not None:
         y_coords, x_coords = np.where(mask_time_mean_member1 == 1)
+        if "cwb" in save_path:
+            mask_lon = x_coords + min(lons)
+            mask_lat = y_coords + min(lats)
+        else:
+            mask_lon = x_coords * 360 / nlon + min(lons)
+            mask_lat = y_coords * 180 / nlat + min(lats)
         ax_mean0.scatter(
-            x_coords * 360 / nlon + min(lons),
-            y_coords * 180 / nlat + min(lats),
+            mask_lon,
+            mask_lat,
             s=0.1,
             c="black",
             alpha=0.5,
@@ -759,9 +848,15 @@ def create_example_maps(
     )
     if mask is not None:
         y_coords, x_coords = np.where(mask_time_mean_member1 == 1)
+        if "cwb" in save_path:
+            mask_lon = x_coords + min(lons)
+            mask_lat = y_coords + min(lats)
+        else:
+            mask_lon = x_coords * 360 / nlon + min(lons)
+            mask_lat = y_coords * 180 / nlat + min(lats)
         ax_mean1.scatter(
-            x_coords * 360 / nlon + min(lons),
-            y_coords * 180 / nlat + min(lats),
+            mask_lon,
+            mask_lat,
             s=0.1,
             c="black",
             alpha=0.5,
@@ -789,9 +884,15 @@ def create_example_maps(
     )
     if mask is not None:
         y_coords, x_coords = np.where(mask_time_mean_ens == 1)
+        if "cwb" in save_path:
+            mask_lon = x_coords + min(lons)
+            mask_lat = y_coords + min(lats)
+        else:
+            mask_lon = x_coords * 360 / nlon + min(lons)
+            mask_lat = y_coords * 180 / nlat + min(lats)
         ax_mean2.scatter(
-            x_coords * 360 / nlon + min(lons),
-            y_coords * 180 / nlat + min(lats),
+            mask_lon,
+            mask_lat,
             s=0.1,
             c="black",
             alpha=0.5,
@@ -819,9 +920,15 @@ def create_example_maps(
     )
     if mask is not None:
         y_coords, x_coords = np.where(mask_time_mean_ens == 1)
+        if "cwb" in save_path:
+            mask_lon = x_coords + min(lons)
+            mask_lat = y_coords + min(lats)
+        else:
+            mask_lon = x_coords * 360 / nlon + min(lons)
+            mask_lat = y_coords * 180 / nlat + min(lats)
         ax_mean3.scatter(
-            x_coords * 360 / nlon + min(lons),
-            y_coords * 180 / nlat + min(lats),
+            mask_lon,
+            mask_lat,
             s=0.1,
             c="black",
             alpha=0.5,
@@ -851,9 +958,15 @@ def create_example_maps(
         )
         if mask is not None:
             y_coords, x_coords = np.where(mask_time_mean_ens == 1)
+            if "cwb" in save_path:
+                mask_lon = x_coords + min(lons)
+                mask_lat = y_coords + min(lats)
+            else:
+                mask_lon = x_coords * 360 / nlon + min(lons)
+                mask_lat = y_coords * 180 / nlat + min(lats)
             ax_mean4.scatter(
-                x_coords * 360 / nlon + min(lons),
-                y_coords * 180 / nlat + min(lats),
+                mask_lon,
+                mask_lat,
                 s=0.1,
                 c="black",
                 alpha=0.5,

@@ -13,4 +13,4 @@ source activate crai
 
 lead_year=$1
 
-python cwb_calc.py --data-type ref
+python spei_calc.py

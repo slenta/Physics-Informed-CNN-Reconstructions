@@ -200,12 +200,12 @@ def create_skill_masks(
 
 gt_file = "/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/reference-data/fgco2_1982-2021_1deg_ano_detrend.nc"
 rmse_thresh = 1e-9
-corr_thresh = 0.1
+corr_thresh = 0.2
 var = ["fgco2", "fgco2", "lat", "lon"]
 mean = False
 
 # Loop over multiple ly values
-ly_values = [1, 2, 3]
+ly_values = [1, 2, 3, 4, 5]
 
 for ly in ly_values:
     print(f"\n{'='*60}")
@@ -213,7 +213,7 @@ for ly in ly_values:
     print(f"{'='*60}\n")
 
     json_path = f"/work/bk1318/k202208/crai/hindcast-pp/Physics-Informed-CNN-Reconstructions/data/test/co2/mpi-esm-ly{ly}-test.json"
-    output_dir = f"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc/fgco2_MPI-ESM1-2-LR_ly{ly}"
+    output_dir = f"/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/masks/MPI-ESM1-2-LR-fgco2-dcppA-hindcast-acc-02/fgco2_MPI-ESM1-2-LR_ly{ly}"
 
     os.makedirs(output_dir, exist_ok=True)
 

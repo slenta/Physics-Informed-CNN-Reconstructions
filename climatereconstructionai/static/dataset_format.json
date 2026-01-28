@@ -32,8 +32,8 @@
   }, 
 
   "africa-dwd-hindcasts": { 
-  "dimensions": ["time", "lat", "lon"],
-  "axes": ["time", "lat", "lon"], 
+  "dimensions": ["time", "latitude", "longitude"],
+  "axes": ["time", "latitude", "longitude"], 
   "grid": [[-36.0, 39.0, 1.0], [-20.0, 52.0, 1.0]], 
   "step": [1.0, 1.0], 
   "scale": [null, null]

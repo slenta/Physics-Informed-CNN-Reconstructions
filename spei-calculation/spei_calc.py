@@ -1,7 +1,7 @@
 """
 Compute global Standardized Precipitation Evapotranspiration Index (SPEI)
-using the Beguería et al. (2010) method (Thornthwaite PET + log-logistic distribution)
-and the modern 'spei' Python package (Vonk, 2025).
+from pre-calculated surplus (P - PET) using the Beguería et al. (2010) method
+(log-logistic distribution) and the modern 'spei' Python package (Vonk, 2025).
 
 References:
 - Vicente-Serrano, Beguería & López-Moreno (2010), J. Climate 23(7):1696–1718.
@@ -11,7 +11,7 @@ Requires:
     pip install numpy pandas xarray scipy spei tqdm
 
 Usage:
-    python spei_calc.py --member 0
+    python spei_calc.py --input surplus_file.nc --output spei_output.nc --timescale 3
 """
 
 # Set thread limits BEFORE importing numpy/scipy
@@ -27,34 +27,30 @@ import pandas as pd
 import xarray as xr
 import scipy.stats as sps
 import spei as si
-from tqdm import tqdm
-from pet import pet
-import argparse
 from IPython import embed
+from tqdm import tqdm
 
 
-def compute_spei_global(
-    precip: xr.DataArray,
-    temp: xr.DataArray,
-    member: int = 0,
+def compute_spei_from_surplus(
+    surplus: xr.DataArray,
     timescale: int = 3,
-    var_name: str = "SPEI",
+    var_names: list = ["CWB", "spei"],
+    dist=sps.fisk,
 ) -> xr.DataArray:
     """
-    Compute SPEI globally at each grid cell for a single ensemble member.
+    Compute SPEI globally at each grid cell from pre-calculated surplus (P - PET).
 
     Parameters
     ----------
-    precip : xr.DataArray
-        Monthly total precipitation [mm]. Must have dims ('time', 'member', 'latitude', 'longitude').
-    temp : xr.DataArray
-        Monthly mean temperature [°C]. Must have dims ('time', 'member', 'latitude', 'longitude').
-    member : int, optional
-        Ensemble member index to compute SPEI for. Default = 0.
+    surplus : xr.DataArray
+        Monthly surplus (precipitation minus PET) [mm].
+        Must have dims ('time', 'latitude', 'longitude').
     timescale : int, optional
         Accumulation timescale for SPEI (months). Default = 3.
-    var_name : str, optional
+    var_names : str, optional
         Output variable name in the resulting xarray. Default = 'SPEI'.
+    dist : scipy.stats distribution, optional
+        Distribution for SPEI standardization. Default = sps.fisk (log-logistic).
 
     Returns
     -------
@@ -64,22 +60,14 @@ def compute_spei_global(
 
     Notes
     -----
-    - PET computed via Hamon method.
     - Standardization via log-logistic (Fisk) distribution.
     - Missing or constant data per grid cell are skipped gracefully.
     - NaN values converted to 0.
     """
 
-    # Align data
-    precip, temp = xr.align(precip, temp)
-
-    # Select specific ensemble member
-    precip = precip[:, member, :, :]
-    temp = temp[:, member, :, :]
-
-    time = precip["time"]
-    lats = precip["latitude"].values
-    lons = precip["longitude"].values
+    time = surplus["time"]
+    lats = surplus["latitude"].values
+    lons = surplus["longitude"].values
     n_time = len(time)
 
     # Initialize output with full time dimension
@@ -91,32 +79,25 @@ def compute_spei_global(
             "longitude": lons,
         },
         dims=["time", "latitude", "longitude"],
-        name=var_name,
+        name=var_names[1],
     )
 
     nlat, nlon = len(lats), len(lons)
     actual_output_length = None
 
-    for i in tqdm(
-        range(nlat), desc=f"Computing SPEI for member {member} (per latitude)"
-    ):
-        lat = lats[i]
+    for i in tqdm(range(nlat), desc="Computing SPEI (per latitude)"):
         for j in range(nlon):
-            P = precip[:, i, j]
-            T = temp[:, i, j]
+            surplus_grid = surplus[:, i, j].values
 
-            # Skip if all zeros
-            if np.all(P == 0) and np.all(T == 0):
+            # Skip if all zeros or all NaNs
+            if np.all(surplus_grid == 0) or np.all(np.isnan(surplus_grid)):
                 continue
 
-            PET = pet(tmean=T, latitude=np.radians(lat), method="hamon")
-
             # Take out NaNs
-            P = np.nan_to_num(P, nan=0.0)
-            PET = np.nan_to_num(PET, nan=0.0)
+            surplus_clean = np.nan_to_num(surplus_grid, nan=0.0)
 
-            surplus = pd.Series(P - PET, index=pd.to_datetime(time.values))
-            spei_series = si.spei(series=surplus, dist=sps.fisk, timescale=timescale)
+            surplus_series = pd.Series(surplus_clean, index=pd.to_datetime(time.values))
+            spei_series = si.spei(series=surplus_series, dist=dist, timescale=timescale)
 
             # Determine actual output length from first valid calculation
             if actual_output_length is None:
@@ -132,10 +113,9 @@ def compute_spei_global(
 
     spei_out.attrs.update(
         {
-            "description": f"{timescale}-month SPEI (Hamon PET)",
+            "description": f"{timescale}-month SPEI",
             "standardization": "log-logistic (Fisk)",
-            "creator": "compute_spei_global",
-            "ensemble_member": member,
+            "creator": "compute_spei_from_surplus",
             "timescale": timescale,
             "note": "NaN values converted to 0",
         }
@@ -144,53 +124,41 @@ def compute_spei_global(
     return spei_out
 
 
-lead_year = 0
-data_path = "/work/bk1318/k202208/crai/hindcast-pp/data/spei/hindcasts/"
-file_precip = data_path + f"precip/dwd-hindcast_precip_{lead_year}-{lead_year}.nc"
-file_t2m = data_path + f"t2m/full-values/dwd-hindcast_t2m_{lead_year}-{lead_year}.nc"
-
-output_path = (
-    f"/work/bk1318/k202208/crai/hindcast-pp/data/spei/spei_begueria/{lead_year}/"
-)
-
 if __name__ == "__main__":
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(
-        description="Compute SPEI for a specific ensemble member"
-    )
-    parser.add_argument(
-        "--member",
-        type=int,
-        default=0,
-        help="Ensemble member index to compute SPEI for (default: 0)",
-    )
-    parser.add_argument(
-        "--timescale",
-        type=int,
-        default=3,
-        help="SPEI timescale in months (default: 3)",
-    )
-    args = parser.parse_args()
+    # ========== CONFIGURATION ==========
+    # Edit these variables directly when running the script
 
-    # Define output file with member information
-    output_file = (
-        output_path + f"dwd-hindcast_spei_{args.timescale}m_member{args.member}.nc"
-    )
+    input_file = "/work/bk1318/k202208/crai/hindcast-pp/data/spei/cwb/era5/era5-tamsat_cwb_remapped_invlat.nc"  # Path to input NetCDF file containing surplus (P - PET)
+    output_file = "/work/bk1318/k202208/crai/hindcast-pp/data/spei/era5/era5-tamsat_spei-fisk_remapped_invlat.nc"  # Path to output NetCDF file for SPEI
+    timescale = 3  # SPEI timescale in months
+    var_names = ["CWB", "spei"]  # Variable name for output SPEI
+    distribution = (
+        sps.fisk
+    )  # Distribution for SPEI standardization (e.g., sps.fisk, sps.gamma, sps.norm)
 
-    print(
-        f"Computing SPEI for ensemble member {args.member} with {args.timescale}-month timescale"
-    )
-    print(f"Output will be saved to: {output_file}")
+    # ===================================
 
-    # Load data
-    precip = xr.open_dataarray(file_precip)
-    temp = xr.open_dataarray(file_t2m)
+    print(f"Computing SPEI with {timescale}-month timescale")
+    print(f"Input file: {input_file}")
+    print(f"Output file: {output_file}")
 
-    # Compute SPEI for specific member
-    spei = compute_spei_global(
-        precip, temp, member=args.member, timescale=args.timescale, var_name="SPEI"
+    # Load surplus data
+    surplus = xr.open_dataset(input_file)[var_names[0]].squeeze()
+
+    # Validate dimensions
+    required_dims = {"time", "latitude", "longitude"}
+    if not required_dims.issubset(set(surplus.dims)):
+        raise ValueError(
+            f"Input data must have dimensions {required_dims}, "
+            f"but found {set(surplus.dims)}"
+        )
+
+    # Compute SPEI from surplus
+    spei = compute_spei_from_surplus(
+        surplus, timescale=timescale, var_names=var_names, dist=distribution
     )
 
     # Save output
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     spei.to_netcdf(output_file)
     print(f"SPEI computation complete. Saved to {output_file}")

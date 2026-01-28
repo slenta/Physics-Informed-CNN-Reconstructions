@@ -11,8 +11,8 @@
 --model-dir ./snapshots/
 --snapshot-dir ./snapshots
 
---data-names co2/mpi-esm-ly1-test.json 
---mask-names mpi-esm-ly1-acc-masks.json 
+--data-names co2/mpi-esm-ly5-test.json 
+--mask-names mpi-esm-ly5-acc-masks.json 
 --val-names co2/co2flux-1deg-ano-detrend.json 
 --data-types fgco2 
 
@@ -37,6 +37,6 @@
 --reference-data /work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/reference-data/fgco2_1982-2021_1deg_ano_detrend.nc
 
 --hindcast-eval True
---lead-year 1
+--lead-year 5
 
---model-names 350000
+--model-names 700000

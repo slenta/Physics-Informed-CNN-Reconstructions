@@ -116,6 +116,10 @@ def evaluate_pp_skill(arg_file=None, prog_func=None):
         land_mask = np.isnan(gt_corr)
         output_corr = np.where(land_mask, np.nan, output_corr)
         output_rmse = np.where(land_mask, np.nan, output_rmse)
+        gt_rmse = np.where(land_mask, np.nan, gt_rmse)
+        gt_corr = np.where(land_mask, np.nan, gt_corr)
+        diff_corr = np.where(land_mask, np.nan, diff_corr)
+        diff_rmse = np.where(land_mask, np.nan, diff_rmse)
 
         # Stack for this member
         corr_array.append(np.stack([gt_corr, output_corr, diff_corr, mask[0]], axis=0))
@@ -124,8 +128,12 @@ def evaluate_pp_skill(arg_file=None, prog_func=None):
         out_ens.append(output)
         masks.append(mask)
 
-    gt_ens = np.array(gt_ens)  # shape: (n_ens, time, lat, lon)
-    out_ens = np.array(out_ens)  # shape: (n_ens, time, lat, lon)
+    gt_ens = np.where(
+        land_mask, np.nan, np.array(gt_ens)
+    )  # shape: (n_ens, time, lat, lon)
+    out_ens = np.where(
+        land_mask, np.nan, np.array(out_ens)
+    )  # shape: (n_ens, time, lat, lon)
     masks = np.array(masks)  # shape: (n_ens, time, lat, lon)
     corr_array = np.array(corr_array)  # shape: (n_ens, 4, lat, lon)
     rmse_array = np.array(rmse_array)  # shape: (n_ens, 4, lat, lon)
@@ -182,41 +190,99 @@ def evaluate_pp_skill(arg_file=None, prog_func=None):
     lats_na = [20, 70]
     lons_na = [-80, 10]
 
+    lats_so = [-90, -35]
+    lons_so = [-180, 360]
+
     # Create ensemble timeseries
-    vs.create_ensemble_timeseries(
-        gt_ens,
-        out_ens,
-        lats=lats,
-        lons=lons,
-        lat_range=lats_na,
-        lon_range=lons_na,
-        reference=ref,
-        save_path=cfg.evaluation_dirs[0],
-        title=f"Ensemble Timeseries NA LY {cfg.lead_year}",
-        time=time,
-    )
+    if cfg.data_types[0] != "CWB" and cfg.data_types[0] != "fgco2":
+        vs.create_ensemble_timeseries(
+            gt_ens,
+            out_ens,
+            lats=lats,
+            lons=lons,
+            lat_range=lats_na,
+            lon_range=lons_na,
+            reference=ref,
+            save_path=cfg.evaluation_dirs[0],
+            title=f"Ensemble Timeseries NA LY {cfg.lead_year}",
+            time=time,
+        )
 
-    vs.create_ensemble_timeseries(
-        gt_ens,
-        out_ens,
-        lats=lats,
-        lons=lons,
-        lat_range=lats_enso,
-        lon_range=lons_enso,
-        reference=ref,
-        save_path=cfg.evaluation_dirs[0],
-        title=f"Ensemble Timeseries ENSO LY {cfg.lead_year}",
-        time=time,
-    )
+        vs.create_ensemble_timeseries(
+            gt_ens,
+            out_ens,
+            lats=lats,
+            lons=lons,
+            lat_range=lats_enso,
+            lon_range=lons_enso,
+            reference=ref,
+            save_path=cfg.evaluation_dirs[0],
+            title=f"Ensemble Timeseries ENSO LY {cfg.lead_year}",
+            time=time,
+        )
+    elif cfg.data_types[0] != "fgco2":
+        vs.create_ensemble_timeseries(
+            gt_ens,
+            out_ens,
+            reference=ref,
+            save_path=cfg.evaluation_dirs[0],
+            title=f"Ensemble Timeseries Global LY {cfg.lead_year}",
+            time=time,
+        )
+    elif cfg.data_types[0] == "fgco2":
+        ds_area = xr.open_dataset(
+            "/work/bk1318/k202208/crai/hindcast-pp/data/co2-flux/hindcasts/MPI-ESM1-2-LR-co2flux-oceanonly-dcppA-hindcast/area-co2-hindcast.nc"
+        )
+        area = ds_area.cell_area
+        vs.create_ensemble_timeseries(
+            gt_ens,
+            out_ens,
+            lats=lats,
+            lons=lons,
+            lat_range=lats_na,
+            lon_range=lons_na,
+            reference=ref,
+            save_path=cfg.evaluation_dirs[0],
+            title=f"Ensemble Timeseries NA LY {cfg.lead_year}",
+            time=time,
+            aggregate=("area", area),
+        )
+        vs.create_ensemble_timeseries(
+            gt_ens,
+            out_ens,
+            lats=lats,
+            lons=lons,
+            lat_range=lats_so,
+            lon_range=lons_so,
+            reference=ref,
+            save_path=cfg.evaluation_dirs[0],
+            title=f"Ensemble Timeseries SO LY {cfg.lead_year}",
+            time=time,
+            aggregate=("area", area),
+        )
 
-    vs.create_ensemble_timeseries(
-        gt_ens,
-        out_ens,
-        reference=ref,
-        save_path=cfg.evaluation_dirs[0],
-        title=f"Ensemble Timeseries Global LY {cfg.lead_year}",
-        time=time,
-    )
+        vs.create_ensemble_timeseries(
+            gt_ens,
+            out_ens,
+            lats=lats,
+            lons=lons,
+            lat_range=lats_enso,
+            lon_range=lons_enso,
+            reference=ref,
+            save_path=cfg.evaluation_dirs[0],
+            title=f"Ensemble Timeseries ENSO LY {cfg.lead_year}",
+            time=time,
+            aggregate=("area", area),
+        )
+        vs.create_ensemble_timeseries(
+            gt_ens,
+            out_ens,
+            reference=ref,
+            save_path=cfg.evaluation_dirs[0],
+            title=f"Ensemble Timeseries Global LY {cfg.lead_year}",
+            time=time,
+            aggregate=("area", area),
+        )
 
     # Create example maps
     vs.create_example_maps(
