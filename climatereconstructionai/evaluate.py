@@ -12,10 +12,14 @@ from .utils.io import load_ckpt, load_model
 from torch.utils.data import DataLoader
 from .utils.netcdfloader import NetCDFLoader, FiniteSampler
 from .evaluate_pp_skill import evaluate_pp_skill
+from .spei_calculation.spei_calc import compute_spei_from_surplus
 import xarray as xr
 import numpy as np
 from IPython import embed
 from . import config as cfg
+import importlib.util
+import os
+from tqdm import tqdm
 
 
 def store_encoding(ds):
@@ -193,6 +197,25 @@ def evaluate(arg_file=None, prog_func=None):
                 for i_model in output_names[name]:
                     for output_name in output_names[name][i_model]:
                         os.remove(output_name)
+
+    # --- SPEI post-processing for CWB outputs (editable in-file) ---
+    # Edit the following tuple to change the 1-based inclusive month range used per year
+    spei_month_range = (1, 3)
+
+    if cfg.data_types[0] == "CWB":
+        embed()
+
+        names_to_process = [n for n in output_names if "output" in n.lower()]
+        for name in tqdm(names_to_process, desc="Computing SPEI for outputs"):
+            out_file = f"{name}.nc"
+            ds = xr.open_dataset(out_file)
+            var = cfg.data_types[0]
+            surplus = ds[var].squeeze()
+            spei_da = compute_spei_from_surplus(surplus, month_range=spei_month_range)
+            # Save SPEI under the variable name 'spei'
+            out_ds = spei_da.to_dataset(name="spei")
+            out_ds.to_netcdf(f"{name}_spei.nc")
+            ds.close()
 
     if cfg.hindcast_eval == True:
         evaluate_pp_skill()

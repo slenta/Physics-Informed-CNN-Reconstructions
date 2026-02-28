@@ -179,8 +179,8 @@ def global_args(parser, arg_file=None, prog_func=None):
     global log_dir
     global snapshot_dir
 
-    log_dir += f"{config_name}/{run_name}"
-    snapshot_dir += f"{config_name}/{run_name}"
+    log_dir += f"/{config_name}/{run_name}"
+    snapshot_dir += f"/{config_name}/{run_name}"
 
     if not os.path.exists(snapshot_dir):
         os.makedirs(snapshot_dir)

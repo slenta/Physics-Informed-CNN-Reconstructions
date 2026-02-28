@@ -9,6 +9,7 @@ import xarray as xr
 from IPython import embed
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import properscoring as ps
 
 from .netcdfchecker import reformat_dataset
 from .netcdfloader import load_steadymask
@@ -320,6 +321,158 @@ def create_outputs(
                     str(xr_dss[i_data][0]["time"][time_step].values),
                     *cfg.dataset_format["scale"],
                 )
+
+
+def crps_ensemble_grid(ensemble, reference):
+    """
+    Compute CRPS at each grid point for an ensemble vs. a reference time-series.
+
+    Assumes `ensemble` shape (TIME, ENSEMBLE, LAT, LON) and `reference` shape (TIME, LAT, LON).
+
+    Args:
+        ensemble: np.ndarray or torch.Tensor, shape (time, ensemble, lat, lon)
+        reference: np.ndarray or torch.Tensor, shape (time, lat, lon)
+
+    Returns:
+        np.ndarray of CRPS values with shape (time, lat, lon) or (lat, lon) if collapse_time.
+    """
+    # convert torch tensors to numpy
+    if hasattr(ensemble, "detach"):
+        ensemble = ensemble.detach().cpu().numpy()
+    if hasattr(reference, "detach"):
+        reference = reference.detach().cpu().numpy()
+    ensemble = np.asarray(ensemble)
+    reference = np.asarray(reference)
+
+    if ensemble.ndim != 4:
+        raise ValueError("ensemble must have shape (time, ensemble, lat, lon)")
+    if reference.ndim != 3:
+        raise ValueError("reference must have shape (time, lat, lon)")
+
+    # reorder to properscoring expected shape (ensemble, time, lat, lon)
+    forecasts = np.transpose(ensemble, (1, 0, 2, 3))
+
+    # check shapes match
+    if reference.shape != forecasts.shape[1:]:
+        raise ValueError(
+            f"reference shape {reference.shape} does not match forecasts time/spatial shape {forecasts.shape[1:]}"
+        )
+
+    # compute CRPS (axis=0 is ensemble axis in forecasts)
+    crps = ps.crps_ensemble(reference, forecasts, axis=0)  # returns (time, lat, lon)
+
+    return crps
+
+
+def mae_per_member_grid(ensemble, reference):
+    """
+    Compute MAE per ensemble member and grid cell.
+
+    Expects:
+      - ensemble: shape (time, ensemble, lat, lon)
+      - reference: shape (time, lat, lon)
+
+    Returns:
+      - np.ndarray shape (ensemble, lat, lon) with mean absolute error over time.
+    """
+    # convert torch tensors to numpy
+    if hasattr(ensemble, "detach"):
+        ensemble = ensemble.detach().cpu().numpy()
+    if hasattr(reference, "detach"):
+        reference = reference.detach().cpu().numpy()
+    ensemble = np.asarray(ensemble)
+    reference = np.asarray(reference)
+
+    if ensemble.ndim != 4:
+        raise ValueError("ensemble must have shape (time, ensemble, lat, lon)")
+    if reference.ndim != 3:
+        raise ValueError("reference must have shape (time, lat, lon)")
+
+    ntime, nmem, nlat, nlon = ensemble.shape
+    if reference.shape != (ntime, nlat, nlon):
+        raise ValueError(
+            f"reference shape {reference.shape} does not match ensemble time/spatial shape {(ntime, nlat, nlon)}"
+        )
+
+    # Broadcast reference to (time, ensemble, lat, lon) and compute abs error
+    abs_err = np.abs(ensemble - reference[:, None, :, :])  # shape (time, mem, lat, lon)
+
+    # Mean over time, ignoring NaNs
+    mae = np.nanmean(abs_err, axis=0)  # shape (mem, lat, lon)
+
+    return mae
+
+
+def brier_skill_score_between_ensembles(
+    ens_a,
+    ens_b,
+    reference,
+    std_multiplier=1.0,
+):
+    """
+    Compute Brier Skill Score (BSS) per grid cell comparing two ensembles.
+
+    Assumes shapes:
+      - ens_a, ens_b: (time, ensemble, lat, lon)
+      - reference: (time, lat, lon)
+
+    Returns:
+      - bss: np.ndarray shape (lat, lon)
+      - bs_a: np.ndarray shape (lat, lon)
+      - bs_b: np.ndarray shape (lat, lon)
+    """
+    # convert torch tensors to numpy if necessary
+    if hasattr(ens_a, "detach"):
+        ens_a = ens_a.detach().cpu().numpy()
+    if hasattr(ens_b, "detach"):
+        ens_b = ens_b.detach().cpu().numpy()
+    if hasattr(reference, "detach"):
+        reference = reference.detach().cpu().numpy()
+
+    ens_a = np.asarray(ens_a)
+    ens_b = np.asarray(ens_b)
+    reference = np.asarray(reference)
+
+    # basic shape checks
+    if ens_a.ndim != 4 or ens_b.ndim != 4:
+        raise ValueError("ens_a and ens_b must have shape (time, ensemble, lat, lon)")
+    if reference.ndim != 3:
+        raise ValueError("reference must have shape (time, lat, lon)")
+    if ens_a.shape[0] != reference.shape[0] or ens_b.shape[0] != reference.shape[0]:
+        raise ValueError("time dimension must match between ensembles and reference")
+    if ens_a.shape[2:] != ens_b.shape[2:] or ens_a.shape[2:] != reference.shape[1:]:
+        raise ValueError("spatial dimensions (lat, lon) must match for all inputs")
+
+    # compute a threshold per grid cell from reference climatology
+    # here: mean + std_multiplier * std (e.g., std_multiplier=1 => > mean+1*std)
+    ref_mean = np.nanmean(reference, axis=0)  # (lat, lon)
+    ref_std = np.nanstd(reference, axis=0)
+    threshold = ref_mean + std_multiplier * ref_std  # (lat, lon)
+
+    # observed binary time series: 1 when reference exceeds threshold, else 0
+    obs = (reference > threshold[None, :, :]).astype(float)  # (time, lat, lon)
+
+    # probabilistic forecasts: fraction of ensemble members exceeding threshold
+    # broadcasting: threshold[None, None, :, :] matches (time, ensemble, lat, lon)
+    p_a = np.mean(ens_a > threshold[None, None, :, :], axis=1)  # (time, lat, lon)
+    p_b = np.mean(ens_b > threshold[None, None, :, :], axis=1)  # (time, lat, lon)
+
+    # Brier Score (BS) per grid cell: mean over time of (p - o)^2
+    # Lower BS is better (0 = perfect).
+    bs_a = np.nanmean((p_a - obs) ** 2, axis=0)  # (lat, lon)
+    bs_b = np.nanmean((p_b - obs) ** 2, axis=0)  # (lat, lon)
+
+    # Brier Skill Score (BSS) comparing A to B:
+    # BSS = 1 - BS_A / BS_B
+    # - BSS > 0: ensemble A better than B
+    # - BSS = 0: equal performance
+    # - BSS < 0: ensemble A worse than B
+    with np.errstate(divide="ignore", invalid="ignore"):
+        bss = 1.0 - (bs_a / bs_b)
+        # if baseline BS_b is effectively zero, the ratio is undefined — mark as NaN
+        bss[np.isclose(bs_b, 0.0)] = np.nan
+
+    return bss, bs_a, bs_b
 
 
 def standardize_longitude(data, lons, lats=None):
