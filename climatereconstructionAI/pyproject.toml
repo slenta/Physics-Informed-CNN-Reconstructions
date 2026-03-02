@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "climatereconstructionAI"
+version = "0.2.0"
+description = "Software to train/evaluate models to reconstruct missing values in climate data (e.g., HadCRUT4) based on a U-Net with partial convolutions."
+authors = ["Climate Informatics and Technology group at DKRZ (Deutsches Klimarechenzentrum)"]
+license = "BSD 3-Clause"
+readme = "README.md"
+
+homepage = "https://github.com/FREVA-CLINT/climatereconstructionAI/tree/clint"
+repository = "https://github.com/FREVA-CLINT/climatereconstructionAI/tree/clint"
+documentation = "https://github.com/FREVA-CLINT/climatereconstructionAI/tree/clint"
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: Science/Research',
+    'Topic :: Scientific/Engineering :: Artificial Intelligence',
+    'Topic :: Scientific/Engineering :: Atmospheric Science',
+    'License :: OSI Approved :: BSD License',
+    "Operating System :: OS Independent",
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    "Programming Language :: Python :: 3.10",
+    'Programming Language :: Python :: 3 :: Only',
+]
+
+[tool.poetry.dependencies]
+python = ">= 3.10"
+torch = ">=1.11.0"
+tqdm = ">=4.64.0"
+torchvision = ">=0.12.0"
+torchmetrics= ">=0.11.2"
+numpy = ">=1.21.6"
+matplotlib = ">=3.5.1"
+tensorboardX = ">=2.5"
+tensorboard = ">=2.9.0"
+xarray = ">=2022.3.0"
+dask = ">=2022.7.0"
+netcdf4 = ">=1.5.8"
+setuptools = "==59.5.0"
+xesmf = ">=0.6.2"
+cartopy = ">=0.20.2"
+numba = ">=0.55.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+crai-evaluate = "climatereconstructionai.evaluate:evaluate"
+crai-train = "climatereconstructionai.train:train"
