@@ -1,4 +1,12 @@
 [
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/mask/era5_land_t2max_daily_1950_europe_binary_mask.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/mask/era5_land_t2max_daily_1951_europe_binary_mask.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/mask/era5_land_t2max_daily_1952_europe_binary_mask.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/mask/era5_land_t2max_daily_1953_europe_binary_mask.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/mask/era5_land_t2max_daily_1954_europe_binary_mask.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/mask/era5_land_t2max_daily_1955_europe_binary_mask.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/mask/era5_land_t2max_daily_1956_europe_binary_mask.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/mask/era5_land_t2max_daily_1957_europe_binary_mask.nc",
   "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/mask/era5_land_t2max_daily_1958_europe_binary_mask.nc",
   "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/mask/era5_land_t2max_daily_1959_europe_binary_mask.nc"
 ]

@@ -2,6 +2,7 @@ import logging
 
 import numpy as np
 import xarray as xr
+#from IPython import embed
 
 from .. import config as cfg
 
@@ -53,8 +54,9 @@ def dataset_formatter(ds, data_type, basename):
             coordinate = cfg.dataset_format["axes"][i + 1]
 
             step.append(np.unique(np.gradient(ds[data_type][coordinate].values)))
+#            embed()
             if len(step[i]) != 1:
-                raise ValueError('The {} grid is not uniform in {}.'.format(coordinate, basename))
+                raise ValueError('The {} grid is not uniform in {}, step {}.'.format(coordinate, ds[data_type][coordinate].values, step[i]))
 
             extent = cfg.dataset_format["grid"][i][1] - cfg.dataset_format["grid"][i][0]
             diff = abs(ds[data_type][coordinate].values[-1] - ds[data_type][coordinate].values[0] + step[i] - extent)

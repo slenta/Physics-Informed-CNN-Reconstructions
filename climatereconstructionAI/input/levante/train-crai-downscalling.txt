@@ -1,18 +1,15 @@
 --data-root-dir ./data/
---mask-dir ./data/masks/co2/train
-
---config-name fgco2 
---run-name fgco2_MPI-ESM1-2-LR_acc
+--mask-dir ./data/masks/
 
 --model-dir ./model-checkpoints/
 --evaluation-dirs ./evaluations/
 --log-dir ./logs/
 
---data-names co2/co2flux-1deg-ano-detrend.json 
---mask-names mpi-esm-ly1-5-acc-masks.json 
---val-names co2/co2flux-1deg-ano-detrend.json
---test-names test/mpi-esm-ly1-test.json
---data-types fgco2 
+--data-names train_file_list.json
+--mask-names mask_file_list.json
+--val-names val_file_list.json
+--test-names test/test_file_list.json
+--data-types t2m
 
 --device cuda 
 --n-filters 18
@@ -23,7 +20,7 @@
 --out-channels 1
 
 --eval-names demo
---dataset-name mpi-esm-hr
+--dataset-name era5_land_HR
 --plot-result 0,100
 --shuffle-masks
 --global-padding

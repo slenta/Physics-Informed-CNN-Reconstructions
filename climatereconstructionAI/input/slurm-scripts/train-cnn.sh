@@ -9,8 +9,8 @@
 #SBATCH --constraint a100_80
 #SBATCH --output=outputs/train-cnn.o%j 
 
-module load python3/2022.01-gcc-11.2.0
-cd /work/uo1075/u301617/Master_Arbeit/code-goratz/
+module load python3/2023.01-gcc-11.2.0
+cd /work/uo1075/u241308/ML_downscaling/code/climatereconstructionAI/
 
-source activate crai
-python -m climatereconstructionai.train --load-from-file ./input/levante/train-cnn.txt --max-iter 300000 --resume-iter 275000
+source activate crai_downscalling
+python -m climatereconstructionai.train --load-from-file ./input/levante/train-crai-downscalling.txt

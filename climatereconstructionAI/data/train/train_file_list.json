@@ -1,8 +1,8 @@
 [
-  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/highres/era5_land_t2max_daily_1950_europe_original.nc",
-  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/highres/era5_land_t2max_daily_1951_europe_original.nc",
-  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/highres/era5_land_t2max_daily_1952_europe_original.nc",
-  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/highres/era5_land_t2max_daily_1953_europe_original.nc",
-  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/highres/era5_land_t2max_daily_1954_europe_original.nc",
-  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/highres/era5_land_t2max_daily_1955_europe_original.nc"
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/lowres_in_highres_grid/era5_land_t2max_daily_1950_europe_lowres_values_in_highres_grid.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/lowres_in_highres_grid/era5_land_t2max_daily_1951_europe_lowres_values_in_highres_grid.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/lowres_in_highres_grid/era5_land_t2max_daily_1952_europe_lowres_values_in_highres_grid.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/lowres_in_highres_grid/era5_land_t2max_daily_1953_europe_lowres_values_in_highres_grid.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/lowres_in_highres_grid/era5_land_t2max_daily_1954_europe_lowres_values_in_highres_grid.nc",
+  "/work/uo1075/u241308/data_python_PostDoc/BB_challenge/data/era5_land/t2max/lowres_in_highres_grid/era5_land_t2max_daily_1955_europe_lowres_values_in_highres_grid.nc"
 ]
