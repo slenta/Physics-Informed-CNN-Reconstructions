@@ -1,7 +1,7 @@
 {
   "era5_land_HR": {
-    "dimensions": ["valid_time", "latitude", "longitude"],
-    "axes": ["valid_time", "latitude", "longitude"],
+    "dimensions": ["time", "latitude", "longitude"],
+    "axes": ["time", "latitude", "longitude"],
     "grid": [[35,72,0.1],[-15,40,0.1]],
     "step": [0.1, 0.1],
     "scale": [[-3,3],"RdBu_r"]

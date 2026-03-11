@@ -53,13 +53,15 @@ def dataset_formatter(ds, data_type, basename):
         for i in range(2):
             coordinate = cfg.dataset_format["axes"][i + 1]
 
-            step.append(np.unique(np.gradient(ds[data_type][coordinate].values)))
+#            step.append(np.unique(np.gradient(ds[data_type][coordinate].values)))
+            step.append(np.unique(np.round(np.gradient(ds[data_type][coordinate].values),6)))
 #            embed()
             if len(step[i]) != 1:
                 raise ValueError('The {} grid is not uniform in {}, step {}.'.format(coordinate, ds[data_type][coordinate].values, step[i]))
 
             extent = cfg.dataset_format["grid"][i][1] - cfg.dataset_format["grid"][i][0]
-            diff = abs(ds[data_type][coordinate].values[-1] - ds[data_type][coordinate].values[0] + step[i] - extent)
+            #diff = abs(ds[data_type][coordinate].values[-1] - ds[data_type][coordinate].values[0] + step[i] - extent)
+            diff = abs((ds[data_type][coordinate].values[-1] - ds[data_type][coordinate].values[0]) - extent)
             if diff > 1e-2:
                 raise ValueError('Incorrect {} extent in {}.\nThe extent should be: {}.'
                                  .format(coordinate, basename, extent))
