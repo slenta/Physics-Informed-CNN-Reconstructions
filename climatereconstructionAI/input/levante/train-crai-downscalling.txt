@@ -28,5 +28,5 @@
 --pooling-layers 0
 --normalize-data
 
---save-model-interval 50000
+--save-model-interval 25000
 --log-interval 100
